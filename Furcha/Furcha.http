@@ -1,0 +1,6 @@
+@Furcha_HostAddress = http://localhost:5089
+
+GET {{Furcha_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

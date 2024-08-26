@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35219.272
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FurchaAdminApi", "Furcha\FurchaAdminApi.csproj", "{CAE809DA-D0A3-4D6E-8B4E-1CE8E103713C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MqttService", "MqttService\MqttService.csproj", "{723BD5D5-91DF-4AD0-A9EB-65E8B141A28B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CAE809DA-D0A3-4D6E-8B4E-1CE8E103713C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAE809DA-D0A3-4D6E-8B4E-1CE8E103713C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAE809DA-D0A3-4D6E-8B4E-1CE8E103713C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAE809DA-D0A3-4D6E-8B4E-1CE8E103713C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{723BD5D5-91DF-4AD0-A9EB-65E8B141A28B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{723BD5D5-91DF-4AD0-A9EB-65E8B141A28B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{723BD5D5-91DF-4AD0-A9EB-65E8B141A28B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{723BD5D5-91DF-4AD0-A9EB-65E8B141A28B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DBBD3E97-F912-46C4-9D52-2466E625F251}
+	EndGlobalSection
+EndGlobal
