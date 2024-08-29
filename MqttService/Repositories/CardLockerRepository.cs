@@ -1,4 +1,5 @@
 ﻿using Npgsql;
+using System.Linq;
 
 namespace MqttService.Repositories
 {
@@ -10,7 +11,7 @@ namespace MqttService.Repositories
         {
             _dbConnection = dbConnection;
         }
-        public bool CanCardOpenLocker(int cardId, int lockerId)
+        public bool CanCardOpenLocker(int? cardId, int? lockerId)
         {
             var query = @"SELECT ""lockerId""
                   FROM ""public"".""LockerCard""
@@ -18,9 +19,7 @@ namespace MqttService.Repositories
 
             var lockerIds = Query<int>(query, new { cardId }).ToList();
 
-            return lockerIds.Contains(lockerId);
+            return lockerIds.Contains((int)lockerId);
         }
-
-
     }
 }

@@ -1,4 +1,5 @@
 ﻿using MqttService.Repositories;
+using MqttService.Services;
 
 namespace MqttService.Infrastructure
 {
@@ -13,6 +14,9 @@ namespace MqttService.Infrastructure
         {
             /* REPOSITORIES */
             services.AddScoped(typeof(CardLockerRepository));
+
+            /* SERVICES */
+            services.AddScoped(typeof(CardLockerService));            
         }
     }
 }
