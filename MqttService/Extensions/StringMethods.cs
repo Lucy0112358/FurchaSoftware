@@ -1,4 +1,6 @@
-﻿namespace MqttService.Extensions
+﻿using System.ComponentModel;
+
+namespace MqttService.Extensions
 {
     public static class StringMethods
     {
@@ -20,6 +22,34 @@
         public static bool IsNullOrEmpty(this string? @string)
         {
             return string.IsNullOrWhiteSpace(@string);
+        }
+
+        /// <summary>
+        /// Gets the description value of the DescriptionAttribute or empty string if not defined.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string GetDescription(this Enum value)
+        {
+            var description = GetAttribute<DescriptionAttribute>(value);
+            if (description != null && description.Description.Length > 0)
+            {
+                return description.Description;
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+        private static TAttribute GetAttribute<TAttribute>(this Enum value) where TAttribute : Attribute
+        {
+            var type = value.GetType();
+            var name = Enum.GetName(type, value);
+            return type.GetField(name) 
+                .GetCustomAttributes(false)
+                .OfType<TAttribute>()
+                .SingleOrDefault();
         }
 
     }
