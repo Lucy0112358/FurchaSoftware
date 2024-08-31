@@ -1,8 +1,8 @@
 ﻿using Domain.Enums;
-using MqttService.Models.MqttRequest;
-using MqttService.Repositories;
+using MqttService.Application.Models.MqttRequest;
+using MqttService.Application.Repositories;
 
-namespace MqttService.Services
+namespace MqttService.Application.Services
 {
     public class CardLockerService
     {

@@ -5,7 +5,7 @@ using Npgsql.Internal;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
-namespace MqttService.Repositories
+namespace MqttService.Application.Repositories
 {
     public class BaseRepository
     {
@@ -14,7 +14,7 @@ namespace MqttService.Repositories
 
         public BaseRepository(NpgsqlConnection dbConnection)
         {
-            this.furchaContext = dbConnection;
+            furchaContext = dbConnection;
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace MqttService.Repositories
         /// <returns>Schema name as string.</returns>
         private string GetSchema(Type type)
         {
-            var tableAttribute = type.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.TableAttribute>();
+            var tableAttribute = type.GetCustomAttribute<TableAttribute>();
 
             // In case the schema is not defined, return the default schema.
             if (tableAttribute == null || string.IsNullOrEmpty(tableAttribute.Schema))
@@ -86,7 +86,7 @@ namespace MqttService.Repositories
 
             using (var sqlConnection = new PostgreSqlConnection(furchaContext.ConnectionString))
             {
-                return sqlConnection.Query<T, T2>(sql: sql, map, param: whereParam);
+                return sqlConnection.Query(sql: sql, map, param: whereParam);
             }
         }
 

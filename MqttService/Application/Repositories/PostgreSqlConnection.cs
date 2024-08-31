@@ -2,7 +2,7 @@
 using Npgsql;
 using System.Data;
 
-namespace MqttService.Repositories
+namespace MqttService.Application.Repositories
 {
     public class PostgreSqlConnection : IDisposable
     {
@@ -86,7 +86,7 @@ namespace MqttService.Repositories
             {
                 if (_connection != null)
                 {
-                    Close(); 
+                    Close();
                     _connection.Dispose();
                     _connection = null;
                 }

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Dapper;
 using System.Data;
-using MqttService.Repositories;
 using Npgsql;
+using MqttService.Application.Repositories;
 
 namespace MqttService.Controllers
 {

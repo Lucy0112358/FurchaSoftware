@@ -2,7 +2,7 @@
 using MqttService.Extensions;
 using System.Diagnostics.Contracts;
 
-namespace MqttService.Helpers.Exceptions
+namespace MqttService.Application.Exceptions
 {
     public class BaseException : ApplicationException
     {

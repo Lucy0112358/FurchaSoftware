@@ -1,5 +1,5 @@
-﻿using MqttService.Repositories;
-using MqttService.Services;
+﻿using MqttService.Application.Repositories;
+using MqttService.Application.Services;
 
 namespace MqttService.Infrastructure
 {
