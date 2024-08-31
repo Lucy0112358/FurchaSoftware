@@ -34,7 +34,7 @@ namespace MqttService
                 return new NpgsqlConnection(connectionString);
             });
 
-            new Injection().GenerateInjectionFurcha(builder.Services);
+            builder.Services.AddInfrasructure();
 
             var app = builder.Build();
 
