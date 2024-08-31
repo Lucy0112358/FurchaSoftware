@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace MqttService.Enums
+namespace Domain.Enums
 {
     public enum MqttErrorCodeEnum : long
     {

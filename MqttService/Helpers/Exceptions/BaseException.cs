@@ -1,4 +1,4 @@
-﻿using MqttService.Enums;
+﻿using Domain.Enums;
 using MqttService.Extensions;
 using System.Diagnostics.Contracts;
 
