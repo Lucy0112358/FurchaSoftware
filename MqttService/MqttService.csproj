@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Helpers\" />
+    <Folder Include="Infrastructure\Helpers\" />
     <Folder Include="Application\Models\MqttResult\" />
   </ItemGroup>
 

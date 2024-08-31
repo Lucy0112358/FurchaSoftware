@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using MqttService.Extensions;
+using MqttService.Infrastructure.Extensions;
 using Npgsql;
 using Npgsql.Internal;
 using System.ComponentModel.DataAnnotations.Schema;

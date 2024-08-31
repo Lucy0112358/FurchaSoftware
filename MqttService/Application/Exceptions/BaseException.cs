@@ -1,5 +1,5 @@
 ﻿using Domain.Enums;
-using MqttService.Extensions;
+using MqttService.Infrastructure.Extensions;
 using System.Diagnostics.Contracts;
 
 namespace MqttService.Application.Exceptions
