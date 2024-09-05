@@ -1,4 +1,6 @@
-﻿using Npgsql;
+﻿using Domain.Entities;
+using Domain.Enums;
+using Npgsql;
 using System.Linq;
 
 namespace MqttService.Application.Repositories
@@ -21,5 +23,21 @@ namespace MqttService.Application.Repositories
 
             return lockerIds.Contains((int)lockerId);
         }
+
+        public List<Locker> GetLockersByCardId(int cardId)
+        {
+            var query = @"
+        SELECT l.* 
+        FROM ""public"".""Lockers"" l
+        INNER JOIN ""public"".""LockerCard"" lc
+        ON l.""lockerId"" = lc.""lockerId""
+        WHERE lc.""cardId"" = @cardId";
+
+            return Query<Locker>(query, new { cardId }).ToList();
+
+        }
+
+
+
     }
 }
