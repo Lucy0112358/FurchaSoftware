@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace MqttService.Extensions
+namespace MqttService.Infrastructure.Extensions
 {
     public static class StringMethods
     {
@@ -31,7 +31,7 @@ namespace MqttService.Extensions
         /// <returns></returns>
         public static string GetDescription(this Enum value)
         {
-            var description = GetAttribute<DescriptionAttribute>(value);
+            var description = value.GetAttribute<DescriptionAttribute>();
             if (description != null && description.Description.Length > 0)
             {
                 return description.Description;
@@ -46,7 +46,7 @@ namespace MqttService.Extensions
         {
             var type = value.GetType();
             var name = Enum.GetName(type, value);
-            return type.GetField(name) 
+            return type.GetField(name)
                 .GetCustomAttributes(false)
                 .OfType<TAttribute>()
                 .SingleOrDefault();

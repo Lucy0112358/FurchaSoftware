@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.Design;
 
-namespace MqttService.Entities
+namespace Domain.Entities
 {
     [Table("Card", Schema = "public")]
     public class Card
@@ -15,7 +15,7 @@ namespace MqttService.Entities
         [InverseProperty("LockerCard")]
         public IEnumerable<LockerCard> LockerCards { get; set; }
 
-/*        [ForeignKey("UserId")]
-        public virtual User User { get; set; }*/
+        /*        [ForeignKey("UserId")]
+                public virtual User User { get; set; }*/
     }
 }

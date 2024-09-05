@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MqttService.Entities
+namespace Domain.Entities
 {
     [Table("Locker", Schema = "public")]
     public class Locker

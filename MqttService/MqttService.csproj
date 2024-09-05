@@ -14,7 +14,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\MqttResult\" />
+    <Folder Include="Infrastructure\Helpers\" />
+    <Folder Include="Application\Models\MqttResult\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
 </Project>

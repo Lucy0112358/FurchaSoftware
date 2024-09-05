@@ -1,8 +1,8 @@
-﻿using MqttService.Enums;
-using MqttService.Extensions;
+﻿using Domain.Enums;
+using MqttService.Infrastructure.Extensions;
 using System.Diagnostics.Contracts;
 
-namespace MqttService.Helpers.Exceptions
+namespace MqttService.Application.Exceptions
 {
     public class BaseException : ApplicationException
     {

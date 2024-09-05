@@ -1,4 +1,4 @@
-﻿namespace MqttService.Models.MqttRequest
+﻿namespace MqttService.Application.Models.MqttRequest
 {
     public class MqttRequest
     {

@@ -1,7 +1,7 @@
 ﻿using Npgsql;
 using System.Linq;
 
-namespace MqttService.Repositories
+namespace MqttService.Application.Repositories
 {
     public class CardLockerRepository : BaseRepository
     {
