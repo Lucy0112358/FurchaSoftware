@@ -3,7 +3,7 @@ using MqttService.Application.Services;
 
 namespace MqttService.Infrastructure
 {
-    public static class DependancyInjection
+    public static class MqttServiceInjection
     {
         public static IServiceCollection AddInfrasructure(this IServiceCollection services)
         {
