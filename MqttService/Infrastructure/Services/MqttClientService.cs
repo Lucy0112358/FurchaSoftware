@@ -55,7 +55,7 @@ namespace MqttService.Infrastructure.Services
                 Console.WriteLine($"Received connection message: {message} on topic {topic}");
                 BrainModuleModel mqttRequestConnection = JsonSerializer.Deserialize<BrainModuleModel>(message);
                 Console.WriteLine($"Brain: {mqttRequestConnection.Brain} IP Adress: {mqttRequestConnection.IP}");
-                // Branch connection processing logic (BranchUID) is here
+                SubscribeToBrainTopic(branchUID, mqttRequestConnection.Brain);
             }
             else
             {
@@ -91,6 +91,14 @@ namespace MqttService.Infrastructure.Services
 
             mqttClient.PublishAsync(mqttMessage).Wait();
             Console.WriteLine($"Response sent: {response} to topic {responseTopic}");
+        }
+
+        private async Task SubscribeToBrainTopic(int branchUID, int brainUID)
+        {
+            // Subscribing to the topic get/{branchUID}/{brainUID}/cards
+            var topic = $"get/{branchUID}/{brainUID}/cards";
+            await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(topic).Build());
+            Console.WriteLine($"Subscribed to topic {topic}");
         }
 
         private async Task<IMqttClient> InitializeClient()
