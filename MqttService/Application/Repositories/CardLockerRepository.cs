@@ -46,7 +46,7 @@ namespace MqttService.Application.Repositories
         public List<BrainModule> GetBrainsByBranchId(int branchId)
         {
             var query = @"
-        SELECT l.* 
+        SELECT * 
         FROM ""public"".""BrainModule""        
         WHERE ""branchId"" = @branchId";
 
