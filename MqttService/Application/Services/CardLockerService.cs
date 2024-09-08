@@ -40,5 +40,17 @@ namespace MqttService.Application.Services
 
             return lockers;
         }
+
+        public List<Branch> GetAllActiveBranches()
+        {
+            var allBranches = cardLockerRepository.GetAllActiveBranches();
+            return allBranches;
+        }
+
+        public List<BrainModule> GetBrainsByBranchId(int branchId)
+        {
+            var brainsByBranchId = cardLockerRepository.GetBrainsByBranchId(branchId);
+            return brainsByBranchId;
+        }
     }
 }
