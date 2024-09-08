@@ -1,4 +1,5 @@
-﻿using Domain.Enums;
+﻿using Domain.Entities;
+using Domain.Enums;
 using MqttService.Application.Models.MqttRequest;
 using MqttService.Application.Repositories;
 
@@ -30,6 +31,14 @@ namespace MqttService.Application.Services
             }
 
             return MqttErrorCodeEnum.Success;
+        }
+
+        //Later will handle the empty case
+        public List<Locker> GetLockersByCardId(int cardId)
+        {
+            var lockers = cardLockerRepository.GetLockersByCardId(cardId);
+
+            return lockers;
         }
     }
 }
