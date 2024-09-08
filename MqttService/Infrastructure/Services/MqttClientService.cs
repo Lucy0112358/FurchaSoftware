@@ -24,7 +24,11 @@ namespace MqttService.Infrastructure.Services
 
         public void HandleRequest(string topic, string message)
         {
-            int branchUID = 1;
+            var branchUIDStr = topic.Split('/')[1];
+            if (!int.TryParse(branchUIDStr, out int branchUID))
+            {
+                //handle the case when converted wasn't successfully
+            }
             if (topic.StartsWith("get/"))
             {
                 CardModel mqttRequestGet = JsonSerializer.Deserialize<CardModel>(message);
@@ -38,14 +42,18 @@ namespace MqttService.Infrastructure.Services
                 }
                 var response = cardLockerService.GetLockersByCardId(mqttRequestGet.CardNumber.Value);
                 var lockerIds = response.Select(x => x.Id).ToList();
-                int brainUID = 1;
+                var brainUIDStr = topic.Split('/')[2];
+                if (!int.TryParse(brainUIDStr, out int brainUID))
+                {
+                    // brainUID error
+                }
                 SendResponseSet(branchUID, brainUID, string.Join(";", lockerIds));
             }
             else if (topic.StartsWith("connection/"))
             {
                 // Processing the topic connection/BranchUID
                 Console.WriteLine($"Received connection message: {message} on topic {topic}");
-                BrainModule mqttRequestConnection = JsonSerializer.Deserialize<BrainModule>(message);
+                BrainModuleModel mqttRequestConnection = JsonSerializer.Deserialize<BrainModuleModel>(message);
                 Console.WriteLine($"Brain: {mqttRequestConnection.Brain} IP Adress: {mqttRequestConnection.IP}");
                 // Branch connection processing logic (BranchUID) is here
             }
@@ -92,12 +100,40 @@ namespace MqttService.Infrastructure.Services
 
             var options = new MqttClientOptionsBuilder()
                 .WithClientId("Server")
-                .WithTcpServer("broker.hivemq.com", 1883)
-                //.WithCredentials("Andresuga", "Andresuga0713.")
-                //.WithTls()
+                //.WithTcpServer("broker.hivemq.com", 1883)
+                .WithTcpServer("2839c2c4ff524480b1631084b1055b89.s1.eu.hivemq.cloud", 8883)
+                .WithCredentials("Andresuga", "Andresuga0713.")
+                .WithTlsOptions(new MqttClientTlsOptions() { UseTls = true })
                 .Build();
 
+            client.ConnectedAsync += async e =>
+            {
+                Console.WriteLine("Server connected successfully with MQTT Broker.");
+                var branchs = cardLockerService.GetAllActiveBranches();
+                foreach (var branch in branchs)
+                {
+                    await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"connection/{branch.Id}").Build());
+                    Console.WriteLine($"Subscribed to topic connection/{branch.Id}");
+                }
+                int branchUID = 1;
+                int brainUID = cardLockerService.GetBrainsByBranchId(branchUID).FirstOrDefault().Id; //later change to current brain 
+                await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"get/{branchUID}/{brainUID}/cards").Build());
+                Console.WriteLine($"Subscribed to topic get/{branchUID}/{brainUID}/cards");
 
+                await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"get/{branchUID}/BrainUID/lockers").Build());
+                Console.WriteLine("Subscribed to get/BranchUID/BrainUID/lockers");
+
+
+            };
+
+            client.ApplicationMessageReceivedAsync += e =>
+            {
+                var topic = e.ApplicationMessage.Topic;
+                var message = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                Console.WriteLine($"MessageReceived: {message} on topic {topic}");
+                HandleRequest(topic, message);
+                return Task.CompletedTask;
+            };
 
             try
             {
@@ -108,35 +144,8 @@ namespace MqttService.Infrastructure.Services
                     Console.WriteLine($"Connect failed: {connectResult.ReasonString}");
                     Environment.Exit(-1);
                 }
-                client.ApplicationMessageReceivedAsync += e =>
-                {
-                    var topic = e.ApplicationMessage.Topic;
-                    var message = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-                    Console.WriteLine($"MessageReceived: {message} on topic {topic}");
-                    HandleRequest(topic, message);
-                    return Task.CompletedTask;
-                };
-
-
                 Console.WriteLine("Server connected to MQTT broker.");
-                client.ConnectedAsync += async e =>
-                {
-                    Console.WriteLine("Server connected successfully with MQTT Broker.");
-                    //topic --- connection/BranchUID          => for approve
-                    //topic --- get/BranchUID/BrainUID/cards  => for RFUID(Card number)
-                    int branchUID = 1;
-                    await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"connection/{branchUID}").Build());
-                    Console.WriteLine("Subscribed to topic connection/BranchUID");
 
-                    int brainUID = 1;
-                    await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"get/{branchUID}/{brainUID}/cards").Build());
-                    Console.WriteLine("Subscribed to topic get/BranchUID/BrainUID/cards");
-
-                    await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"get/{branchUID}/BrainUID/lockers").Build());
-                    Console.WriteLine("Subscribed to get/BranchUID/BrainUID/lockers");
-
-
-                };
 
                 return client;
             }

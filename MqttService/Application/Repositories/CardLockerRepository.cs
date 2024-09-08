@@ -28,9 +28,9 @@ namespace MqttService.Application.Repositories
         {
             var query = @"
         SELECT l.* 
-        FROM ""public"".""Lockers"" l
+        FROM ""public"".""Locker"" l
         INNER JOIN ""public"".""LockerCard"" lc
-        ON l.""lockerId"" = lc.""lockerId""
+        ON l.""id"" = lc.""lockerId""
         WHERE lc.""cardId"" = @cardId";
 
             return Query<Locker>(query, new { cardId }).ToList();

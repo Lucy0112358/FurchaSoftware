@@ -3,6 +3,7 @@ using Dapper;
 using System.Data;
 using Npgsql;
 using MqttService.Application.Repositories;
+using MqttService.Infrastructure.Services;
 
 namespace MqttService.Controllers
 {
@@ -12,11 +13,13 @@ namespace MqttService.Controllers
     {
         private readonly IDbConnection _dbConnection;
         private  CardLockerRepository userLockerRepository;
+        private MqttClientService mqttClientService;
 
-        public TestController(IDbConnection dbConnection, CardLockerRepository userLockerRepository)
+        public TestController(IDbConnection dbConnection, CardLockerRepository userLockerRepository, MqttClientService mqttClientService)
         {
             _dbConnection = dbConnection;
             this.userLockerRepository = userLockerRepository;
+            this.mqttClientService = mqttClientService;
         }
 
         [HttpGet("lockers")]
@@ -43,7 +46,7 @@ namespace MqttService.Controllers
         [HttpGet]
         public void UniversalTestMethode()
         {
-            var isCompatible = userLockerRepository.CanCardOpenLocker(1, 1);
+            //var isCompatible = userLockerRepository.CanCardOpenLocker(1, 1);
         }
 
     }

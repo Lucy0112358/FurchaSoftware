@@ -1,6 +1,6 @@
 ﻿namespace MqttService.Application.Models.MqttRequest
 {
-    public class BrainModule
+    public class BrainModuleModel
     {
         public int? Brain { get; set; }
         public string? IP { get; set; }
