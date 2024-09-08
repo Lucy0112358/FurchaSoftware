@@ -3,6 +3,7 @@
     public interface IMqttClientService
     {
         void HandleRequest(string topic, string message);
-        void SendResponse(Guid guid, int? lockerId, string response);
+        void SendResponseSet(int? branchUID, int brainUID, string response);
+        void SendResponse(int? branchUID, int? lockerId, string response);
     }
 }
