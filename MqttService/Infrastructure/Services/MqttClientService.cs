@@ -24,16 +24,57 @@ namespace MqttService.Infrastructure.Services
 
         public void HandleRequest(string topic, string message)
         {
-            MqttRequest mqttRequest=JsonSerializer.Deserialize<MqttRequest>(message);
-
-            string response = cardLockerService.OpenLocker(mqttRequest)!=MqttErrorCodeEnum.Success ? "ACCESS_DENIED":"ACCESS_GRANTED";
-
-            SendResponse(Guid.NewGuid(), mqttRequest.lockerId, response);
+            int branchUID = 1;
+            if (topic.StartsWith("get/"))
+            {
+                CardModel mqttRequestGet = JsonSerializer.Deserialize<CardModel>(message);
+                if (mqttRequestGet != null)
+                {
+                    //handle the null request case
+                }
+                if (!mqttRequestGet.CardNumber.HasValue)
+                {
+                    // handle the null CardNumber case
+                }
+                var response = cardLockerService.GetLockersByCardId(mqttRequestGet.CardNumber.Value);
+                var lockerIds = response.Select(x => x.Id).ToList();
+                int brainUID = 1;
+                SendResponseSet(branchUID, brainUID, string.Join(";", lockerIds));
+            }
+            else if (topic.StartsWith("connection/"))
+            {
+                // Processing the topic connection/BranchUID
+                Console.WriteLine($"Received connection message: {message} on topic {topic}");
+                BrainModule mqttRequestConnection = JsonSerializer.Deserialize<BrainModule>(message);
+                Console.WriteLine($"Brain: {mqttRequestConnection.Brain} IP Adress: {mqttRequestConnection.IP}");
+                // Branch connection processing logic (BranchUID) is here
+            }
+            else
+            {
+                MqttRequest mqttRequest = JsonSerializer.Deserialize<MqttRequest>(message);
+                string responseOne = cardLockerService.OpenLocker(mqttRequest) != MqttErrorCodeEnum.Success ? "ACCESS_DENIED" : "ACCESS_GRANTED";
+                SendResponse(branchUID, mqttRequest.lockerId, responseOne);
+            }
         }
 
-        public void SendResponse(Guid guid, int? lockerId, string response)
+        public void SendResponseSet(int? branchUID, int brainUID, string response)
         {
-            var responseTopic = $"{guid}/{lockerId}/response";
+            // set/BranchUID/BrainUID/cards/{number of the locker that can be opened}
+            var responseTopic = $"set/{branchUID}/{brainUID}/cards";
+            var mqttMessage = new MqttApplicationMessageBuilder()
+                .WithTopic(responseTopic)
+                .WithPayload(Encoding.UTF8.GetBytes(response))
+                .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+                .Build();
+
+            mqttClient.PublishAsync(mqttMessage).Wait();
+            Console.WriteLine($"Response sent: {response} to topic {responseTopic}");
+        }
+
+        public void SendResponse(int? branchUID, int? lockerId, string response)
+        {
+            // set/BranchUID/BrainUID/lockers/{access is allowed or not allowed}
+            var responseTopic = $"set/{branchUID}/BrainUID/lockers/{lockerId}";
             var mqttMessage = new MqttApplicationMessageBuilder()
                 .WithTopic(responseTopic)
                 .WithPayload(Encoding.UTF8.GetBytes(response))
@@ -81,8 +122,20 @@ namespace MqttService.Infrastructure.Services
                 client.ConnectedAsync += async e =>
                 {
                     Console.WriteLine("Server connected successfully with MQTT Broker.");
-                    await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic("lockers/+/request").Build());
-                    Console.WriteLine("Subscribed to topic lockers/+/request");
+                    //topic --- connection/BranchUID          => for approve
+                    //topic --- get/BranchUID/BrainUID/cards  => for RFUID(Card number)
+                    int branchUID = 1;
+                    await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"connection/{branchUID}").Build());
+                    Console.WriteLine("Subscribed to topic connection/BranchUID");
+
+                    int brainUID = 1;
+                    await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"get/{branchUID}/{brainUID}/cards").Build());
+                    Console.WriteLine("Subscribed to topic get/BranchUID/BrainUID/cards");
+
+                    await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"get/{branchUID}/BrainUID/lockers").Build());
+                    Console.WriteLine("Subscribed to get/BranchUID/BrainUID/lockers");
+
+
                 };
 
                 return client;
