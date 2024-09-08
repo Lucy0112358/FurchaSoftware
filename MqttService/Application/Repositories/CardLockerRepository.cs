@@ -37,6 +37,22 @@ namespace MqttService.Application.Repositories
 
         }
 
+        // Add IsActive property later, to indicate subscribed branches
+        public List<Branch> GetAllActiveBranches()
+        {
+            return GetAll<Branch>().ToList();
+        }
+
+        public List<BrainModule> GetBrainsByBranchId(int branchId)
+        {
+            var query = @"
+        SELECT l.* 
+        FROM ""public"".""BrainModule""        
+        WHERE ""branchId"" = @branchId";
+
+            return Query<BrainModule>(query, new { branchId }).ToList();
+
+        }
 
 
     }
