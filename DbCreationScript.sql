@@ -14,11 +14,11 @@ CREATE TABLE IF NOT EXISTS furcha."Branch"
     "companyId" integer,
     "addressId" integer UNIQUE NOT NULL,
     CONSTRAINT "Branch_pkey" PRIMARY KEY (id),
-    CONSTRAINT "fk_Branch_CompanyId" FOREIGN KEY ("companyId")
+    CONSTRAINT "fk_Company_Id" FOREIGN KEY ("companyId")
     REFERENCES furcha."Company" (id)
     ON UPDATE NO ACTION
     ON DELETE SET NULL,
-    CONSTRAINT "fk_Branch_Address" FOREIGN KEY ("addressId")
+    CONSTRAINT "fk_BranchAddress_Id" FOREIGN KEY ("addressId")
     REFERENCES furcha."BranchAddress" (id)
     ON UPDATE NO ACTION
     ON DELETE SET NULL
@@ -31,11 +31,15 @@ CREATE TABLE IF NOT EXISTS furcha."BrainModule"
     "branchId" integer,
     "groupId" integer,
     id integer NOT NULL GENERATED ALWAYS AS IDENTITY (INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1),
-    ip text,
+    "ipAddress" text,
     "macAddress" varchar(20), 
     CONSTRAINT "BrainModule_pkey" PRIMARY KEY (id),
-    CONSTRAINT "fk_BrainModule_branchId" FOREIGN KEY ("branchId")
+    CONSTRAINT "fk_Branch_Id" FOREIGN KEY ("branchId")
     REFERENCES furcha."Branch" (id)
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE,
+    CONSTRAINT "fk_LockerGroup_Id" FOREIGN KEY ("groupId")
+    REFERENCES furcha."LockerGroup" (id) 
     ON UPDATE NO ACTION
     ON DELETE CASCADE
 );
@@ -46,7 +50,7 @@ CREATE TABLE IF NOT EXISTS furcha."Card"
     "userId" integer NULL,
     "cardNumber" bigint UNIQUE NOT NULL,  
     CONSTRAINT "Card_pkey" PRIMARY KEY (id),
-    CONSTRAINT "fk_Card_User" FOREIGN KEY ("userId") REFERENCES furcha."User"(id) 
+    CONSTRAINT "fk_User_Id" FOREIGN KEY ("userId") REFERENCES furcha."User"(id) 
     ON UPDATE NO ACTION
     ON DELETE SET NULL
 );
@@ -67,7 +71,7 @@ CREATE TABLE IF NOT EXISTS furcha."UserGroup"
     "name" varchar(255) NOT NULL,         
     "description" text,     
     CONSTRAINT "UserGroup_pkey" PRIMARY KEY (id),
-    CONSTRAINT "fk_UserGroup_Branch" FOREIGN KEY ("branchId")
+    CONSTRAINT "fk_Branch_Id" FOREIGN KEY ("branchId")
     REFERENCES furcha."Branch" (id)
     ON UPDATE NO ACTION
     ON DELETE CASCADE
@@ -77,12 +81,12 @@ CREATE TABLE IF NOT EXISTS furcha."User_UserGroup"
 (
     "userId" integer NOT NULL,
     "userGroupId" integer NOT NULL,
-    CONSTRAINT "User_UserGroup_pkey" PRIMARY KEY ("userId", "userGroupId"),
-    CONSTRAINT "fk_User_UserGroup_User" FOREIGN KEY ("userId")
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY (INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1),
+    CONSTRAINT "fk_User_Id" FOREIGN KEY ("userId")
     REFERENCES furcha."User" (id)
     ON UPDATE NO ACTION
     ON DELETE CASCADE,
-    CONSTRAINT "fk_User_UserGroup_UserGroup" FOREIGN KEY ("userGroupId")
+    CONSTRAINT "fk_Group_Id" FOREIGN KEY ("userGroupId")
     REFERENCES furcha."UserGroup" (id)
     ON UPDATE NO ACTION
     ON DELETE CASCADE
@@ -99,13 +103,17 @@ CREATE TABLE IF NOT EXISTS furcha."Locker"
     CONSTRAINT "Locker_pkey" PRIMARY KEY (id)
 );
 
-
-CREATE TABLE IF NOT EXISTS furcha."LockerCard"
+CREATE TABLE IF NOT EXISTS furcha."LockerGroup"
 (
-    id integer NOT NULL,
-    "lockerId" integer NOT NULL,
-    "cardId" integer NOT NULL,
-    CONSTRAINT "LockerCard_pkey" PRIMARY KEY (id)
+    id serial NOT NULL,
+    branchId integer NOT NULL,
+    "name" character varying(100) NOT NULL,
+    "description" text,
+    CONSTRAINT "lockergroup_pkey" PRIMARY KEY (id)
+    CONSTRAINT "fk_lockergroup_branch" FOREIGN KEY (branchid)
+    REFERENCES furcha."Branch" (id)
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE,
 );
 
 CREATE TABLE IF NOT EXISTS furcha."User"
@@ -137,79 +145,14 @@ CREATE TABLE IF NOT EXISTS furcha."UserLocker"
     CONSTRAINT "UserLocker_pkey" PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS furcha."lockergroup"
-(
-    id serial NOT NULL,
-    branchid integer NOT NULL,
-    name character varying(100) NOT NULL,
-    CONSTRAINT "lockergroup_pkey" PRIMARY KEY (id)
-);
+UserCard
 
-CREATE TABLE IF NOT EXISTS furcha."lockertype"
-(
-    id serial NOT NULL,
-    name character varying(100) NOT NULL,
-    description text,
-    CONSTRAINT "lockertype_pkey" PRIMARY KEY (id)
-);
+Company
 
--- Add foreign key constraints
-ALTER TABLE IF EXISTS furcha."BrainModule"
-    ADD CONSTRAINT "fk_BrainModule_groupId" FOREIGN KEY ("groupId")
-    REFERENCES furcha."lockergroup" (id)
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+UserBranch
 
-ALTER TABLE IF EXISTS furcha."Card"
-    ADD CONSTRAINT "fk_Card_userId" FOREIGN KEY ("userId")
-    REFERENCES furcha."User" (id)
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+Roles
 
-ALTER TABLE IF EXISTS furcha."Locker"
-    ADD CONSTRAINT "fk_Locker_lockerTypeId" FOREIGN KEY ("lockerTypeId")
-    REFERENCES furcha."lockertype" (id)
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+Administrators
 
-ALTER TABLE IF EXISTS furcha."LockerCard"
-    ADD CONSTRAINT "fk_LockerCard_cardId" FOREIGN KEY ("cardId")
-    REFERENCES furcha."Card" (id)
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-ALTER TABLE IF EXISTS furcha."LockerCard"
-    ADD CONSTRAINT "fk_LockerCard_lockerId" FOREIGN KEY ("lockerId")
-    REFERENCES furcha."Locker" (id)
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-ALTER TABLE IF EXISTS furcha."User"
-    ADD CONSTRAINT "fk_User_lockerId" FOREIGN KEY ("lockerId")
-    REFERENCES furcha."Locker" (id)
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-ALTER TABLE IF EXISTS furcha."UserEventLog"
-    ADD CONSTRAINT "fk_UserEventLog_lockerId" FOREIGN KEY ("lockerId")
-    REFERENCES furcha."Locker" (id)
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-ALTER TABLE IF EXISTS furcha."UserEventLog"
-    ADD CONSTRAINT "fk_UserEventLog_userId" FOREIGN KEY ("userId")
-    REFERENCES furcha."User" (id)
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-ALTER TABLE IF EXISTS furcha."UserLocker"
-    ADD CONSTRAINT "fk_UserLocker_lockerId" FOREIGN KEY ("lockerId")
-    REFERENCES furcha."Locker" (id)
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-ALTER TABLE IF EXISTS furcha."UserLocker"
-    ADD CONSTRAINT "fk_UserLocker_userId" FOREIGN KEY ("userId")
-    REFERENCES furcha."User" (id)
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+AdminRoles
