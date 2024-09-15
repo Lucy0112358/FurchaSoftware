@@ -1,7 +1,5 @@
 ﻿using Domain.Entities;
-using Domain.Enums;
 using Npgsql;
-using System.Linq;
 
 namespace MqttService.Application.Repositories
 {
