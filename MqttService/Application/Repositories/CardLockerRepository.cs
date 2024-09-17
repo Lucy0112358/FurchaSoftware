@@ -1,7 +1,5 @@
 ﻿using Domain.Entities;
-using Domain.Enums;
 using Npgsql;
-using System.Linq;
 
 namespace MqttService.Application.Repositories
 {
@@ -13,31 +11,22 @@ namespace MqttService.Application.Repositories
         {
             _dbConnection = dbConnection;
         }
-        public bool CanCardOpenLocker(int? cardId, int? lockerId)
-        {
-            var query = @"SELECT ""lockerId""
-                  FROM ""public"".""LockerCard""
-                  WHERE ""cardId"" = @cardId";
-
-            var lockerIds = Query<int>(query, new { cardId }).ToList();
-
-            return lockerIds.Contains((int)lockerId);
-        }
 
         public List<Locker> GetLockersByCardId(int cardId)
         {
             var query = @"
         SELECT l.* 
-        FROM ""public"".""Locker"" l
-        INNER JOIN ""public"".""LockerCard"" lc
-        ON l.""id"" = lc.""lockerId""
-        WHERE lc.""cardId"" = @cardId";
+        FROM ""furcha"".""Locker"" l
+        INNER JOIN ""furcha"".""UserLocker"" ul
+        ON l.""Id"" = ul.""LockerId""
+        INNER JOIN ""furcha"".""UserCard"" uc
+        ON ul.""UserId"" = uc.""UserId""
+        WHERE uc.""CardId"" = @cardId";
 
             return Query<Locker>(query, new { cardId }).ToList();
-
         }
 
-        // Add IsActive property later, to indicate subscribed branches
+
         public List<Branch> GetAllActiveBranches()
         {
             return GetAll<Branch>().ToList();
@@ -47,8 +36,8 @@ namespace MqttService.Application.Repositories
         {
             var query = @"
         SELECT * 
-        FROM ""public"".""BrainModule""        
-        WHERE ""branchId"" = @branchId";
+        FROM ""furcha"".""BrainModule""        
+        WHERE ""BranchId"" = @branchId";
 
             return Query<BrainModule>(query, new { branchId }).ToList();
 

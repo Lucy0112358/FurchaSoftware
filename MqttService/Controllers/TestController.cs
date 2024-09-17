@@ -37,16 +37,16 @@ namespace MqttService.Controllers
         {
             using (var dbConnection = new NpgsqlConnection(_dbConnection.ConnectionString))
             {
-                var isCompatible = userLockerRepository.CanCardOpenLocker(userId, lockerId);
+              //  var isCompatible = userLockerRepository.CanCardOpenLocker(userId, lockerId);
 
-                return Ok(isCompatible);
+                return Ok();
             }
         }
 
         [HttpGet]
         public void UniversalTestMethode()
         {
-            //var isCompatible = userLockerRepository.CanCardOpenLocker(1, 1);
+          
         }
 
     }

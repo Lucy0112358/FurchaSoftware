@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FurchaAdminApi", "Furcha\Fu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MqttService", "MqttService\MqttService.csproj", "{723BD5D5-91DF-4AD0-A9EB-65E8B141A28B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{B9D0905B-88B9-4D29-AAB3-BACC84176CCB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{B9D0905B-88B9-4D29-AAB3-BACC84176CCB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Migrations", "Migrations", "{C1EAA791-84B8-4D62-833F-495437C2799C}"
+	ProjectSection(SolutionItems) = preProject
+		DatabaseCreationScript.pgsql = DatabaseCreationScript.pgsql
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

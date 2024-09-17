@@ -57,12 +57,12 @@ namespace MqttService.Infrastructure.Services
                 Console.WriteLine($"Brain: {mqttRequestConnection.Brain} IP Adress: {mqttRequestConnection.IP}");
                 SubscribeToBrainTopic(branchUID, mqttRequestConnection.Brain);
             }
-            else
+/*            else
             {
                 MqttRequest mqttRequest = JsonSerializer.Deserialize<MqttRequest>(message);
                 string responseOne = cardLockerService.OpenLocker(mqttRequest) != MqttErrorCodeEnum.Success ? "ACCESS_DENIED" : "ACCESS_GRANTED";
                 SendResponse(branchUID, mqttRequest.lockerId, responseOne);
-            }
+            }*/
         }
 
         public void SendResponseSet(int? branchUID, int brainUID, string response)
