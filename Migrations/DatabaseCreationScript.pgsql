@@ -1,14 +1,14 @@
 -- Create the schema if it does not exist
--- CREATE SCHEMA IF NOT EXISTS furcha;
+CREATE SCHEMA IF NOT EXISTS furcha;
 
--- CREATE TYPE furcha.locker_status AS ENUM ('free', 'occupied');
--- CREATE TYPE furcha.locker_type AS ENUM ('Personal', 'Common', 'Hand Over', 'Parcel');
--- CREATE TYPE furcha.user_action_enum AS ENUM ('success', 'failure');
+CREATE TYPE furcha.locker_status AS ENUM ('free', 'occupied');
+CREATE TYPE furcha.locker_type AS ENUM ('Personal', 'Common', 'Hand Over', 'Parcel');
+CREATE TYPE furcha.user_action_enum AS ENUM ('success', 'failure');
 
--- Create tables with schema furcha - Subscription, types and CompanySubscription to be added
+-- Create tables with schema furcha, CompanySubscription, Subscription and types to be added
 
 -- Create BranchAddress table
-CREATE TABLE furcha."BranchAddress"
+CREATE TABLE IF NOT EXISTS furcha."BranchAddress"
 (
     "Id" SERIAL PRIMARY KEY,
     "Street" VARCHAR(255) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE furcha."BranchAddress"
 );
 
 -- Create the Country table with manual PK insertion
-CREATE TABLE furcha."Country"
+CREATE TABLE IF NOT EXISTS furcha."Country"
 (
     "Id" INTEGER NOT NULL,
     "Name" TEXT NOT NULL,
@@ -26,9 +26,9 @@ CREATE TABLE furcha."Country"
 );
 
 -- Create the Company table
-CREATE TABLE furcha."Company"
+CREATE TABLE IF NOT EXISTS furcha."Company"
 (
-    "Id" SERIAL NOT NULL,
+    "Id" INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1),
     "Name" TEXT NOT NULL,
     "City" TEXT NOT NULL,
     "Street" TEXT NOT NULL,
@@ -39,7 +39,6 @@ CREATE TABLE furcha."Company"
     CONSTRAINT "Company_pkey" PRIMARY KEY ("Id"),
     CONSTRAINT "Company_country_id" FOREIGN KEY ("Country") REFERENCES furcha."Country" ("Id")
 );
-
 -- Create Branch table with foreign key constraints
 CREATE TABLE IF NOT EXISTS furcha."Branch"
 (
@@ -57,7 +56,6 @@ CREATE TABLE IF NOT EXISTS furcha."Branch"
     ON UPDATE NO ACTION
     ON DELETE SET NULL
 );
-
 -- Create LockerGroup table with foreign key constraint to Branch
 CREATE TABLE IF NOT EXISTS furcha."LockerGroup"
 (
@@ -71,7 +69,6 @@ CREATE TABLE IF NOT EXISTS furcha."LockerGroup"
     ON UPDATE NO ACTION
     ON DELETE CASCADE
 );
-
 -- Create BrainModule table with foreign key constraint to Branch
 CREATE TABLE IF NOT EXISTS furcha."BrainModule"
 (
@@ -91,11 +88,10 @@ CREATE TABLE IF NOT EXISTS furcha."BrainModule"
     ON UPDATE NO ACTION
     ON DELETE CASCADE
 );
-
 -- Create User table
 CREATE TABLE IF NOT EXISTS furcha."User"
 (
-    "Id" INTEGER NOT NULL,
+    "Id" INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1),
     "Email" TEXT,
     "Phone" TEXT,
     "CountryCode" TEXT,

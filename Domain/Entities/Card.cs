@@ -3,7 +3,7 @@ using System.ComponentModel.Design;
 
 namespace Domain.Entities
 {
-    [Table("Card", Schema = "public")]
+    [Table("Card", Schema = "furcha")]
     public class Card
     {
         [Column]

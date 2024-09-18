@@ -2,7 +2,7 @@
 
 namespace Domain.Entities
 {
-    [Table("Locker", Schema = "public")]
+    [Table("Locker", Schema = "furcha")]
     public class Locker
     {
         [Column]
