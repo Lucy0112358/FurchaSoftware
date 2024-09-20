@@ -4,7 +4,6 @@ using MQTTnet.Client;
 using MqttService.Application.Interfaces;
 using MqttService.Application.Models.MqttRequest;
 using MqttService.Application.Repositories;
-using MqttService.Application.Services;
 using System.Text;
 using System.Text.Json;
 

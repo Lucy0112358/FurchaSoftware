@@ -1,3 +1,4 @@
+using FurchaAdminApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Furcha.Controllers
@@ -10,12 +11,13 @@ namespace Furcha.Controllers
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
-
+        private readonly UserService _userService;
         private readonly ILogger<AdminTestController> _logger;
 
-        public AdminTestController(ILogger<AdminTestController> logger)
+        public AdminTestController(ILogger<AdminTestController> logger, UserService userService)
         {
             _logger = logger;
+            _userService = userService;
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
@@ -29,5 +31,18 @@ namespace Furcha.Controllers
             })
             .ToArray();
         }
+
+        [HttpGet("GetFilteredUsers")]
+        public IActionResult GetFilteredUsers(
+            [FromQuery] int? groupId = null,
+            [FromQuery] int? branchId = null,
+            [FromQuery] int pageNumber = 1,  
+            [FromQuery] int pageSize = 10)   
+        {
+                var users = _userService.GetFilteredUsersWithPagination(groupId, branchId, pageNumber, pageSize);
+
+                return Ok(users);
+        }
+
     }
 }

@@ -7,7 +7,7 @@ namespace MqttService.Application.Repositories
 {
     public class BaseRepository
     {
-        public readonly string furchaSchema = "public";
+        public readonly string furchaSchema = "furcha";
         private readonly NpgsqlConnection furchaContext;
 
         public BaseRepository(NpgsqlConnection dbConnection)

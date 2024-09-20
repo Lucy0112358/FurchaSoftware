@@ -3,7 +3,7 @@ using Domain.Enums;
 using MqttService.Application.Models.MqttRequest;
 using MqttService.Application.Repositories;
 
-namespace MqttService.Application.Services
+namespace MqttService.Infrastructure.Services
 {
     public class CardLockerService
     {
