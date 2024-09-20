@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using MqttService.Application.Repositories;
 using Npgsql;
+using System.Text.RegularExpressions;
 
 namespace FurchaAdminApi.Repos
 {
@@ -16,6 +17,24 @@ namespace FurchaAdminApi.Repos
         public List<User> GetAllActiveUsers()
         {
             return GetAll<User>().ToList();
+        }
+
+        /// <summary>
+        /// Returns null if no admin with that email exists. It must be handled with ErrorCodeEnum
+        /// </summary>
+        public Administrator? GetAdminByEmail(string email)
+        {
+            var sql = $@"SELECT * FROM furcha.""Administrators"" WHERE Email = @email LIMIT 1";
+            var admin = Query<Administrator>(
+            sql: sql,
+            param: new { email });
+
+            return admin.SingleOrDefault();
+        }
+
+        public Administrator GetAdminById(int uid)
+        {
+            return Get<Administrator>(uid);
         }
 
         /// <summary>
@@ -84,10 +103,8 @@ namespace FurchaAdminApi.Repos
             string sql = "";
             object queryParams = new { };
 
-            // Calculate the offset for pagination
             int offset = (pageNumber - 1) * pageSize;
 
-            // Check if filtering by group
             if (filterByGroupId.HasValue)
             {
                 sql = $@"SELECT T.* 
@@ -99,7 +116,6 @@ namespace FurchaAdminApi.Repos
 
                 queryParams = new { groupId = filterByGroupId.Value, pageSize, offset };
             }
-            // Check if filtering by branch
             else if (filterByBranchId.HasValue)
             {
                 sql = $@"SELECT T.* 
@@ -111,10 +127,8 @@ namespace FurchaAdminApi.Repos
 
                 queryParams = new { branchId = filterByBranchId.Value, pageSize, offset };
             }
-            // If no filter, return all active users with pagination
             else
             {
-                // Fetch all active users and manually apply pagination
                 users = GetAllActiveUsers()
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
@@ -123,7 +137,6 @@ namespace FurchaAdminApi.Repos
                 return users;
             }
 
-            // Execute the query and return the result
             users = Query<User>(sql: sql, param: queryParams).ToList();
 
             return users;
