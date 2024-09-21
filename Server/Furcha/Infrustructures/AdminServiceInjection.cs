@@ -1,4 +1,4 @@
-﻿using FurchaAdminApi.Repos
+﻿using FurchaAdminApi.Repos;
 using FurchaAdminApi.Services;
 
 namespace MqttService.Infrastructure
