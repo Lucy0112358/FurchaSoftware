@@ -1,4 +1,5 @@
 ﻿using FurchaAdminApi.Models;
+using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,5 +1,7 @@
 ﻿using Domain.Entities;
-using FurchaAdminApi.Models;
+using Domain.Enums;
+using FurchaAdminApi.Models.Request;
+using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
 using MqttService.Application.Exceptions;
 using System.Security.Cryptography;
