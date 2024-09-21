@@ -1,0 +1,48 @@
+.layout {
+    padding: 50px;
+    display: flex;
+}
+
+.layout__content {
+    padding: 0 0 0 63px;
+}
+
+.layout__outlet {
+    padding-top: 102px;
+}
+
+table th,
+table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* width */
+.outlet__table__wrapper::-webkit-scrollbar {
+    width: 20px;
+}
+
+/* Track */
+.outlet__table__wrapper::-webkit-scrollbar-track {
+    background: #d1d1d1;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    /* border-radius: 5px; */
+    /* border-radius: 0 10px 0 0; */
+}
+
+/* Handle */
+.outlet__table__wrapper::-webkit-scrollbar-thumb {
+    background: #888;
+    border-right: 10px solid #878787;
+    border-top: 10px solid #878787;
+    overflow: hidden;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    /* border-radius: 0 10px 0 0;     */
+}
+
+/* Handle on hover */
+/* .outlet__table__wrapper::-webkit-scrollbar-thumb:hover {
+    background: #555;
+} */
