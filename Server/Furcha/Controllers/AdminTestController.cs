@@ -1,6 +1,5 @@
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using AuthenticationService = FurchaAdminApi.Services.AuthenticationService;
 
@@ -18,6 +17,14 @@ namespace Furcha.Controllers
         private readonly ILogger<AdminTestController> _logger;
         private readonly AuthenticationService authenticationService;
 
+        public AdminTestController(ILogger<AdminTestController> logger, UserService userService, AuthenticationService authenticationService)
+        {
+            _logger = logger;
+            _userService = userService;
+            this.authenticationService = authenticationService;
+
+        }
+
         [HttpPost]
         public string Login([FromBody] AuthenticateRequest authenticateRequest)
         {
@@ -25,11 +32,7 @@ namespace Furcha.Controllers
 
             return token;
         }
-        public AdminTestController(ILogger<AdminTestController> logger, UserService userService)
-        {
-            _logger = logger;
-            _userService = userService;
-        }
+
 
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()

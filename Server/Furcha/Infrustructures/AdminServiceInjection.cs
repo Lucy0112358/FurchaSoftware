@@ -12,6 +12,8 @@ namespace MqttService.Infrastructure
 
             /* SERVICES */
             services.AddScoped(typeof(UserService));
+            services.AddScoped(typeof(AuthenticationService));
+            
 
             return services;
         }
