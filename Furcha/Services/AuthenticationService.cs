@@ -2,7 +2,6 @@
 using FurchaAdminApi.Models;
 using FurchaAdminApi.Repos;
 using MqttService.Application.Exceptions;
-using System.ComponentModel.Design;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -49,7 +48,8 @@ namespace FurchaAdminApi.Services
                 throw new BaseException(ErrorCodeEnum.WrongUsernameOrPassword);
             }
             var loginResult = GetLoginResult(admin);
-            return loginResult;
+
+            return hashedPassword;
         }
         private LoginResult GetLoginResult(Administrator administrator)
         {
