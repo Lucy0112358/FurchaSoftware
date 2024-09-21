@@ -1,9 +1,13 @@
-﻿using Domain.Entities;
+﻿using Domain.Configuration;
+using Domain.Entities;
 using Domain.Enums;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
+using Microsoft.IdentityModel.Tokens;
 using MqttService.Application.Exceptions;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -57,7 +61,41 @@ namespace FurchaAdminApi.Services
         {
             //don't forget to add the log table data here as well
 
-            return new LoginResult();
+
+            return new LoginResult("AdminId");
+        
+        }
+
+        private string GenerateJwtToken(Administrator admin, RoleEnum adminRole)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            if (string.IsNullOrEmpty(EncryptionSettings.EncryptionKey))
+            {
+                throw new ArgumentNullException(nameof(EncryptionSettings.EncryptionKey));
+            }
+
+            var adminDetails = _userRepository.GetAdminById(admin.Id);
+
+            var key = Encoding.ASCII.GetBytes(EncryptionSettings.EncryptionKey);
+
+            var claims = new[]
+            {
+            new Claim(ClaimTypes.Name, admin.Name),
+            new Claim("AdminId", admin.Id.ToString()),
+            new Claim(ClaimTypes.Role, adminRole.ToString()),
+        };
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddHours(5),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
         }
     }
 }

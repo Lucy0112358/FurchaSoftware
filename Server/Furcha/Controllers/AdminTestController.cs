@@ -1,5 +1,8 @@
+using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using AuthenticationService = FurchaAdminApi.Services.AuthenticationService;
 
 namespace Furcha.Controllers
 {
@@ -13,7 +16,15 @@ namespace Furcha.Controllers
         };
         private readonly UserService _userService;
         private readonly ILogger<AdminTestController> _logger;
+        private readonly AuthenticationService authenticationService;
 
+        [HttpPost]
+        public string Login([FromBody] AuthenticateRequest authenticateRequest)
+        {
+            var token = authenticationService.LoginToGetJwtToken(authenticateRequest);
+
+            return token;
+        }
         public AdminTestController(ILogger<AdminTestController> logger, UserService userService)
         {
             _logger = logger;
