@@ -38,7 +38,7 @@ namespace FurchaAdminApi.Services
                 return builder.ToString();
             }
         }
-        public string LoginToGetJwtToken(AuthenticateRequest authenticateRequest)
+        public LoginResult LoginToGetJwtToken(AuthenticateRequest authenticateRequest)
         {
             // test authenticateRequest.email = null case with Swagger
             var admin = _userRepository.GetAdminByEmail(authenticateRequest.Email);
@@ -48,7 +48,8 @@ namespace FurchaAdminApi.Services
                 throw new BaseException(ErrorCodeEnum.WrongUsernameOrPassword);
             }
 
-            var hashedPassword = EncodePassword(password: authenticateRequest.Password, salt: admin.Salt);
+            //  var hashedPassword = EncodePassword(password: authenticateRequest.Password, salt: admin.Salt);
+            var hashedPassword = authenticateRequest.Password;
 
             if (hashedPassword != admin.PasswordHash)
             {
@@ -56,9 +57,9 @@ namespace FurchaAdminApi.Services
             }
             var loginResult = GetLoginResult(admin);
 
-            return hashedPassword;
+            return loginResult;
         }
-        private LoginResult GetLoginResult(Administrator administrator)
+        private LoginResult GetLoginResult(Administrators administrator)
         {
             //don't forget to add the log table data here as well
             var jwtToken = GenerateJwtToken(administrator);
@@ -72,7 +73,7 @@ namespace FurchaAdminApi.Services
             };
         }
 
-        private string GenerateJwtToken(Administrator admin)
+        private string GenerateJwtToken(Administrators admin)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 

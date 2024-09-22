@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Domain.Entities
 {
     [Table("Administrators", Schema = "furcha")]
-    public class Administrator
+    public class Administrators
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -46,6 +46,6 @@ namespace Domain.Entities
         public DateTime ModifiedDate { get; set; }
 
         [ForeignKey("ModifiedBy")]
-        public virtual Administrator ModifiedByAdmin { get; set; }
+        public virtual Administrators ModifiedByAdmin { get; set; }
     }
 }

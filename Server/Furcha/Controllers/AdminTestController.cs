@@ -37,17 +37,7 @@ namespace Furcha.Controllers
             .ToArray();
         }
 
-        [HttpGet("GetFilteredUsers")]
-        public IActionResult GetFilteredUsers(
-            [FromQuery] int? groupId = null,
-            [FromQuery] int? branchId = null,
-            [FromQuery] int pageNumber = 1,  
-            [FromQuery] int pageSize = 10)   
-        {
-                var users = _userService.GetFilteredUsersWithPagination(groupId, branchId, pageNumber, pageSize);
 
-                return Ok(users);
-        }
 
     }
 }

@@ -23,19 +23,24 @@ namespace FurchaAdminApi.Repos
         /// <summary>
         /// Returns null if no admin with that email exists. It must be handled with ErrorCodeEnum
         /// </summary>
-        public Administrator? GetAdminByEmail(string email)
+        public Administrators? GetAdminByEmail(string email)
         {
             var sql = $@"SELECT * FROM furcha.""Administrators"" WHERE Email = @email LIMIT 1";
-            var admin = Query<Administrator>(
+            var admin = Query<Administrators>(
             sql: sql,
             param: new { email });
 
             return admin.SingleOrDefault();
         }
 
-        public Administrator GetAdminById(int uid)
+        public Administrators GetAdminById(int uid)
         {
-            return Get<Administrator>(uid);
+            var sql = $@"SELECT * FROM furcha.""Administrators"" WHERE Id = @uid LIMIT 1";
+            var admin = Query<Administrators>(
+            sql: sql,
+            param: new { uid });
+
+            return admin.SingleOrDefault();
         }
 
         /// <summary>

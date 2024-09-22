@@ -17,7 +17,7 @@ namespace FurchaAdminApi.Controllers
 
         [HttpGet("companyBranches")]
         [AllowAnonymous]
-        public List<Branch> GetAllBranchesOfCompanyByAdminId([FromBody]int adminId)
+        public List<Branch> GetAllBranchesOfCompanyByAdminId([FromBody] int adminId)
         {
             var branches = userService.GetAllBranchesOfCompanyByAdminId(adminId);
 
@@ -31,14 +31,15 @@ namespace FurchaAdminApi.Controllers
             return Ok(userGroups);
         }
 
-        [HttpGet("filtered-users")]
-        public ActionResult<List<User>> GetFilteredUsers(
-           [FromQuery] int? filterByGroupId,
-           [FromQuery] int? filterByBranchId,
-           [FromQuery] int pageNumber = 1,
-           [FromQuery] int pageSize = 10)
+        [HttpGet("filteredUsers")]
+        public IActionResult GetFilteredUsers(
+            [FromQuery] int? groupId = null,
+            [FromQuery] int? branchId = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var users = userService.GetFilteredUsersWithPagination(filterByGroupId, filterByBranchId, pageNumber, pageSize);
+            var users = userService.GetFilteredUsersWithPagination(groupId, branchId, pageNumber, pageSize);
+
             return Ok(users);
         }
 
