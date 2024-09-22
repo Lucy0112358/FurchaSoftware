@@ -7,12 +7,17 @@ namespace MqttService.Application.Exceptions
     public class BaseException : ApplicationException
     {
         public MqttErrorCodeEnum ErrorCodeEnum { get; private set; }
+        public ErrorCodeEnum errorCodeEnum { get; private set; }
         public BaseException()
         {
         }
         public BaseException(MqttErrorCodeEnum errorCodeType) : base(errorCodeType.GetDescription())
         {
             ErrorCodeEnum = errorCodeType;
+        }
+        public BaseException(ErrorCodeEnum errorCodeType) : base(errorCodeType.GetDescription())
+        {
+            errorCodeEnum = errorCodeType;
         }
     }
 }
