@@ -25,15 +25,6 @@ namespace Furcha.Controllers
 
         }
 
-        [HttpPost]
-        public string Login([FromBody] AuthenticateRequest authenticateRequest)
-        {
-            var token = authenticationService.LoginToGetJwtToken(authenticateRequest);
-
-            return token;
-        }
-
-
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
         {

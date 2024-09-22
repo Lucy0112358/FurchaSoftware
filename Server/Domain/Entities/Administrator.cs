@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
@@ -31,8 +32,10 @@ namespace Domain.Entities
         public bool IsActive { get; set; } = true;
 
         public bool? IsDeleted { get; set; } 
+        public RoleEnum Role { get; set; }
 
         public int? ModifiedBy { get; set; }
+        public int CompanyId { get; set; }
 
         public DateTime? LastPasswordChangeDate { get; set; }
 

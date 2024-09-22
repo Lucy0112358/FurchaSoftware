@@ -1,11 +1,12 @@
-﻿using FurchaAdminApi.Models;
-using FurchaAdminApi.Models.Request;
+﻿using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FurchaAdminApi.Controllers
 {
+    [ApiController]
+    [Route("[controller]")]
     public class AuthenticationController : ControllerBase
     {
         private readonly AuthenticationService authenticationService;
@@ -14,7 +15,8 @@ namespace FurchaAdminApi.Controllers
             this.authenticationService = authenticationService;
         }
 
-        [HttpPost]
+        [HttpPost("login")]
+        [AllowAnonymous]
         public string Login([FromBody] AuthenticateRequest authenticateRequest)
         {
             var token = authenticationService.LoginToGetJwtToken(authenticateRequest);

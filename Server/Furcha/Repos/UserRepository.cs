@@ -55,6 +55,21 @@ namespace FurchaAdminApi.Repos
             return branchUsers;
         }
 
+        internal List<Branch> GetAllBranchesOfCompany(int companyId)
+        {
+            var sql = $@"SELECT T.* 
+             FROM furcha.{nameof(Branch)} T
+             INNER JOIN furcha.{nameof(Company)} T1 
+             ON T.{nameof(Branch.CompanyId)} = T1.{nameof(Company.Id)}
+             WHERE T1.{nameof(Company.Id)} = @companyId";
+
+            var branchUsers = Query<Branch>(
+                sql: sql,
+                param: new { companyId }).ToList();
+
+            return branchUsers;
+        }
+
         /// <summary>
         /// Returns the list of active users in the specified group <br></br>
         /// This is already grouped by branch, as each userGroup is associated with one Branch

@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using ClaimTypes = Domain.Configuration.ClaimTypes;
 
 namespace FurchaAdminApi.Services
 {
@@ -60,13 +61,19 @@ namespace FurchaAdminApi.Services
         private LoginResult GetLoginResult(Administrator administrator)
         {
             //don't forget to add the log table data here as well
+            var jwtToken = GenerateJwtToken(administrator);
 
+            return new LoginResult(jwtToken)
+            {
+                Id = administrator.Id,
+                Name = administrator.Name,
+                Surname = administrator.Surname,
+                Role = administrator.Role
+            };
 
-            return new LoginResult("AdminId");
-        
         }
 
-        private string GenerateJwtToken(Administrator admin, RoleEnum adminRole)
+        private string GenerateJwtToken(Administrator admin)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -82,8 +89,8 @@ namespace FurchaAdminApi.Services
             var claims = new[]
             {
             new Claim(ClaimTypes.Name, admin.Name),
-            new Claim("AdminId", admin.Id.ToString()),
-            new Claim(ClaimTypes.Role, adminRole.ToString()),
+            new Claim(ClaimTypes.AdminId, admin.Id.ToString()),
+            new Claim(ClaimTypes.Role, admin.Role.ToString()),
         };
 
             var tokenDescriptor = new SecurityTokenDescriptor

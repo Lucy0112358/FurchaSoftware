@@ -14,8 +14,14 @@ namespace FurchaAdminApi.Services
 
         public List<User> GetFilteredUsersWithPagination(int? filterByGroupId, int? filterByBranchId, int pageNumber, int pageSize)
         {
-
             return _userRepository.GetFilteredUsersByPagination(filterByGroupId, filterByBranchId, pageNumber, pageSize);
+        }
+
+        public List<Branch> GetAllBranchesOfCompanyByAdminId(int adminId)
+        {
+            var admin = _userRepository.GetAdminById(adminId);
+
+            return _userRepository.GetAllBranchesOfCompany(admin.CompanyId);
         }
     }
 }
