@@ -23,5 +23,17 @@ namespace FurchaAdminApi.Services
 
             return _userRepository.GetAllBranchesOfCompany(admin.CompanyId);
         }
+
+        public List<UserGroup> GetUserGroupsByAdminId(int adminId)
+        {
+            var admin = _userRepository.GetAdminById(adminId);
+
+            return _userRepository.GetUserGroupsByCompanyId(admin.CompanyId);
+        }
+        public List<User> SearchUsers(string name)
+        {
+            return _userRepository.SearchUsersByName(name);
+        }
+
     }
 }

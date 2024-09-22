@@ -70,7 +70,6 @@ namespace FurchaAdminApi.Services
                 Surname = administrator.Surname,
                 Role = administrator.Role
             };
-
         }
 
         private string GenerateJwtToken(Administrator admin)

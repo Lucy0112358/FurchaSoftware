@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using FurchaAdminApi.Models.Result;
 using MqttService.Application.Repositories;
 using Npgsql;
 using System.Text.RegularExpressions;
@@ -69,6 +70,19 @@ namespace FurchaAdminApi.Repos
 
             return branchUsers;
         }
+        public List<User> SearchUsersByName(string name)
+        {
+            var sql = $@"SELECT * 
+                 FROM furcha.{nameof(User)} 
+                 WHERE Name ILIKE @name OR Surname ILIKE @name";
+
+            var users = Query<User>(
+                sql: sql,
+                param: new { name = $"%{name}%" } // Using wildcards for partial matches
+            ).ToList();
+
+            return users;
+        }
 
         /// <summary>
         /// Returns the list of active users in the specified group <br></br>
@@ -111,6 +125,20 @@ namespace FurchaAdminApi.Repos
                 }
         */
 
+        public List<UserGroup> GetUserGroupsByCompanyId(int companyId)
+        {
+            var sql = $@"SELECT UG.* 
+                 FROM furcha.{nameof(UserGroup)} UG
+                 INNER JOIN furcha.{nameof(Branch)} B 
+                 ON UG.{nameof(UserGroup.BranchId)} = B.{nameof(Branch.Id)}
+                 WHERE B.{nameof(Branch.CompanyId)} = @companyId";
+
+            var userGroups = Query<UserGroup>(
+                sql: sql,
+                param: new { companyId }).ToList();
+
+            return userGroups;
+        }
 
         public List<User> GetFilteredUsersByPagination(int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
         {
