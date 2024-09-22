@@ -13,7 +13,7 @@ namespace Domain.Entities
         public int UserId { get; set; }
 
         [InverseProperty("LockerCard")]
-        public IEnumerable<LockerCard> LockerCards { get; set; }
+        public IEnumerable<UserCard> UserCard { get; set; }
 
         /*        [ForeignKey("UserId")]
                 public virtual User User { get; set; }*/

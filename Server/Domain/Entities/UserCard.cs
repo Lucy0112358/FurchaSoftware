@@ -1,25 +1,26 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
-    [Table("UserLocker", Schema = "furcha")]
-    public class UserLocker
+    [Table("UserCard", Schema = "furcha")]
+    public class UserCard
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required]
-        public int LockerId { get; set; }
-
-        [Required]
         public int UserId { get; set; }
 
-        [ForeignKey("LockerId")]
-        public virtual Locker Locker { get; set; }
+        [Required]
+        public int CardId { get; set; }
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
+
+        [ForeignKey("CardId")]
+        public virtual Card Card { get; set; }
     }
 }

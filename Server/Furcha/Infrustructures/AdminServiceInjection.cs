@@ -1,4 +1,4 @@
-﻿using FurchaAdminApi.Repos
+﻿using FurchaAdminApi.Repos;
 using FurchaAdminApi.Services;
 
 namespace MqttService.Infrastructure
@@ -12,6 +12,8 @@ namespace MqttService.Infrastructure
 
             /* SERVICES */
             services.AddScoped(typeof(UserService));
+            services.AddScoped(typeof(AuthenticationService));
+            
 
             return services;
         }
