@@ -7,40 +7,34 @@ namespace Domain.Entities
     public class User
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] 
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [EmailAddress]
         public string Email { get; set; }
 
-        [Phone]
         public string Phone { get; set; }
 
-        [MaxLength(5)]
         public string CountryCode { get; set; }
 
-        [Required]
-        [MaxLength(100)]
         public string Name { get; set; }
 
-        [Required]
-        [MaxLength(100)]
         public string Surname { get; set; }
 
-        [Required]
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
-        public ICollection<Card> Cards { get; set; }
-        public ICollection<UserGroup> UserGroups { get; set; }
-        public ICollection<UserLocker> UserLockers { get; set; }
-        public ICollection<UserBranch> UserBranches { get; set; }
+        public virtual ICollection<UserCard> UserCards { get; set; }
+        public virtual ICollection<UserLocker> UserLockers { get; set; }
+        public virtual ICollection<UserGroup> UserGroups { get; set; }
+        public virtual ICollection<UserBranch> UserBranches { get; set; }
+        public virtual ICollection<UserEventLogs> UserEventLogs { get; set; }
 
         public User()
         {
-            Cards = new HashSet<Card>();
-            UserGroups = new HashSet<UserGroup>();
+            UserCards = new HashSet<UserCard>();
             UserLockers = new HashSet<UserLocker>();
+            UserGroups = new HashSet<UserGroup>();
             UserBranches = new HashSet<UserBranch>();
+            UserEventLogs = new HashSet<UserEventLogs>();
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Domain.Entities
         public string PasswordHash { get; set; }
 
         [InverseProperty("LockerCard")]
-        public IEnumerable<LockerCard> LockerCards { get; set; }
+        public IEnumerable<UserLocker> UserLocker { get; set; }
 
     }
 }

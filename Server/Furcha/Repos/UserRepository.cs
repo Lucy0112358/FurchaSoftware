@@ -1,6 +1,8 @@
 ﻿using Domain.Entities;
+using FurchaAdminApi.Models.Result;
 using MqttService.Application.Repositories;
 using Npgsql;
+using System.Text.RegularExpressions;
 
 namespace FurchaAdminApi.Repos
 {
@@ -19,6 +21,29 @@ namespace FurchaAdminApi.Repos
         }
 
         /// <summary>
+        /// Returns null if no admin with that email exists. It must be handled with ErrorCodeEnum
+        /// </summary>
+        public Administrators? GetAdminByEmail(string email)
+        {
+            var sql = $@"SELECT * FROM furcha.""Administrators"" WHERE Email = @email LIMIT 1";
+            var admin = Query<Administrators>(
+            sql: sql,
+            param: new { email });
+
+            return admin.SingleOrDefault();
+        }
+
+        public Administrators GetAdminById(int uid)
+        {
+            var sql = $@"SELECT * FROM furcha.""Administrators"" WHERE Id = @uid LIMIT 1";
+            var admin = Query<Administrators>(
+            sql: sql,
+            param: new { uid });
+
+            return admin.SingleOrDefault();
+        }
+
+        /// <summary>
         /// Returns the list of active users in the current branch
         /// </summary>
         private List<User> GetAllUsersOfBranch(int branchId)
@@ -34,6 +59,34 @@ namespace FurchaAdminApi.Repos
                 param: new { branchId }).ToList();
 
             return branchUsers;
+        }
+
+        internal List<Branch> GetAllBranchesOfCompany(int companyId)
+        {
+            var sql = $@"SELECT T.* 
+             FROM furcha.{nameof(Branch)} T
+             INNER JOIN furcha.{nameof(Company)} T1 
+             ON T.{nameof(Branch.CompanyId)} = T1.{nameof(Company.Id)}
+             WHERE T1.{nameof(Company.Id)} = @companyId";
+
+            var branchUsers = Query<Branch>(
+                sql: sql,
+                param: new { companyId }).ToList();
+
+            return branchUsers;
+        }
+        public List<User> SearchUsersByName(string name)
+        {
+            var sql = $@"SELECT * 
+                 FROM furcha.{nameof(User)} 
+                 WHERE Name ILIKE @name OR Surname ILIKE @name";
+
+            var users = Query<User>(
+                sql: sql,
+                param: new { name = $"%{name}%" } // Using wildcards for partial matches
+            ).ToList();
+
+            return users;
         }
 
         /// <summary>
@@ -77,6 +130,20 @@ namespace FurchaAdminApi.Repos
                 }
         */
 
+        public List<UserGroup> GetUserGroupsByCompanyId(int companyId)
+        {
+            var sql = $@"SELECT UG.* 
+                 FROM furcha.{nameof(UserGroup)} UG
+                 INNER JOIN furcha.{nameof(Branch)} B 
+                 ON UG.{nameof(UserGroup.BranchId)} = B.{nameof(Branch.Id)}
+                 WHERE B.{nameof(Branch.CompanyId)} = @companyId";
+
+            var userGroups = Query<UserGroup>(
+                sql: sql,
+                param: new { companyId }).ToList();
+
+            return userGroups;
+        }
 
         public List<User> GetFilteredUsersByPagination(int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
         {
@@ -84,10 +151,8 @@ namespace FurchaAdminApi.Repos
             string sql = "";
             object queryParams = new { };
 
-            // Calculate the offset for pagination
             int offset = (pageNumber - 1) * pageSize;
 
-            // Check if filtering by group
             if (filterByGroupId.HasValue)
             {
                 sql = $@"SELECT T.* 
@@ -99,7 +164,6 @@ namespace FurchaAdminApi.Repos
 
                 queryParams = new { groupId = filterByGroupId.Value, pageSize, offset };
             }
-            // Check if filtering by branch
             else if (filterByBranchId.HasValue)
             {
                 sql = $@"SELECT T.* 
@@ -111,10 +175,8 @@ namespace FurchaAdminApi.Repos
 
                 queryParams = new { branchId = filterByBranchId.Value, pageSize, offset };
             }
-            // If no filter, return all active users with pagination
             else
             {
-                // Fetch all active users and manually apply pagination
                 users = GetAllActiveUsers()
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
@@ -123,7 +185,6 @@ namespace FurchaAdminApi.Repos
                 return users;
             }
 
-            // Execute the query and return the result
             users = Query<User>(sql: sql, param: queryParams).ToList();
 
             return users;
