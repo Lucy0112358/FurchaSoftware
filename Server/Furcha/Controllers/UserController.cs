@@ -1,18 +1,21 @@
 ﻿using Domain.Entities;
+using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FurchaAdminApi.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("[controller]")]
     public class UserController : ControllerBase
     {
         private readonly UserService userService;
-        public UserController(UserService userService)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public UserController(UserService userService, IHttpContextAccessor httpContextAccessor)
         {
             this.userService = userService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpGet("companyBranches")]
@@ -24,6 +27,32 @@ namespace FurchaAdminApi.Controllers
             return branches;
         }
 
+        [HttpGet("branch-users")]
+        public ActionResult<List<User>> GetAllUsersOfBranch(int id)
+        {
+ /*           var httpContext = _httpContextAccessor.HttpContext;
+
+            var userClaims = httpContext.User.Claims;
+            var nameClaim = userClaims.FirstOrDefault(c => c.Type == "name")?.Value;*/
+            var users = userService.GetAllUsersOfBranch(id);
+
+            return Ok(users);
+        }
+
+        [HttpGet("filtered-users")]
+        public ActionResult<List<User>> GetFilteredUsersWithPagination(
+                 [FromQuery] int companyId,
+                 [FromQuery] int? filterByGroupId,
+                 [FromQuery] int? filterByBranchId,
+                 [FromQuery] int pageNumber = 1,
+                 [FromQuery] int pageSize = 10)
+        {
+            var users = userService.GetFilteredUsersWithPagination(companyId, filterByGroupId, filterByBranchId, pageNumber, pageSize);
+
+            return Ok(users);
+        }
+
+
         [HttpGet("user-groups")]
         public ActionResult<List<UserGroup>> GetUserGroupsByAdminId(int adminId)
         {
@@ -31,17 +60,7 @@ namespace FurchaAdminApi.Controllers
             return Ok(userGroups);
         }
 
-        [HttpGet("filteredUsers")]
-        public IActionResult GetFilteredUsers(
-            [FromQuery] int? groupId = null,
-            [FromQuery] int? branchId = null,
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            var users = userService.GetFilteredUsersWithPagination(groupId, branchId, pageNumber, pageSize);
 
-            return Ok(users);
-        }
 
         [HttpGet("searchUser")]
         public IActionResult SearchUsers([FromQuery] string name)

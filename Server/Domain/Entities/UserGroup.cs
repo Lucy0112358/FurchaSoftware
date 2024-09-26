@@ -1,4 +1,4 @@
-﻿using Domain.Enums; 
+﻿using Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -21,7 +21,7 @@ namespace Domain.Entities
         public string Description { get; set; }
 
         [Required]
-        public StateEnum State { get; set; } 
+        public StateEnum State { get; set; }
 
         [ForeignKey("BranchId")]
         public virtual Branch Branch { get; set; }

@@ -15,9 +15,17 @@ namespace FurchaAdminApi.Repos
             _dbConnection = dbConnection;
         }
 
-        public List<User> GetAllActiveUsers()
+        /// <summary>
+        /// Returns all the users of the company, regardless of a branch
+        /// </summary>
+        public List<User> GetCompanyUsers(int companyId)
         {
-            return GetAll<User>().ToList();
+            var sql = $@"SELECT * FROM furcha.{nameof(User)} WHERE {nameof(User.CompanyId)} = @companyId";
+            var usersOfCompany = Query<User>(
+            sql: sql,
+            param: new { companyId });
+
+            return usersOfCompany.ToList();
         }
 
         /// <summary>
@@ -46,7 +54,7 @@ namespace FurchaAdminApi.Repos
         /// <summary>
         /// Returns the list of active users in the current branch
         /// </summary>
-        private List<User> GetAllUsersOfBranch(int branchId)
+        internal List<User> GetAllUsersOfBranch(int branchId)
         {
             var sql = $@"SELECT T.* 
              FROM furcha.{nameof(User)} T
@@ -145,7 +153,7 @@ namespace FurchaAdminApi.Repos
             return userGroups;
         }
 
-        public List<User> GetFilteredUsersByPagination(int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
+        public List<User> GetFilteredUsersByPagination(int companyId, int? filterByGroupId = null, int? filterByBranchId = null,  int pageNumber = 1, int pageSize = 10)
         {
             List<User> users = new List<User>();
             string sql = "";
@@ -177,7 +185,7 @@ namespace FurchaAdminApi.Repos
             }
             else
             {
-                users = GetAllActiveUsers()
+                users = GetCompanyUsers(companyId)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToList();

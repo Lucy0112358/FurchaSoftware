@@ -12,9 +12,9 @@ namespace FurchaAdminApi.Services
             _userRepository = userRepository;
         }
 
-        public List<User> GetFilteredUsersWithPagination(int? filterByGroupId, int? filterByBranchId, int pageNumber, int pageSize)
+        public List<User> GetFilteredUsersWithPagination(int companyId, int? filterByGroupId, int? filterByBranchId, int pageNumber, int pageSize)
         {
-            return _userRepository.GetFilteredUsersByPagination(filterByGroupId, filterByBranchId, pageNumber, pageSize);
+            return _userRepository.GetFilteredUsersByPagination(companyId, filterByGroupId, filterByBranchId, pageNumber, pageSize);
         }
 
         public List<Branch> GetAllBranchesOfCompanyByAdminId(int adminId)
@@ -22,6 +22,20 @@ namespace FurchaAdminApi.Services
             var admin = _userRepository.GetAdminById(adminId);
 
             return _userRepository.GetAllBranchesOfCompany(admin.CompanyId);
+        }
+
+        public List<User> GetCompanyUsers(int companyId)
+        {
+            var users = _userRepository.GetCompanyUsers(companyId);
+
+            return users;
+        }
+
+        public List<User> GetAllUsersOfBranch(int branchId)
+        {
+            var users = _userRepository.GetAllUsersOfBranch(branchId);
+
+            return users;
         }
 
         public List<UserGroup> GetUserGroupsByAdminId(int adminId)

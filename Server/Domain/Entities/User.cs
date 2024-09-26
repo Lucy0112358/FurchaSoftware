@@ -14,6 +14,12 @@ namespace Domain.Entities
 
         public string Phone { get; set; }
 
+        /// <summary>
+        /// Email and CompanyId together are under the unique check constraint
+        /// because the same person with the same email can be a costomer in different companies
+        /// </summary>
+        public int CompanyId { get; set; }
+
         public string CountryCode { get; set; }
 
         public string Name { get; set; }
