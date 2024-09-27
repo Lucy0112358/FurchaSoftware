@@ -143,7 +143,7 @@ namespace FurchaAdminApi.Services
             return users;
         }
 
-        public List<UserGroup> GetUserGroupsForAdminBasedOnRole(int adminId)
+        public List<UserGroup>? GetUserGroupsForAdminBasedOnRole(int adminId)
         {
             var admin = _userRepository.GetAdminById(adminId);
 

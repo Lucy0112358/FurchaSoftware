@@ -57,10 +57,13 @@ namespace FurchaAdminApi.Controllers
         {
             var userGroups = userService.GetUserGroupsForAdminBasedOnRole(adminId);
 
-            
+            if (userGroups == null)
+            {
+                return NotFound(ApiResult<List<UserGroup>>.ErrorResult("No user groups found for the current admin permissions"));
+            }
+
             return Ok(ApiResult<List<UserGroup>>.Success(userGroups));
         }
-
 
 
         [HttpGet("searchUser")]
