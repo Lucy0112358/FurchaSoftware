@@ -20,7 +20,7 @@ namespace FurchaAdminApi.Repos
         /// </summary>
         public List<User> GetCompanyUsers(int companyId)
         {
-            var sql = $@"SELECT * FROM furcha.{nameof(User)} WHERE {nameof(User.CompanyId)} = @companyId";
+            var sql = $@"SELECT * FROM furcha.{nameof(User)} WHERE ""CompanyId"" = @companyId";
             var usersOfCompany = Query<User>(
             sql: sql,
             param: new { companyId });
@@ -140,7 +140,7 @@ WHERE UC.""UserId"" = @userId";
         public List<User> GetUsersByBranches(List<int> branchIds)
         {
             var sql = $@"
-                SELECT U.* 
+                SELECT Distinct U.* 
                 FROM furcha.User U
                 INNER JOIN furcha.UserBranch UB 
                 ON U.Id = UB.UserId
@@ -288,20 +288,39 @@ WHERE UC.""UserId"" = @userId";
         }
 
         /// <summary>
+        /// Returns a list of branches associated with the specified admin
+        /// </summary>
+        public List<Branch> GetAdminBranchesByAdminId(int adminId)
+        {
+            var sql = $@"
+                SELECT B.* 
+                FROM furcha.""Branch"" B
+                INNER JOIN furcha.""AdminBranch"" UB 
+                ON B.""Id"" = UB.""BranchId""
+                WHERE UB.""AdministratorId"" = @adminId";
+
+            var branches = Query<Branch>(
+                sql: sql,
+                param: new { adminId }).ToList();
+
+            return branches;
+        }
+
+        /// <summary>
         /// Returns a list of branches associated with the specified user
         /// </summary>
-        public List<Branch> GetBranchesByUserId(int userId)
+        public List<Branch> GetUserBranchesByUserId(int useerId)
         {
             var sql = $@"
                 SELECT B.* 
                 FROM furcha.""Branch"" B
                 INNER JOIN furcha.""userbranch"" UB 
                 ON B.""Id"" = UB.""branchid""
-                WHERE UB.""userid"" = @userId";
+                WHERE UB.""userid"" = @useerId";
 
             var branches = Query<Branch>(
                 sql: sql,
-                param: new { userId }).ToList();
+                param: new { useerId }).ToList();
 
             return branches;
         }

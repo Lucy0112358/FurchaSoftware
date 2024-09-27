@@ -73,7 +73,7 @@ namespace FurchaAdminApi.Services
             {
                 var cards = _userRepository.GetUserCards(user.Id);
                 var groups = _userRepository.GetUserGroupsByUserId(user.Id);
-                var branches = _userRepository.GetBranchesByUserId(user.Id);
+                var branches = _userRepository.GetUserBranchesByUserId(user.Id);
 
                 var userResult = new UserResult
                 {
@@ -116,7 +116,7 @@ namespace FurchaAdminApi.Services
 
         public List<User> GetUsersForLVL4Admin(Administrators admin)
         {
-            var adminBranches = _userRepository.GetBranchesByUserId(admin.UserId);
+            var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
 
             var distinctBranchIds = adminBranches
                              .Select(ub => ub.Id)
@@ -130,11 +130,16 @@ namespace FurchaAdminApi.Services
 
         public List<User> GetUsersForCommonAdmin(Administrators admin)
         {
-            var distinctBranchIds = admin.AdminBranches
-                             .Select(ub => ub.BranchId)
+            var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
+
+            var distinctBranchIds = adminBranches
+                             .Select(ub => ub.Id)
                              .Distinct()
                              .ToList();
-
+            if (distinctBranchIds.Count > 1)
+            {
+                throw new BaseException(ErrorCodeEnum.AdminHasMoreBranchesThanPermitted);
+            }
             var users = _userRepository.GetAllUsersOfBranch(distinctBranchIds[0]);
 
             return users;
@@ -146,6 +151,7 @@ namespace FurchaAdminApi.Services
 
             return _userRepository.GetUserGroupsByCompanyId(admin.CompanyId);
         }
+
         public List<User> SearchUsers(string name)
         {
             return _userRepository.SearchUsersByName(name);
