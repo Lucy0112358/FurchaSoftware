@@ -35,7 +35,7 @@ namespace MqttService
             JwtConfiguration.SetupJwtAuthentication(builder, EncryptionSettings.EncryptionKey, issuer: EncryptionSettings.Issuer, audience: EncryptionSettings.Audience);
 
             builder.Services.GenerateInjectionAdmin();
-
+            builder.Services.AddHttpContextAccessor();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

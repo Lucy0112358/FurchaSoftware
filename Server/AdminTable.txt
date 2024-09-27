@@ -1,3 +1,5 @@
+CREATE TYPE furcha.user_state AS ENUM ('active', 'suspended');
+
 CREATE TABLE IF NOT EXISTS furcha."Administrators"
 (
     "Id" SERIAL PRIMARY KEY,
@@ -49,3 +51,30 @@ CREATE TABLE IF NOT EXISTS furcha."UserGroup_LockerGroup"
     ON DELETE CASCADE,
     CONSTRAINT "UserGroup_LockerGroup_unique" UNIQUE ("UserGroupId", "LockerGroupId")
 );
+
+ALTER TABLE furcha."Card"
+ADD COLUMN "CardNumber" BIGINT NOT NULL UNIQUE;
+
+ALTER TABLE furcha."User"
+ADD COLUMN "State" furcha.user_state NOT NULL DEFAULT 'active';
+
+ALTER TABLE furcha."Administrators"
+ADD COLUMN "UserId" INTEGER,
+ADD CONSTRAINT "fk_User_Id" FOREIGN KEY ("UserId") REFERENCES furcha."user" ("id")
+ON UPDATE NO ACTION
+ON DELETE CASCADE;
+
+ALTER TABLE furcha."Administrators"
+DROP COLUMN Email,
+DROP COLUMN "Name",
+DROP COLUMN "Surname";
+DROP COLUMN "Role";
+
+
+ALTER TABLE furcha."user" 
+ADD COLUMN "Role" INTEGER ;
+
+ALTER TABLE furcha."user"
+ADD CONSTRAINT "fk_Role_Id" FOREIGN KEY ("Role") 
+REFERENCES furcha."Roles" ("Id") 
+ON DELETE CASCADE;

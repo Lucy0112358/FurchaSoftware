@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Domain.Configuration;
+using Domain.Entities;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -6,8 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FurchaAdminApi.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("[controller]")]
     public class UserController : ControllerBase
     {
         private readonly UserService userService;
@@ -18,26 +19,24 @@ namespace FurchaAdminApi.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
-        [HttpGet("companyBranches")]
+        [HttpGet("company-users")]
         [AllowAnonymous]
-        public List<Branch> GetAllBranchesOfCompanyByAdminId([FromBody] int adminId)
+        public ActionResult<ApiResult<List<UserResult>>> GetAdminUsers([FromQuery] int adminId)
         {
-            var branches = userService.GetAllBranchesOfCompanyByAdminId(adminId);
-
-            return branches;
-        }
-
-        [HttpGet("branch-users")]
-        public ActionResult<List<User>> GetAllUsersOfBranch(int id)
-        {
- /*           var httpContext = _httpContextAccessor.HttpContext;
+            var httpContext = _httpContextAccessor.HttpContext;
 
             var userClaims = httpContext.User.Claims;
-            var nameClaim = userClaims.FirstOrDefault(c => c.Type == "name")?.Value;*/
-            var users = userService.GetAllUsersOfBranch(id);
+            var nameClaim = userClaims.FirstOrDefault(c => c.Type == "name")?.Value;
+            var users = userService.GetUsersForAdminRole(adminId);
 
-            return Ok(users);
+            if (users == null || !users.Any())
+            {
+                return NotFound(ApiResult<List<BranchFilterResult>>.ErrorResult("No branches found for the provided admin ID."));
+            }
+
+            return Ok(ApiResult<List<UserResult>>.Success(users));
         }
+
 
         [HttpGet("filtered-users")]
         public ActionResult<List<User>> GetFilteredUsersWithPagination(

@@ -10,8 +10,8 @@ namespace FurchaAdminApi.Models.Result
         public string Surname { get; set; }
         public RoleEnum Role { get; set; }
         public StateEnum State { get; set; }
-        public List<Card> Cards { get; set; }
-        public List<UserGroup> UserGroups { get; set; }
-        public List<Branch> Branches { get; set; }
+        public List<CardResult> Cards { get; set; }
+        public List<UserGroupResult> UserGroups { get; set; }
+        public List<BranchResult> Branches { get; set; }
     }
 }
