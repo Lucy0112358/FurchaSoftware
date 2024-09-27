@@ -25,9 +25,9 @@ namespace FurchaAdminApi.Controllers
         {
             var httpContext = _httpContextAccessor.HttpContext;
 
-            var userClaims = httpContext.User.Claims;
-            var nameClaim = userClaims.FirstOrDefault(c => c.Type == "name")?.Value;
-            var users = userService.GetUsersForAdminRole(adminId);
+            var userClaims = httpContext?.User.Claims;
+            var nameClaim = userClaims?.FirstOrDefault(c => c.Type == "name")?.Value;
+            var users = userService.GetUsersForAdminBasedOnRole(adminId);
 
             if (users == null || !users.Any())
             {
@@ -53,10 +53,12 @@ namespace FurchaAdminApi.Controllers
 
 
         [HttpGet("user-groups")]
-        public ActionResult<List<UserGroup>> GetUserGroupsByAdminId(int adminId)
+        public ActionResult<ApiResult<List<UserGroup>>> GetUserGroupsByAdminId(int adminId)
         {
-            var userGroups = userService.GetUserGroupsByAdminId(adminId);
-            return Ok(userGroups);
+            var userGroups = userService.GetUserGroupsForAdminBasedOnRole(adminId);
+
+            
+            return Ok(ApiResult<List<UserGroup>>.Success(userGroups));
         }
 
 

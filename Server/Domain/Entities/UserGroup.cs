@@ -1,6 +1,7 @@
 ﻿using Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Domain.Entities
 {
@@ -23,9 +24,11 @@ namespace Domain.Entities
         [Required]
         public StateEnum State { get; set; }
 
+        [JsonIgnore]
         [ForeignKey("BranchId")]
         public virtual Branch Branch { get; set; }
 
+        [JsonIgnore]
         public virtual ICollection<UserGroup_LockerGroup> UserGroupLockerGroups { get; set; }
     }
 }

@@ -1,8 +1,6 @@
 ﻿using Domain.Entities;
-using Humanizer;
 using MqttService.Application.Repositories;
 using Npgsql;
-using System;
 
 namespace FurchaAdminApi.Repos
 {
@@ -122,16 +120,12 @@ namespace FurchaAdminApi.Repos
         public List<Card> GetUserCards(int userId)
         {
             var sql = $@"
-SELECT C.* 
-FROM furcha.""UserCard"" UC
-INNER JOIN furcha.""Card"" C ON UC.""CardId"" = C.""Id""
-WHERE UC.""UserId"" = @userId";
+                        SELECT C.* 
+                        FROM furcha.""UserCard"" UC
+                        INNER JOIN furcha.""Card"" C ON UC.""CardId"" = C.""Id""
+                        WHERE UC.""UserId"" = @userId";
 
             return Query<Card>(sql: sql, param: new { userId }).ToList();
-
-
-
-
         }
 
         /// <summary>
@@ -152,6 +146,23 @@ WHERE UC.""UserId"" = @userId";
 
             return users;
         }
+
+        public List<UserGroup> GetUserGroupsByUserIds(List<int> userIds)
+        {
+            var sql = $@"
+                        SELECT DISTINCT UG.*
+                        FROM furcha.{nameof(UserGroup)} UG
+                        INNER JOIN furcha.User_UserGroup UUG 
+                        ON UG.{nameof(UserGroup.Id)} = UUG.{nameof(UserGroup.Id)}
+                        WHERE UUG.UserId = ANY(@userIds)";
+
+            var userGroups = Query<UserGroup>(
+                sql: sql,
+                param: new { userIds }).ToList();
+
+            return userGroups;
+        }
+
 
         public List<User> SearchUsersByName(string name)
         {

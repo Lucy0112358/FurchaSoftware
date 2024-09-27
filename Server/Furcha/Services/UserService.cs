@@ -2,8 +2,6 @@
 using Domain.Enums;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
 using MqttService.Application.Exceptions;
 
 namespace FurchaAdminApi.Services
@@ -43,7 +41,7 @@ namespace FurchaAdminApi.Services
         }
 
 
-        public List<UserResult> GetUsersForAdminRole(int adminId)
+        public List<UserResult> GetUsersForAdminBasedOnRole(int adminId)
         {
             var admin = _userRepository.GetAdminById(adminId: adminId);
 
@@ -145,11 +143,49 @@ namespace FurchaAdminApi.Services
             return users;
         }
 
-        public List<UserGroup> GetUserGroupsByAdminId(int adminId)
+        public List<UserGroup> GetUserGroupsForAdminBasedOnRole(int adminId)
         {
             var admin = _userRepository.GetAdminById(adminId);
 
-            return _userRepository.GetUserGroupsByCompanyId(admin.CompanyId);
+            if (admin == null)
+            {
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry); 
+            }
+
+            var groups = new List<UserGroup>();
+
+            if (admin.Role == RoleEnum.LVL5_MasterAdmin)
+            {
+                groups = _userRepository.GetUserGroupsByCompanyId(admin.CompanyId);
+            }
+            else if (admin.Role == RoleEnum.LVL4_SuperAdmin)
+            {
+                var users = GetUsersForLVL4Admin(admin);
+                var distinctUserIds = users
+                            .Select(user => user.Id)
+                            .Distinct()
+                            .ToList();
+
+                groups = _userRepository.GetUserGroupsByUserIds(distinctUserIds);
+            }
+            else if (admin.Role != RoleEnum.NotSet)
+            {
+                var users = GetUsersForCommonAdmin(admin);
+
+                var distinctUserIds = users
+                           .Select(user => user.Id)
+                           .Distinct()
+                           .ToList();
+
+                groups = _userRepository.GetUserGroupsByUserIds(distinctUserIds);
+            }
+            else
+            {
+                // Not likely to happen, when user has no role of admin
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
+            }
+
+            return groups;
         }
 
         public List<User> SearchUsers(string name)
