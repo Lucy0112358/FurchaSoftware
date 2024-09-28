@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FurchaAdminApi.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("auth/")]
     public class AuthenticationController : ControllerBase
     {
         private readonly AuthenticationService authenticationService;

@@ -1,8 +1,6 @@
 ﻿using Domain.Entities;
-using FurchaAdminApi.Models.Result;
 using MqttService.Application.Repositories;
 using Npgsql;
-using System.Text.RegularExpressions;
 
 namespace FurchaAdminApi.Repos
 {
@@ -15,38 +13,79 @@ namespace FurchaAdminApi.Repos
             _dbConnection = dbConnection;
         }
 
-        public List<User> GetAllActiveUsers()
+        /// <summary>
+        /// Returns all the users of the company, regardless of a branch
+        /// </summary>
+        public List<User> GetCompanyUsers(int companyId)
         {
-            return GetAll<User>().ToList();
+            var sql = $@"SELECT * FROM furcha.{nameof(User)} WHERE ""CompanyId"" = @companyId";
+            var usersOfCompany = Query<User>(
+            sql: sql,
+            param: new { companyId });
+
+            return usersOfCompany.ToList();
         }
 
         /// <summary>
         /// Returns null if no admin with that email exists. It must be handled with ErrorCodeEnum
         /// </summary>
-        public Administrators? GetAdminByEmail(string email)
+        public User? GetAdminByEmail(string email)
         {
-            var sql = $@"SELECT * FROM furcha.""Administrators"" WHERE Email = @email LIMIT 1";
-            var admin = Query<Administrators>(
+            var sql = $@"SELECT * FROM furcha.""User"" WHERE Email = @email LIMIT 1";
+            var admin = Query<User>(
             sql: sql,
             param: new { email });
 
             return admin.SingleOrDefault();
         }
 
-        public Administrators GetAdminById(int uid)
+        /// <summary>
+        /// Returns an administrator by their UserId
+        /// </summary>
+        public Administrators? GetAdminByUserId(int userId)
         {
-            var sql = $@"SELECT * FROM furcha.""Administrators"" WHERE Id = @uid LIMIT 1";
+            var sql = $@"SELECT * 
+                         FROM furcha.""Administrators"" 
+                         WHERE ""UserId"" = @userId 
+                         LIMIT 1";
+
             var admin = Query<Administrators>(
-            sql: sql,
-            param: new { uid });
+                sql: sql,
+                param: new { userId });
 
             return admin.SingleOrDefault();
         }
 
+        public Administrators GetAdminById(int adminId)
+        {
+            var sql = $@"
+        SELECT a.*, u.*
+        FROM furcha.""Administrators"" a
+        JOIN furcha.""user"" u ON a.""UserId"" = u.""id""
+        WHERE a.""id"" = @adminId
+        LIMIT 1";
+
+            var admin = Query<Administrators, User>(
+                sql: sql,
+                map: (admin, user) =>
+                {
+                    admin.Email = user.Email;
+                    admin.Name = user.Name;
+                    admin.Surname = user.Surname;
+                    admin.Role = user.Role;
+
+                    return admin;
+                },
+                param: new { adminId });
+
+            return admin.SingleOrDefault();
+        }
+
+
         /// <summary>
         /// Returns the list of active users in the current branch
         /// </summary>
-        private List<User> GetAllUsersOfBranch(int branchId)
+        internal List<User> GetAllUsersOfBranch(int branchId)
         {
             var sql = $@"SELECT T.* 
              FROM furcha.{nameof(User)} T
@@ -61,20 +100,67 @@ namespace FurchaAdminApi.Repos
             return branchUsers;
         }
 
-        internal List<Branch> GetAllBranchesOfCompany(int companyId)
+        internal List<Branch> GetAllBranchesOfAdmin(int adminId)
         {
-            var sql = $@"SELECT T.* 
-             FROM furcha.{nameof(Branch)} T
-             INNER JOIN furcha.{nameof(Company)} T1 
-             ON T.{nameof(Branch.CompanyId)} = T1.{nameof(Company.Id)}
-             WHERE T1.{nameof(Company.Id)} = @companyId";
+            var sql = $@"SELECT B.* 
+                 FROM furcha.""Branch"" B
+                 INNER JOIN furcha.""AdminBranch"" AB 
+                    ON B.""Id"" = AB.""BranchId""
+                 INNER JOIN furcha.""Administrators"" A 
+                    ON A.""id"" = AB.""AdministratorId""
+                 WHERE A.""id"" = @adminId";
 
-            var branchUsers = Query<Branch>(
+            var branches = Query<Branch>(
                 sql: sql,
-                param: new { companyId }).ToList();
+                param: new { adminId }).ToList();
 
-            return branchUsers;
+            return branches;
         }
+
+        public List<Card> GetUserCards(int userId)
+        {
+            var sql = $@"
+                        SELECT C.* 
+                        FROM furcha.""UserCard"" UC
+                        INNER JOIN furcha.""Card"" C ON UC.""CardId"" = C.""Id""
+                        WHERE UC.""UserId"" = @userId";
+
+            return Query<Card>(sql: sql, param: new { userId }).ToList();
+        }
+
+        /// <summary>
+        /// Returns a list of users that are part of the specified branches
+        /// </summary>
+        public List<User> GetUsersByBranches(List<int> branchIds)
+        {
+            var sql = $@"
+                SELECT Distinct U.* 
+                FROM furcha.User U
+                INNER JOIN furcha.UserBranch UB 
+                ON U.Id = UB.UserId
+                WHERE UB.BranchId = ANY(@branchIds)";
+
+            var users = Query<User>(
+                sql: sql,
+                param: new { branchIds }).ToList();
+
+            return users;
+        }
+
+        public List<UserGroup> GetUserGroupsByBranchIds(List<int> branchIds)
+        {
+            var sql = $@"
+        SELECT DISTINCT UG.*
+        FROM furcha.{nameof(UserGroup)} UG
+        WHERE UG.{nameof(UserGroup.BranchId)} = ANY(@branchIds)";
+
+            var userGroups = Query<UserGroup>(
+                sql: sql,
+                param: new { branchIds }).ToList();
+
+            return userGroups;
+        }
+
         public List<User> SearchUsersByName(string name)
         {
             var sql = $@"SELECT * 
@@ -133,10 +219,10 @@ namespace FurchaAdminApi.Repos
         public List<UserGroup> GetUserGroupsByCompanyId(int companyId)
         {
             var sql = $@"SELECT UG.* 
-                 FROM furcha.{nameof(UserGroup)} UG
-                 INNER JOIN furcha.{nameof(Branch)} B 
-                 ON UG.{nameof(UserGroup.BranchId)} = B.{nameof(Branch.Id)}
-                 WHERE B.{nameof(Branch.CompanyId)} = @companyId";
+                 FROM furcha.""UserGroup"" UG
+                 INNER JOIN furcha.""Branch"" B 
+                 ON UG.""BranchId"" = B.""Id""
+                 WHERE B.""CompanyId"" = @companyId";
 
             var userGroups = Query<UserGroup>(
                 sql: sql,
@@ -145,7 +231,7 @@ namespace FurchaAdminApi.Repos
             return userGroups;
         }
 
-        public List<User> GetFilteredUsersByPagination(int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
+        public List<User> GetFilteredUsersByPagination(int companyId, int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
         {
             List<User> users = new List<User>();
             string sql = "";
@@ -177,7 +263,7 @@ namespace FurchaAdminApi.Repos
             }
             else
             {
-                users = GetAllActiveUsers()
+                users = GetCompanyUsers(companyId)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToList();
@@ -188,6 +274,63 @@ namespace FurchaAdminApi.Repos
             users = Query<User>(sql: sql, param: queryParams).ToList();
 
             return users;
+        }
+
+        /// <summary>
+        /// Returns a list of user groups associated with the specified user
+        /// </summary>
+        public List<UserGroup> GetUserGroupsByUserId(int userId)
+        {
+            var sql = $@"
+                SELECT UG.* 
+                FROM furcha.""UserGroup"" UG
+                INNER JOIN furcha.""User_UserGroup"" UUG 
+                ON UG.""Id"" = UUG.""UserGroupId""
+                WHERE UUG.""UserId"" = @userId";
+
+            var userGroups = Query<UserGroup>(
+                sql: sql,
+                param: new { userId }).ToList();
+
+            return userGroups;
+        }
+
+        /// <summary>
+        /// Returns a list of branches associated with the specified admin
+        /// </summary>
+        public List<Branch> GetAdminBranchesByAdminId(int adminId)
+        {
+            var sql = $@"
+                SELECT B.* 
+                FROM furcha.""Branch"" B
+                INNER JOIN furcha.""AdminBranch"" UB 
+                ON B.""Id"" = UB.""BranchId""
+                WHERE UB.""AdministratorId"" = @adminId";
+
+            var branches = Query<Branch>(
+                sql: sql,
+                param: new { adminId }).ToList();
+
+            return branches;
+        }
+
+        /// <summary>
+        /// Returns a list of branches associated with the specified user
+        /// </summary>
+        public List<Branch> GetUserBranchesByUserId(int useerId)
+        {
+            var sql = $@"
+                SELECT B.* 
+                FROM furcha.""Branch"" B
+                INNER JOIN furcha.""userbranch"" UB 
+                ON B.""Id"" = UB.""branchid""
+                WHERE UB.""userid"" = @useerId";
+
+            var branches = Query<Branch>(
+                sql: sql,
+                param: new { useerId }).ToList();
+
+            return branches;
         }
 
     }

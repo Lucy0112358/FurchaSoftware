@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS furcha."BrainModule"
     ON UPDATE NO ACTION
     ON DELETE CASCADE
 );
+
 -- Create User table
 CREATE TABLE IF NOT EXISTS furcha."User"
 (
@@ -279,3 +280,15 @@ CREATE TABLE IF NOT EXISTS furcha."UserGroup_LockerGroup"
     ON DELETE CASCADE,
     CONSTRAINT "UserGroup_LockerGroup_unique" UNIQUE ("UserGroupId", "LockerGroupId")
 );
+
+-- Modify the User table to add companyId column with a foreign key constraint
+ALTER TABLE furcha."User"
+ADD COLUMN "CompanyId" INTEGER,
+ADD CONSTRAINT "FK_Company_Id"
+FOREIGN KEY ("CompanyId")
+REFERENCES furcha."Company"("Id");
+
+-- Add a unique constraint for Email and CompanyId combination
+ALTER TABLE furcha."User"
+ADD CONSTRAINT "UQ_User_Email_Company"
+UNIQUE ("Email", "CompanyId");

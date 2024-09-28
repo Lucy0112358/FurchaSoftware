@@ -5,11 +5,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Domain.Entities
 {
     [Table("Administrators", Schema = "furcha")]
-    public class Administrators
+    public class Administrators : User
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public new int Id { get; set; }
 
         [Required]
         [MaxLength(255)]
@@ -32,10 +32,9 @@ namespace Domain.Entities
         public bool IsActive { get; set; } = true;
 
         public bool? IsDeleted { get; set; } 
-        public RoleEnum Role { get; set; }
 
         public int? ModifiedBy { get; set; }
-        public int CompanyId { get; set; }
+        public int UserId { get; set; }
 
         public DateTime? LastPasswordChangeDate { get; set; }
 
@@ -47,5 +46,11 @@ namespace Domain.Entities
 
         [ForeignKey("ModifiedBy")]
         public virtual Administrators ModifiedByAdmin { get; set; }
+        public virtual ICollection<AdminBranch> AdminBranches { get; set; }
+
+        public Administrators()
+        {
+            AdminBranches = new HashSet<AdminBranch>();
+        }
     }
 }

@@ -12,6 +12,9 @@ namespace Domain.Entities
         [Column]
         public int UserId { get; set; }
 
+        [Column]
+        public string CardNumber { get; set; }
+
         [InverseProperty("LockerCard")]
         public IEnumerable<UserCard> UserCard { get; set; }
 

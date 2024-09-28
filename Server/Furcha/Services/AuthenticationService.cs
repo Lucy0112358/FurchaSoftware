@@ -41,15 +41,16 @@ namespace FurchaAdminApi.Services
         public LoginResult LoginToGetJwtToken(AuthenticateRequest authenticateRequest)
         {
             // test authenticateRequest.email = null case with Swagger
-            var admin = _userRepository.GetAdminByEmail(authenticateRequest.Email);
+            var adminUser = _userRepository.GetAdminByEmail(authenticateRequest.Email);
+            var admin = _userRepository.GetAdminByUserId(adminUser.Id);
 
-            if (admin == null || admin?.Salt == null || admin?.PasswordHash == null || authenticateRequest?.Password == null)
+            if (adminUser == null || admin?.Salt == null || admin?.PasswordHash == null || authenticateRequest?.Password == null)
             {
                 throw new BaseException(ErrorCodeEnum.WrongUsernameOrPassword);
             }
 
-            //  var hashedPassword = EncodePassword(password: authenticateRequest.Password, salt: admin.Salt);
-            var hashedPassword = authenticateRequest.Password;
+            var hashedPassword = EncodePassword(password: authenticateRequest.Password, salt: admin.Salt);
+          //  var hashedPassword = authenticateRequest.Password;
 
             if (hashedPassword != admin.PasswordHash)
             {
@@ -69,7 +70,7 @@ namespace FurchaAdminApi.Services
                 Id = administrator.Id,
                 Name = administrator.Name,
                 Surname = administrator.Surname,
-                Role = administrator.Role
+                Role = administrator.Role,
             };
         }
 
