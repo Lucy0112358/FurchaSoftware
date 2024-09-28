@@ -13,11 +13,17 @@
 }
 
 .menu__filter__select {
+    margin-right: 5px;
     width: 230px;
 }
 
 .menu__filter__search {
+    margin-right: 5px;
     width: 230px;
+}
+
+.menu__filter__search input{
+    padding: 7px 8px;
 }
 
 .menu__file__uploader img{
@@ -31,4 +37,8 @@
     height: 7px;
     border-radius: 50%;
     background-color: #08f4e8;
+}
+
+.menu__filter__mobile > div {
+    padding: 0 20px;
 }
