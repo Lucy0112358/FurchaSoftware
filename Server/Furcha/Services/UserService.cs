@@ -143,13 +143,13 @@ namespace FurchaAdminApi.Services
             return users;
         }
 
-        public List<UserGroup>? GetUserGroupsForAdminBasedOnRole(int adminId)
+        public List<UserGroupResult>? GetUserGroupsForAdminBasedOnRole(int adminId)
         {
             var admin = _userRepository.GetAdminById(adminId);
 
             if (admin == null)
             {
-                throw new BaseException(ErrorCodeEnum.GenericErrorRetry); 
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
 
             var groups = new List<UserGroup>();
@@ -160,24 +160,31 @@ namespace FurchaAdminApi.Services
             }
             else if (admin.Role == RoleEnum.LVL4_SuperAdmin)
             {
-                var users = GetUsersForLVL4Admin(admin);
-                var distinctUserIds = users
-                            .Select(user => user.Id)
-                            .Distinct()
-                            .ToList();
+                var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
 
-                groups = _userRepository.GetUserGroupsByUserIds(distinctUserIds);
+                var distinctBranchIds = adminBranches
+                                 .Select(ub => ub.Id)
+                                 .Distinct()
+                                 .ToList();
+
+                groups = _userRepository.GetUserGroupsByBranchIds(distinctBranchIds);
             }
             else if (admin.Role != RoleEnum.NotSet)
             {
-                var users = GetUsersForCommonAdmin(admin);
+                // later find a smarter way not to repeat this piece of code in 4 places
+                var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
 
-                var distinctUserIds = users
-                           .Select(user => user.Id)
-                           .Distinct()
-                           .ToList();
+                var distinctBranchIds = adminBranches
+                                 .Select(ub => ub.Id)
+                                 .Distinct()
+                                 .ToList();
 
-                groups = _userRepository.GetUserGroupsByUserIds(distinctUserIds);
+                if (distinctBranchIds.Count > 1)
+                {
+                    throw new BaseException(ErrorCodeEnum.AdminHasMoreBranchesThanPermitted);
+                }
+
+                groups = _userRepository.GetUserGroupsByBranchIds(distinctBranchIds);
             }
             else
             {
@@ -185,7 +192,16 @@ namespace FurchaAdminApi.Services
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
 
-            return groups;
+            return groups.Select(ug => new UserGroupResult
+            {
+                Id = ug.Id,
+                GroupName = ug.Name,
+                Branch = ug.Branch.Name,
+                State = ug.State,
+                /*                PermittedLockers = ug.UserGroupLockerGroups
+                                             .Select(ugl => ugl.)
+                                             .ToList() */
+            }).ToList();
         }
 
         public List<User> SearchUsers(string name)

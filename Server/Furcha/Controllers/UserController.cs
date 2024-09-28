@@ -53,16 +53,16 @@ namespace FurchaAdminApi.Controllers
 
 
         [HttpGet("user-groups")]
-        public ActionResult<ApiResult<List<UserGroup>>> GetUserGroupsByAdminId(int adminId)
+        public ActionResult<ApiResult<List<UserGroupResult>>> GetUserGroupsByAdminId(int adminId)
         {
             var userGroups = userService.GetUserGroupsForAdminBasedOnRole(adminId);
 
             if (userGroups == null)
             {
-                return NotFound(ApiResult<List<UserGroup>>.ErrorResult("No user groups found for the current admin permissions"));
+                return NotFound(ApiResult<List<UserGroupResult>>.ErrorResult("No user groups found for the current admin permissions"));
             }
 
-            return Ok(ApiResult<List<UserGroup>>.Success(userGroups));
+            return Ok(ApiResult<List<UserGroupResult>>.Success(userGroups));
         }
 
 
