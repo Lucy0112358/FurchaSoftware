@@ -25,3 +25,33 @@ a {
   text-decoration: none;
   color: inherit;
 }
+
+/* Мобильные телефоны */
+@media (max-width: 425px) {
+  /* Ваши стили для телефонов */
+}
+
+/* Планшеты */
+@media (max-width: 768px) {
+  /* Ваши стили для планшетов */
+}
+
+/* Небольшие ноутбуки */
+@media (max-width: 1024px) {
+  .sidebar__content__link {
+    font-size: 32px !important;
+    justify-content: center;
+    padding: 8px 0;
+  }
+}
+
+/* Десктопы */
+@media (max-width: 1280px) {
+  .menu__filter {
+    display: none !important;
+  }
+
+  .menu__filter__mobile {
+    display: block !important;
+  }
+}

@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import Modules from './pages/modules/Modules';
+import Users from './pages/users/Users';
 import Layout from './components/layout/Layout';
 import Signin from './pages/auth/Signin';
 import PrivateRoute from './middleware/PrivateRoute';
@@ -17,7 +17,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-          <Route index element={<PrivateRoute><Modules /></PrivateRoute>} />
+          <Route index element={<PrivateRoute><Users /></PrivateRoute>} />
         </Route>
        <Route path="login" element={<Signin />}></Route>
       </Routes>
