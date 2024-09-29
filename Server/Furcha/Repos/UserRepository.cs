@@ -56,7 +56,7 @@ namespace FurchaAdminApi.Repos
             return admin.SingleOrDefault();
         }
 
-        public Administrators GetAdminById(int adminId)
+        public Administrators? GetAdminById(int adminId)
         {
             var sql = $@"
         SELECT a.*, u.*

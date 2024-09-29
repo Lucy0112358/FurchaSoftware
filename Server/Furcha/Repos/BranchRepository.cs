@@ -1,6 +1,4 @@
 ﻿using Domain.Entities;
-using Domain.Enums;
-using MqttService.Application.Exceptions;
 using MqttService.Application.Repositories;
 using Npgsql;
 

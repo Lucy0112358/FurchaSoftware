@@ -10,7 +10,8 @@ namespace MqttService.Infrastructure
             /* REPOSITORIES */
             services.AddScoped(typeof(UserRepository));
             services.AddScoped(typeof(BranchRepository));
-
+            services.AddScoped(typeof(AdminRepository));
+            
 
             /* SERVICES */
             services.AddScoped(typeof(UserService));
