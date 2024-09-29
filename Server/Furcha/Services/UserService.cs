@@ -9,10 +9,12 @@ namespace FurchaAdminApi.Services
     public class UserService
     {
         private readonly UserRepository _userRepository;
+        private readonly AdminRepository _adminRepository;
 
-        public UserService(UserRepository userRepository)
+        public UserService(UserRepository userRepository, AdminRepository adminRepository)
         {
             _userRepository = userRepository;
+            _adminRepository = adminRepository;
         }
 
         public List<User> GetFilteredUsersWithPagination(int companyId, int? filterByGroupId, int? filterByBranchId, int pageNumber, int pageSize)
@@ -45,6 +47,10 @@ namespace FurchaAdminApi.Services
         {
             var admin = _userRepository.GetAdminById(adminId: adminId);
 
+            if (admin == null)
+            {
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
+            }
             var users = new List<User>();
 
             if (admin.Role == RoleEnum.LVL5_MasterAdmin)
@@ -69,6 +75,7 @@ namespace FurchaAdminApi.Services
 
             foreach (var user in users)
             {
+                var roleName = _adminRepository.GetRoleById(user.Role).OpenName;
                 var cards = _userRepository.GetUserCards(user.Id);
                 var groups = _userRepository.GetUserGroupsByUserId(user.Id);
                 var branches = _userRepository.GetUserBranchesByUserId(user.Id);
@@ -78,8 +85,8 @@ namespace FurchaAdminApi.Services
                     Id = user.Id,
                     Name = user.Name,
                     Surname = user.Surname,
-                    Role = user.Role,
-                    State = user.State,
+                    Role = roleName,
+                    State = user.State.ToString(),
 
                     Cards = cards.Select(card => new CardResult
                     {
@@ -103,7 +110,7 @@ namespace FurchaAdminApi.Services
                 userResults.Add(userResult);
             }
 
-            return userResults;
+                return userResults;
         }
 
 

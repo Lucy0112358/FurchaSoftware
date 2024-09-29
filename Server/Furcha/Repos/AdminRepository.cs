@@ -1,7 +1,37 @@
-﻿namespace FurchaAdminApi.Repos
+﻿using Domain.Entities;
+using Domain.Enums;
+using MqttService.Application.Repositories;
+using Npgsql;
+
+namespace FurchaAdminApi.Repos
 {
-    public class AdminRepository
+    public class AdminRepository : BaseRepository
     {
+        private readonly NpgsqlConnection _dbConnection;
+
+        public AdminRepository(NpgsqlConnection dbConnection) : base(dbConnection)
+        {
+            _dbConnection = dbConnection;
+        }
+
+        /// <summary>
+        /// Retrieves a Role objevt by its Id, to send the frontend whatever they need
+        /// </summary>
+        /// <param name="roleId">The RoleEnum value corresponding to the Role Id.</param>
+        /// <returns>The Role entity if found; otherwise, null.</returns>
+        public Role GetRoleById(RoleEnum roleId)
+        {
+            var sql = @"SELECT * 
+                FROM furcha.""Roles"" 
+                WHERE ""Id"" = @Id";
+
+            var role = Query<Role>(
+                 sql: sql,
+                 param: new { Id = (long)roleId }
+                 ).FirstOrDefault();
+
+            return role;
+        }
 
     }
 }
