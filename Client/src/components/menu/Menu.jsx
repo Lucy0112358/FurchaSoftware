@@ -7,6 +7,7 @@ import { useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserBranches, getUserGroups } from '../../redux/api/menuApi';
 import { getUserBranchesData } from '../../redux/slice/menuSlice';
+import AddUserModal from '../modals/addUser/AddUserModal';
 
 
 function Menu() {
@@ -17,9 +18,10 @@ function Menu() {
     setSelectedBranch(selectedOption);
     console.log("Выбранная опция:", selectedOption);
   };
-  useEffect(() => {
-    
-  }, [])
+
+  //Add USER modal part 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const userBranches = useSelector(getUserBranchesData);
   // useSelector(getUserBranches);
   // const allBrnachOptions = [{ value: '', label: 'All' }, ...branch];
@@ -61,11 +63,16 @@ function Menu() {
     <div >
       <div className="menu flex justify-around">
         <div className='menu__add'>
-          <button className="menu__add__button text-white">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="menu__add__button text-white">
             <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
             <span className="">Add User</span>
           </button>
         </div>
+        <AddUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <p>This is a modal content!</p>
+        </AddUserModal>
 
         <div className="menu__group flex items-center">
           <label className="cursor-pointer">

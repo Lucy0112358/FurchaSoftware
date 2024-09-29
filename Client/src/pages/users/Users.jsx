@@ -1,16 +1,20 @@
 import axios from "axios";
 import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllUsers } from "../../redux/api/userApi";
+import { getAllUsersData } from "../../redux/slice/userSlice";
 
 const Users = () => {
+  const dispatch = useDispatch();
+
   useEffect(() => {
-    axios.get('https://localhost:7123/user/all-users')
-  .then(response => {
-    console.log(response.data, "Userr informationnnnnnnnnnnnnn"); 
-  })
-  .catch(error => {
-    console.error('Ошибка:', error); 
-  });
+    dispatch(getAllUsers());
   }, []);
+
+  const allUsers = useSelector(getAllUsersData);
+
+  console.log(allUsers, "userBranchesuserBranchesuserBranches")
+
   const users = [
     {
       id: "U1",
@@ -154,22 +158,29 @@ const Users = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user, index) => (
+            {allUsers.map((user, index) => (
               <tr key={user.id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
                 <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>
                   <input type="checkbox" className="mr-2" /> {user.id}
                 </td>
-                <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>{user.firstName}</td>
-                <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>{user.lastName}</td>
+                <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>{user.name}</td>
+                <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>{user.surname}</td>
                 <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>{user.role}</td>
-                <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>
-                  {user.cardNo.map((card, idx) => (
-                    <div key={idx}>{card}</div>
+                 <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>
+                  {user.cards?.map((card, idx) => (
+                    <div key={idx}>{card.cardNumber}</div>
                   ))}
                 </td>
-                <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>{user.pin}</td>
-                <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>{user.site}</td>
-                <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>{user.group}</td>
+                <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>
+                  {user.branches?.map((branch, idx) => (
+                    <div key={idx}>{branch.name}</div>
+                  ))}
+                </td>
+                <td className="" style={{paddingBottom: '10px', paddingTop: '10px'}}>
+                  {user.userGroups?.map((group, idx) => (
+                    <div key={idx}>{group.groupName}</div>
+                  ))}
+                </td>
                 <td className={` ${user.state === 'Suspended' ? 'text-red-500' : ''}`}>
                   {user.state}
                 </td>

@@ -1,0 +1,26 @@
+.add__modal__content__addUser {
+    width: 610px !important;
+    height: 850px;
+    padding: 5px 18px;
+}
+
+.add__modal__content__part__group {
+    padding: 12px 10px;
+    border: 1px solid #414646;
+    border-radius: 13px;
+}
+
+.add__modal__content__part {
+    color: #191c1d;
+    font-size: 19px;
+}
+
+.add__modal__content__part__select {
+    color: #191c1d;
+    font-size: 19px;
+    width: 50%;
+}
+
+
+
+
