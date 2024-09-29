@@ -149,7 +149,6 @@ const Modules = () => {
     return (
         <div className="">
             <h1 className="text-2xl" style={{ color: '#AAAAAA' }}>Tallinn Office</h1>
-            <p style={{ paddingLeft: "20px", color: '#AAAAAA' }}>L1 - 1st floor Lockers</p>
 
             <div className="outlet__table__wrapper overflow-x-auto mt-2" style={{ /*backgroundColor: '#ffffff', */ borderRadius: '10px', height: '480px' }}>
                 <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA' }}>

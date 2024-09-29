@@ -18,7 +18,6 @@ const Users = () => {
       lastName: "Smith",
       role: "Superadmin",
       cardNo: ["22531845648997", "22531845649245"],
-      pin: "1234",
       site: "Tallinn Office, Tallinn Office 2, Pärnu Office",
       group: "Admin",
       state: "Active"
@@ -29,7 +28,6 @@ const Users = () => {
       lastName: "Smith",
       role: "User",
       cardNo: ["22531845648998"],
-      pin: "",
       site: "Tallinn Office",
       group: "Employee",
       state: "Suspended"
@@ -40,7 +38,6 @@ const Users = () => {
       lastName: "Smith",
       role: "User",
       cardNo: ["22531845648998"],
-      pin: "",
       site: "Tallinn Office",
       group: "Employee",
       state: "Suspended"
@@ -51,7 +48,6 @@ const Users = () => {
       lastName: "Smith",
       role: "Superadmin",
       cardNo: ["22531845648997", "22531845649245"],
-      pin: "1234",
       site: "Tallinn Office, Tallinn Office 2, Pärnu Office",
       group: "Admin",
       state: "Active"
@@ -62,7 +58,6 @@ const Users = () => {
       lastName: "Smith",
       role: "User",
       cardNo: ["22531845648998"],
-      pin: "",
       site: "Tallinn Office",
       group: "Employee",
       state: "Suspended"
@@ -73,7 +68,6 @@ const Users = () => {
       lastName: "Smith",
       role: "Superadmin",
       cardNo: ["22531845648997", "22531845649245"],
-      pin: "1234",
       site: "Tallinn Office, Tallinn Office 2, Pärnu Office",
       group: "Admin",
       state: "Active"
@@ -84,7 +78,6 @@ const Users = () => {
       lastName: "Smith",
       role: "Superadmin",
       cardNo: ["22531845648997", "22531845649245"],
-      pin: "1234",
       site: "Tallinn Office, Tallinn Office 2, Pärnu Office",
       group: "Admin",
       state: "Active"
@@ -95,7 +88,6 @@ const Users = () => {
       lastName: "Smith",
       role: "Superadmin",
       cardNo: ["22531845648997", "22531845649245"],
-      pin: "1234",
       site: "Tallinn Office, Tallinn Office 2, Pärnu Office",
       group: "Admin",
       state: "Active"
@@ -106,7 +98,6 @@ const Users = () => {
       lastName: "Smith",
       role: "Superadmin",
       cardNo: ["22531845648997"],
-      pin: "1234",
       site: "Tallinn Office, Tallinn Office 2, Pärnu Office",
       group: "Admin",
       state: "Active"
@@ -117,7 +108,6 @@ const Users = () => {
       lastName: "Smith",
       role: "Superadmin",
       cardNo: ["22531845648997", "22531845649245"],
-      pin: "1234",
       site: "Tallinn Office, Tallinn Office 2, Pärnu Office",
       group: "Admin",
       state: "Active"
@@ -128,7 +118,6 @@ const Users = () => {
       lastName: "Smith",
       role: "Superadmin",
       cardNo: ["22531845648997", "22531845649245"],
-      pin: "1234",
       site: "Tallinn Office, Tallinn Office 2, Pärnu Office",
       group: "Admin",
       state: "Active"
@@ -139,7 +128,6 @@ const Users = () => {
       lastName: "Smith",
       role: "Superadmin",
       cardNo: ["22531845648997", "22531845649245"],
-      pin: "1234",
       site: "Tallinn Office, Tallinn Office 2, Pärnu Office",
       group: "Admin",
       state: "Active"
@@ -149,7 +137,6 @@ const Users = () => {
   return (
     <div className="">
         <h1 className="text-2xl" style={{color: '#AAAAAA'}}>Tallinn Office</h1>
-        <p style={{paddingLeft: "20px", color: '#AAAAAA'}}>L1 - 1st floor Lockers</p>
         
 
       <div className="outlet__table__wrapper overflow-x-auto mt-2" style={{ /*backgroundColor: '#ffffff', */ borderRadius: '10px', height: '480px', width: '100%', maxWidth: '1130px', overflowX: 'auto' }}>
@@ -161,7 +148,6 @@ const Users = () => {
               <th className="text-left" style={{paddingBottom: '10px', paddingTop: '10px'}}>Last Name</th>
               <th className="text-left" style={{paddingBottom: '10px', paddingTop: '10px'}}>Role</th>
               <th className="text-left" style={{paddingBottom: '10px', paddingTop: '10px'}}>Card No.</th>
-              <th className="text-left" style={{paddingBottom: '10px', paddingTop: '10px'}}>Pin</th>
               <th className="text-left" style={{paddingBottom: '10px', paddingTop: '10px'}}>Site</th>
               <th className="text-left" style={{paddingBottom: '10px', paddingTop: '10px'}}>User Group</th>
               <th className="text-left" style={{paddingBottom: '10px', paddingTop: '10px'}}>State</th>

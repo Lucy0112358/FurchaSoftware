@@ -1,12 +1,47 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import './menu.css';
 import { RiAddBoxLine } from "react-icons/ri";
 import { assets } from '../../assets/assets';
 import CustomSelect from '../select/CustomSelect';
+import { useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserBranches, getUserGroups } from '../../redux/api/menuApi';
+import { getUserBranchesData } from '../../redux/slice/menuSlice';
+
 
 function Menu() {
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const [selectedBranch, setSelectedBranch] = useState(null);
+  const handleSelectChange = (selectedOption) => {
+    setSelectedBranch(selectedOption);
+    console.log("Выбранная опция:", selectedOption);
+  };
+  useEffect(() => {
+    
+  }, [])
+  const userBranches = useSelector(getUserBranchesData);
+  // useSelector(getUserBranches);
+  // const allBrnachOptions = [{ value: '', label: 'All' }, ...branch];
+
   const [groupEnabled, setGroupEnabled] = useState(false);
   const [manageEnabled, setManageEnabled] = useState(true);
+
+  useEffect(() => {
+    console.log(location.pathname);
+    let path = location.pathname;
+    console.log(path);
+    if (path == '/' || path == '/users') {
+       dispatch(getUserGroups());
+    } else if (path == '/modules') {
+      
+    }
+  }, [location]);
+
+  useEffect(() => {
+    dispatch(getUserBranches());
+  }, []);
+
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -52,11 +87,11 @@ function Menu() {
         <div className="menu__filter flex space-x-4">
           <div className='flex flex-col'>
             <div className='menu__filter__select'>
-              <CustomSelect />
+              <CustomSelect options={userBranches}  onChange={handleSelectChange} />
               <label className="text-white block">Site</label>
             </div>
             <div className='menu__filter__select'>
-              <CustomSelect />
+              {/* <CustomSelect /> */}
               <label className="text-white block">User Group</label>
             </div>
           </div>

@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 
-const options = [
-  { value: 'chocolate', label: 'Chocolate' },
-  { value: 'strawberry', label: 'Strawberry' },
-  { value: 'vanilla', label: 'Vanilla' },
-];
-
-export default function CustomSelect() {
+export default function CustomSelect({ options, onChange  }) {
   const [selectedOption, setSelectedOption] = useState(null);
 
+  const handleChange = (selected) => {
+    setSelectedOption(selected);
+    onChange(selected);
+  };
+
   return (
-      <Select
-        defaultValue={selectedOption}
-        onChange={setSelectedOption}
-        options={options}
-      />
+    <Select
+      options={Array.isArray(options) ? options.map((option) => ({
+        value: option.name == "All" ? "" : option.id,
+        label: option.name 
+      })) : []}
+      value={selectedOption} 
+      onChange={handleChange}
+    />
   );
 }

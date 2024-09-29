@@ -6,6 +6,7 @@ import Signin from './pages/auth/Signin';
 import PrivateRoute from './middleware/PrivateRoute';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import Modules from './pages/modules/Modules';
 
 
 
@@ -17,7 +18,9 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-          <Route index element={<PrivateRoute><Users /></PrivateRoute>} />
+          <Route index  path="/" element={<PrivateRoute><Users /></PrivateRoute>} />
+          <Route index  path="/users" element={<PrivateRoute><Users /></PrivateRoute>} />
+          <Route path="modules" element={<PrivateRoute><Modules /></PrivateRoute>} />
         </Route>
        <Route path="login" element={<Signin />}></Route>
       </Routes>

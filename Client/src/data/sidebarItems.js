@@ -6,7 +6,7 @@ import { PiLockersFill } from "react-icons/pi";
 export const sitebarItems = [
     { name: 'Branches', path: '/branches', icon : AiOutlineBranches},
     { name: 'Lockers', path: '/lockers', icon : PiLockersFill },
-    { name: 'Users', path: '/', icon : FaUser  },
+    { name: 'Users', path: '/users', icon : FaUser  },
     { name: 'Administrators', path: '/administrators', icon : MdAdminPanelSettings},
     { name: 'Modules', path: '/modules', icon : MdViewModule  },
 ];
