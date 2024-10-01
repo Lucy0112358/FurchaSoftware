@@ -10,11 +10,18 @@ namespace FurchaAdminApi.Services
     {
         private readonly UserRepository _userRepository;
         private readonly AdminRepository _adminRepository;
+        private readonly LockerService _lockerService;
+        private readonly LockerRepository _lockerRepository;
+        private readonly BranchRepository _branchRepository;
+        
 
-        public UserService(UserRepository userRepository, AdminRepository adminRepository)
+        public UserService(UserRepository userRepository, AdminRepository adminRepository, LockerService lockerService, LockerRepository lockerRepository, BranchRepository branchRepository)
         {
             _userRepository = userRepository;
             _adminRepository = adminRepository;
+            _lockerService = lockerService;
+            _lockerRepository = lockerRepository;
+            _branchRepository = branchRepository;
         }
 
         public List<User> GetFilteredUsersWithPagination(int companyId, int? filterByGroupId, int? filterByBranchId, int pageNumber, int pageSize)
@@ -110,7 +117,7 @@ namespace FurchaAdminApi.Services
                 userResults.Add(userResult);
             }
 
-                return userResults;
+            return userResults;
         }
 
 
@@ -199,16 +206,50 @@ namespace FurchaAdminApi.Services
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
 
-            return groups.Select(ug => new UserGroupResult
+            var groupResults = new List<UserGroupResult>();
+
+            foreach (var group in groups)
             {
-                Id = ug.Id,
-                GroupName = ug.Name,
-                Branch = ug.Branch.Name,
-                State = ug.State,
-                /*                PermittedLockers = ug.UserGroupLockerGroups
-                                             .Select(ugl => ugl.)
-                                             .ToList() */
-            }).ToList();
+                var companyName = _branchRepository.GetCompanyById(group.CompanyId).Name;
+                var groupBranches = _branchRepository.GetBranchesOfUserGroup(group.Id);
+                var permittedLockers = _lockerService.GetPermittedLockersOfUserGroup(ugId: group.Id);
+                var permittedLockerResults = new List<PermittedLockerResult>();
+                foreach (var permittedLocker in permittedLockers)
+                {
+                    var permittedLockerResult = new PermittedLockerResult()
+                    {
+                        LockerId = permittedLocker.Id,
+                        LockerNumber = permittedLocker.Number
+                    };
+
+                    permittedLockerResults.Add(permittedLockerResult);
+                }
+
+                var lockerGroups = _lockerRepository.GetLockerGroupsByUserGroup(group.Id);
+                var lockerGroupResults = new List<LockerGroupResult>();
+                foreach (var item in lockerGroups)
+                {
+                    var res = new LockerGroupResult()
+                    {
+                        Name = item.LockerGroupName
+                    };
+
+                    lockerGroupResults.Add(res);
+                }
+
+                var userGroupResult = new UserGroupResult
+                {
+                    Id = group.Id,
+                    GroupName = group.Name,
+                    PermittedLockers = lockerGroupResults,
+                    BranchNames = groupBranches.Select(item => item.Name).ToList(),
+                    State = group.State.ToString(),
+                };
+
+                groupResults.Add(userGroupResult);
+            }
+
+            return groupResults;
         }
 
         public List<User> SearchUsers(string name)

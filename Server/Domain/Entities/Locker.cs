@@ -9,6 +9,12 @@ namespace Domain.Entities
         public int Id { get; set; }
 
         [Column]
+        public long Number { get; set; }
+
+        [Column]
+        public int LockerGroupId { get; set; }
+
+        [Column]
         public int LockerTypeId { get; set; }
 
         [Column]

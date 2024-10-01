@@ -13,7 +13,7 @@ namespace Domain.Entities
         public int Id { get; set; }
 
         [Required]
-        public int BranchId { get; set; }
+        public int CompanyId { get; set; }
 
         [Required]
         [MaxLength(255)]
@@ -25,10 +25,13 @@ namespace Domain.Entities
         public StateEnum State { get; set; }
 
         [JsonIgnore]
-        [ForeignKey("BranchId")]
-        public virtual Branch Branch { get; set; }
+        [ForeignKey("CompanyId")]
+        public virtual Company Company { get; set; }
 
         [JsonIgnore]
         public virtual ICollection<UserGroup_LockerGroup> UserGroupLockerGroups { get; set; }
+
+        [JsonIgnore]
+        public virtual ICollection<UserGroup_Branch> UserGroupBranches { get; set; }
     }
 }

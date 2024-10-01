@@ -78,3 +78,11 @@ ALTER TABLE furcha."user"
 ADD CONSTRAINT "fk_Role_Id" FOREIGN KEY ("Role") 
 REFERENCES furcha."Roles" ("Id") 
 ON DELETE CASCADE;
+
+ALTER TABLE furcha."UserGroup"
+DROP COLUMN "BranchId";
+
+ALTER TABLE furcha."UserGroup"
+ADD CONSTRAINT fk_usergroup_companyid
+FOREIGN KEY ("CompanyId") REFERENCES furcha."Company"("Id");
+
