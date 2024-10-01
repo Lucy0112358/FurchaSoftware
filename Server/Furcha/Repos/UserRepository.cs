@@ -149,10 +149,11 @@ namespace FurchaAdminApi.Repos
 
         public List<UserGroup> GetUserGroupsByBranchIds(List<int> branchIds)
         {
-            var sql = $@"
-        SELECT DISTINCT UG.*
-        FROM furcha.{nameof(UserGroup)} UG
-        WHERE UG.{nameof(UserGroup.BranchId)} = ANY(@branchIds)";
+            var sql = @"
+                SELECT DISTINCT ug.*
+                FROM furcha.""UserGroup"" ug
+                INNER JOIN furcha.""UserGroup_Branch"" ugb ON ug.""Id"" = ugb.""UserGroupId""
+                WHERE ugb.""BranchId"" = ANY(@branchIds)";
 
             var userGroups = Query<UserGroup>(
                 sql: sql,
@@ -160,6 +161,7 @@ namespace FurchaAdminApi.Repos
 
             return userGroups;
         }
+
 
         public List<User> SearchUsersByName(string name)
         {
