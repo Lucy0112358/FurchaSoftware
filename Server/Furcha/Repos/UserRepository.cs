@@ -59,11 +59,11 @@ namespace FurchaAdminApi.Repos
         public Administrators? GetAdminById(int adminId)
         {
             var sql = $@"
-        SELECT a.*, u.*
-        FROM furcha.""Administrators"" a
-        JOIN furcha.""user"" u ON a.""UserId"" = u.""id""
-        WHERE a.""id"" = @adminId
-        LIMIT 1";
+                    SELECT a.*, u.*
+                    FROM furcha.""Administrators"" a
+                    JOIN furcha.""user"" u ON a.""UserId"" = u.""id""
+                    WHERE a.""id"" = @adminId
+                    LIMIT 1";
 
             var admin = Query<Administrators, User>(
                 sql: sql,
@@ -220,11 +220,10 @@ namespace FurchaAdminApi.Repos
 
         public List<UserGroup> GetUserGroupsByCompanyId(int companyId)
         {
-            var sql = $@"SELECT UG.* 
-                 FROM furcha.""UserGroup"" UG
-                 INNER JOIN furcha.""Branch"" B 
-                 ON UG.""BranchId"" = B.""Id""
-                 WHERE B.""CompanyId"" = @companyId";
+            var sql = @"
+                SELECT UG.* 
+                FROM furcha.""UserGroup"" UG
+                WHERE UG.""CompanyId"" = @companyId";
 
             var userGroups = Query<UserGroup>(
                 sql: sql,

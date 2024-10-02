@@ -29,9 +29,9 @@ namespace FurchaAdminApi.Repos
             return branches;
         }
 
-        public Company GetCompanyById(int id)
+        public Company GetCompanyById(int Id)
         {
-            return GetSingle<Company>(id);
+            return GetSingle<Company>(Id);
         }
 
         public List<Branch> GetBranchesOfUserGroup(int userGroupId)

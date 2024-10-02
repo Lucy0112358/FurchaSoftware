@@ -12,7 +12,7 @@ namespace Domain.Entities
         public long Number { get; set; }
 
         [Column]
-        public int LockerGroupId { get; set; }
+        public int GroupId { get; set; }
 
         [Column]
         public int LockerTypeId { get; set; }
@@ -25,9 +25,6 @@ namespace Domain.Entities
 
         [Column]
         public int Status { get; set; }
-
-        [Column]
-        public int GroupId { get; set; }
 
         [Column]
         public string PasswordHash { get; set; }

@@ -70,7 +70,6 @@ DROP COLUMN "Name",
 DROP COLUMN "Surname";
 DROP COLUMN "Role";
 
-
 ALTER TABLE furcha."user" 
 ADD COLUMN "Role" INTEGER ;
 
@@ -83,6 +82,7 @@ ALTER TABLE furcha."UserGroup"
 DROP COLUMN "BranchId";
 
 ALTER TABLE furcha."UserGroup"
-ADD CONSTRAINT fk_usergroup_companyid
+ADD COLUMN "CompanyId" INTEGER,
+ADD CONSTRAINT fk_company
 FOREIGN KEY ("CompanyId") REFERENCES furcha."Company"("Id");
 

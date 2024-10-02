@@ -2,8 +2,8 @@
 {
     public class LockerGroupResult
     {
-        public string Name { get; set; }
-        public List<PermittedLockerResult> permittedLockerResults { get; set; }
+        public string LockerGroupName { get; set; }
+        public List<PermittedLockerResult> LockersFromGroup { get; set; }
     }
 
     public class PermittedLockerResult

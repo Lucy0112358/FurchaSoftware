@@ -85,7 +85,7 @@ namespace FurchaAdminApi.Repos
             var sql = @"
                     SELECT DISTINCT lg.*
                     FROM furcha.""LockerGroup"" lg
-                    INNER JOIN furcha.""Locker"" l ON lg.""Id"" = l.""LockerGroupId""
+                    INNER JOIN furcha.""Locker"" l ON lg.""Id"" = l.GroupId
                     INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""LockerId""
                     WHERE ugl.""UserGroupId"" = @UserGroupId";
 

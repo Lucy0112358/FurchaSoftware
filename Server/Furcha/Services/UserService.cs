@@ -104,7 +104,7 @@ namespace FurchaAdminApi.Services
                     UserGroups = groups.Select(ug => new UserGroupResult
                     {
                         Id = ug.Id,
-                        GroupName = ug.Name,
+                        UserGroupName = ug.Name,
                     }).ToList(),
 
                     Branches = branches.Select(b => new BranchResult
@@ -183,9 +183,9 @@ namespace FurchaAdminApi.Services
 
                 groups = _userRepository.GetUserGroupsByBranchIds(distinctBranchIds);
             }
-            else if (admin.Role != RoleEnum.NotSet)
+            else if (admin.Role != RoleEnum.NotSet) //if a role is added this condition may change
             {
-                // later find a smarter way not to repeat this piece of code in 4 places
+                // later find a smarter way not to repeat this piece of code in 4 places, DRY
                 var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
 
                 var distinctBranchIds = adminBranches
@@ -231,7 +231,7 @@ namespace FurchaAdminApi.Services
                 {
                     var res = new LockerGroupResult()
                     {
-                        Name = item.LockerGroupName
+                        LockerGroupName = item.LockerGroupName
                     };
 
                     lockerGroupResults.Add(res);
@@ -240,7 +240,7 @@ namespace FurchaAdminApi.Services
                 var userGroupResult = new UserGroupResult
                 {
                     Id = group.Id,
-                    GroupName = group.Name,
+                    UserGroupName = group.Name,
                     PermittedLockers = lockerGroupResults,
                     BranchNames = groupBranches.Select(item => item.Name).ToList(),
                     State = group.State.ToString(),
