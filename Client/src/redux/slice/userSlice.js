@@ -6,6 +6,7 @@ import { getAllUsers } from "../api/userApi";
 const initialState = {
   loading: false,
   allUsers: [],
+  userInfo: {},
 };
 
 export const userSlice = createSlice({
@@ -14,6 +15,12 @@ export const userSlice = createSlice({
   reducers: {
     setLoading: (state, action) => {
       state.loading = action.payload.loading;
+    },
+    setAddUserInfo: (state, action) => {
+      state.userInfo = {
+        ...state.userInfo,
+        ...action.payload,
+      };
     },
   },
 
@@ -35,10 +42,13 @@ export const userSlice = createSlice({
 
 export const {
   setLoading,
+  setAddUserInfo,
 } = userSlice.actions;
 
 export const getLoadingNow = (state) => state.user.loading;
 
 export const getAllUsersData = (state) => state.user.allUsers;
+
+export const getAddUserInfo = (state) => state.user.userInfo;
 
 export default userSlice.reducer;
