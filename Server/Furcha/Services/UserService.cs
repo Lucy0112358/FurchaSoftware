@@ -41,7 +41,7 @@ namespace FurchaAdminApi.Services
                 Role = roleName, // This is now a string
                 State = user.State.ToString(),
                 Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
-                UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, UserGroupName = group.Name }).ToList(),
+                UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, Name = group.Name }).ToList(),
                 Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
             };
         }
@@ -87,7 +87,7 @@ namespace FurchaAdminApi.Services
                         Role = roleName,
                         State = user.State.ToString(),
                         Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
-                        UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, UserGroupName = group.Name }).ToList(),
+                        UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, Name = group.Name }).ToList(),
                         Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
                     };
                 }
@@ -107,7 +107,7 @@ namespace FurchaAdminApi.Services
                         Role = roleName,
                         State = user.State.ToString(),
                         Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
-                        UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, UserGroupName = group.Name }).ToList(),
+                        UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, Name = group.Name }).ToList(),
                         Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
                     };
                 }
@@ -290,7 +290,7 @@ namespace FurchaAdminApi.Services
                 var userGroupResult = new UserGroupResult
                 {
                     Id = group.Id,
-                    UserGroupName = group.Name,
+                    Name = group.Name,
                     PermittedLockers = lockerGroupResults,
                     BranchNames = groupBranches.Select(item => item.Name).ToList(),
                     State = group.State.ToString(),
