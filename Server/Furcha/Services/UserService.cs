@@ -26,7 +26,9 @@ namespace FurchaAdminApi.Services
 
         private UserResult MapUserToUserResult(User user)
         {
-            var roleName = _adminRepository.GetRoleById(user.Role).OpenName;
+           var roleName = user.Role.ToString();
+
+            // Gather user data
             var cards = _userRepository.GetUserCards(user.Id);
             var groups = _userRepository.GetUserGroupsByUserId(user.Id);
             var branches = _userRepository.GetUserBranchesByUserId(user.Id);
@@ -36,28 +38,15 @@ namespace FurchaAdminApi.Services
                 Id = user.Id,
                 Name = user.Name,
                 Surname = user.Surname,
-                Role = roleName,
+                Role = roleName, // This is now a string
                 State = user.State.ToString(),
-
-                Cards = cards.Select(card => new CardResult
-                {
-                    Id = card.Id,
-                    CardNumber = card.CardNumber
-                }).ToList(),
-
-                UserGroups = groups.Select(group => new UserGroupResult
-                {
-                    Id = group.Id,
-                    UserGroupName = group.Name,
-                }).ToList(),
-
-                Branches = branches.Select(branch => new BranchResult
-                {
-                    Id = branch.Id,
-                    Name = branch.Name
-                }).ToList()
+                Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
+                UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, UserGroupName = group.Name }).ToList(),
+                Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
             };
         }
+
+
 
 
         public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
@@ -83,7 +72,7 @@ namespace FurchaAdminApi.Services
                 // Refactor this embaressement
                 if (long.TryParse(user.Role, out long roleId) && Enum.IsDefined(typeof(RoleEnum), roleId))
                 {
-                    parsedRole = (RoleEnum)roleId; 
+                    parsedRole = (RoleEnum)roleId;
                     var roleName = _adminRepository.GetRoleById(parsedRole).OpenName;
 
                     var cards = _userRepository.GetUserCards(user.Id);
