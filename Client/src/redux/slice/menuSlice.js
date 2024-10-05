@@ -5,6 +5,7 @@ import { getUserBranches, getUserGroups } from "../api/menuApi";
 const initialState = {
   loading: false,
   userBranches: {},
+  userGroups: {},
   selectGroups: {}
 };
 
@@ -18,6 +19,9 @@ export const menuSlice = createSlice({
     setUserBranches: (state, action) => {
       state.userBranches = [{ id: 0, name: "All" }, ...action];
     },
+    setUserGroups: (state, action) => {
+      state.userGroups = [{ id: 0, name: "All" }, ...action];
+    },
   },
 
   extraReducers: (builder) => {
@@ -27,7 +31,8 @@ export const menuSlice = createSlice({
         // state.userBranch = action.payload;
       })
       .addCase(getUserGroups.fulfilled, (state, action) => {
-        state.selectGroups = action.payload;
+        menuSlice.caseReducers.setUserGroups(state, action.payload.data);
+        // state.userBranch = action.payload;
       })
     //   .addCase(signin.pending, (state) => {
     //     state.loading = true;
@@ -55,6 +60,7 @@ export const {
 
 export const getLoadingNow = (state) => state.menu.loading;
 export const getUserBranchesData = (state) => state.menu.userBranches;
+export const getUserGroupsData = (state) => state.menu.userGroups;
 export const getSelectGroups = (state) => state.menu.selectGroups;
 
 

@@ -5,8 +5,8 @@ import { assets } from '../../assets/assets';
 import CustomSelect from '../select/CustomSelect';
 import { useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserBranches, getUserGroups } from '../../redux/api/menuApi';
-import { getUserBranchesData } from '../../redux/slice/menuSlice';
+import { filterUserByName, getUserBranches, getUserGroups, userFilter } from '../../redux/api/menuApi';
+import { getUserBranchesData, getUserGroupsData } from '../../redux/slice/menuSlice';
 import AddUserModal from '../modals/addUser/AddUserModal';
 
 
@@ -14,15 +14,31 @@ function Menu() {
   const location = useLocation();
   const dispatch = useDispatch();
   const [selectedBranch, setSelectedBranch] = useState(null);
+  const [selectedGroups, setSelectedGroups] = useState(null);
+
+  //input search by nane
+  const [inputValue, setInputValue] = useState('');
+  const [debounceTimeout, setDebounceTimeout] = useState(null);
+
   const handleSelectChange = (selectedOption) => {
     setSelectedBranch(selectedOption);
+
+    dispatch(userFilter({'filterByBranchId': selectedOption.value}));
     console.log("Выбранная опция:", selectedOption);
+  };
+
+  const handleGroupsSelectChange = (selectedOption) => {
+    setSelectedGroups(selectedOption);
+    dispatch(userFilter({'filterByGroupId': selectedOption.value}));
+
+    console.log("Выбранная groups:", selectedOption);
   };
 
   //Add USER modal part 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const userBranches = useSelector(getUserBranchesData);
+  const userGroups = useSelector(getUserGroupsData);
   // useSelector(getUserBranches);
   // const allBrnachOptions = [{ value: '', label: 'All' }, ...branch];
 
@@ -56,6 +72,23 @@ function Menu() {
 
   const handleFileClick = () => {
     fileInputRef.current.click();
+  };
+
+
+  const handleInputChange = (e) => {
+    let name = e.target.value;
+    setInputValue(name);
+
+    // Если таймер уже установлен, очищаем его
+    if (debounceTimeout) {
+      clearTimeout(debounceTimeout);
+    }
+
+    setDebounceTimeout(
+      setTimeout(() => {
+        dispatch(filterUserByName({'name': name}));
+      }, 1000) // 1000 миллисекунд = 1 секунда
+    );
   };
 
 
@@ -98,13 +131,15 @@ function Menu() {
               <label className="text-white block">Site</label>
             </div>
             <div className='menu__filter__select'>
-              {/* <CustomSelect /> */}
+              <CustomSelect options={userGroups}  onChange={handleGroupsSelectChange} />
               <label className="text-white block">User Group</label>
             </div>
           </div>
           <div className='menu__filter__search'>
             <input
               type="text"
+              value={inputValue}
+              onChange={handleInputChange}
               className="w-full rounded"
             />
             <label className="text-white block">Search User</label>
