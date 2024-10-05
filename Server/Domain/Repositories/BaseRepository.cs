@@ -149,7 +149,7 @@ namespace MqttService.Application.Repositories
             var schema = GetSchema(typeof(T));
             var sql = $@"SELECT * 
                  FROM ""{schema}"".""{typeof(T).Name}""
-                 WHERE ""Id"" = @Id
+                 WHERE ""Id"" = {id}
                  LIMIT 1";
             using (var sqlConnection = new PostgreSqlConnection(furchaContext.ConnectionString))
             {

@@ -5,7 +5,7 @@
     /// </summary>
     public enum RoleEnum : long
     {
-        NotSet = 0,
+        user = 1,
 
         LVL5_MasterAdmin = 1000000000,
 

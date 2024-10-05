@@ -29,6 +29,27 @@ namespace FurchaAdminApi.Repos
             return branches;
         }
 
-      
+        public Company GetCompanyById(int Id)
+        {
+            return GetSingle<Company>(Id);
+        }
+
+        public List<Branch> GetBranchesOfUserGroup(int userGroupId)
+        {
+            var sql = @"
+                    SELECT b.*
+                    FROM furcha.""Branch"" b
+                    INNER JOIN furcha.""UserGroup_Branch"" ugb ON b.""Id"" = ugb.""BranchId""
+                    WHERE ugb.""UserGroupId"" = @UserGroupId";
+
+            var branches = Query<Branch>(
+                sql: sql,
+                param: new { UserGroupId = userGroupId }
+            ).ToList();
+
+            return branches;
+        }
+
+
     }
 }

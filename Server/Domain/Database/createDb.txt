@@ -292,3 +292,32 @@ REFERENCES furcha."Company"("Id");
 ALTER TABLE furcha."User"
 ADD CONSTRAINT "UQ_User_Email_Company"
 UNIQUE ("Email", "CompanyId");
+
+ALTER TABLE furcha."Locker"
+ADD GroupId INT;
+ADD Number numeric
+
+ALTER TABLE furcha."Locker"
+ADD CONSTRAINT FK_Locker_LockerGroup
+FOREIGN KEY (GroupId) REFERENCES furcha."LockerGroup"("Id");
+
+UPDATE furcha."Locker"
+SET GroupId = 1
+WHERE GroupId IS NULL;
+
+
+CREATE TABLE furcha.UserGroup_Locker (
+ "Id" INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1),
+    UserGroupId INTEGER NOT NULL,          
+    LockerId INTEGER NOT NULL,            
+    CONSTRAINT FK_UserGroupLocker_UserGroup FOREIGN KEY (UserGroupId) REFERENCES furcha."UserGroup"("Id"),
+    CONSTRAINT FK_UserGroupLocker_Locker FOREIGN KEY (LockerId) REFERENCES furcha."Locker"("Id")
+);
+
+CREATE TABLE furcha."UserGroup_Branch" (
+    "UserGroupId" INT NOT NULL,
+    "BranchId" INT NOT NULL,
+    PRIMARY KEY ("UserGroupId", "BranchId"),
+    FOREIGN KEY ("UserGroupId") REFERENCES furcha."UserGroup"("Id"),
+    FOREIGN KEY ("BranchId") REFERENCES furcha."Branch"("Id")
+);

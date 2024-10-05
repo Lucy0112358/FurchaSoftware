@@ -59,11 +59,11 @@ namespace FurchaAdminApi.Repos
         public Administrators? GetAdminById(int adminId)
         {
             var sql = $@"
-        SELECT a.*, u.*
-        FROM furcha.""Administrators"" a
-        JOIN furcha.""user"" u ON a.""UserId"" = u.""id""
-        WHERE a.""id"" = @adminId
-        LIMIT 1";
+                    SELECT a.*, u.*
+                    FROM furcha.""Administrators"" a
+                    JOIN furcha.""user"" u ON a.""UserId"" = u.""id""
+                    WHERE a.""id"" = @adminId
+                    LIMIT 1";
 
             var admin = Query<Administrators, User>(
                 sql: sql,
@@ -79,6 +79,27 @@ namespace FurchaAdminApi.Repos
                 param: new { adminId });
 
             return admin.SingleOrDefault();
+        }
+
+        public bool IsUserInGroup(int userId, int groupId)
+        {
+            string sql = $@"SELECT COUNT(1) 
+                    FROM furcha.{nameof(User_UserGroup)} 
+                    WHERE {nameof(User_UserGroup.UserId)} = @userId 
+                    AND {nameof(User_UserGroup.UserGroupId)} = @groupId";
+
+            return QuerySingleOrDefault<int>(sql, new { userId, groupId }) > 0;
+        }
+
+
+        public bool IsUserInBranch(int userId, int branchId)
+        {
+            string sql = $@"SELECT COUNT(1) 
+                    FROM furcha.{nameof(UserBranch)} 
+                    WHERE {nameof(UserBranch.UserId)} = @userId 
+                    AND {nameof(UserBranch.BranchId)} = @branchId";
+
+            return QuerySingleOrDefault<int>(sql, new { userId, branchId }) > 0;
         }
 
 
@@ -149,10 +170,11 @@ namespace FurchaAdminApi.Repos
 
         public List<UserGroup> GetUserGroupsByBranchIds(List<int> branchIds)
         {
-            var sql = $@"
-        SELECT DISTINCT UG.*
-        FROM furcha.{nameof(UserGroup)} UG
-        WHERE UG.{nameof(UserGroup.BranchId)} = ANY(@branchIds)";
+            var sql = @"
+                SELECT DISTINCT ug.*
+                FROM furcha.""UserGroup"" ug
+                INNER JOIN furcha.""UserGroup_Branch"" ugb ON ug.""Id"" = ugb.""UserGroupId""
+                WHERE ugb.""BranchId"" = ANY(@branchIds)";
 
             var userGroups = Query<UserGroup>(
                 sql: sql,
@@ -161,15 +183,23 @@ namespace FurchaAdminApi.Repos
             return userGroups;
         }
 
-        public List<User> SearchUsersByName(string name)
+
+        public List<User> SearchUserByAdminId(string name, int adminId, List<int> branchIds)
         {
-            var sql = $@"SELECT * 
-                 FROM furcha.{nameof(User)} 
-                 WHERE Name ILIKE @name OR Surname ILIKE @name";
+            var sql = $@"
+                    SELECT u.* 
+                    FROM furcha.""user"" u
+                    INNER JOIN furcha.""userbranch"" ub ON u.""id"" = ub.""userid""
+                    WHERE (u.""Name"" ILIKE @name OR u.""Surname"" ILIKE @name)
+                    AND ub.""branchid"" = ANY(@branchIds)";
 
             var users = Query<User>(
                 sql: sql,
-                param: new { name = $"%{name}%" } // Using wildcards for partial matches
+                param: new
+                {
+                    name = $"%{name}%",
+                    branchIds
+                }
             ).ToList();
 
             return users;
@@ -218,11 +248,10 @@ namespace FurchaAdminApi.Repos
 
         public List<UserGroup> GetUserGroupsByCompanyId(int companyId)
         {
-            var sql = $@"SELECT UG.* 
-                 FROM furcha.""UserGroup"" UG
-                 INNER JOIN furcha.""Branch"" B 
-                 ON UG.""BranchId"" = B.""Id""
-                 WHERE B.""CompanyId"" = @companyId";
+            var sql = @"
+                SELECT UG.* 
+                FROM furcha.""UserGroup"" UG
+                WHERE UG.""CompanyId"" = @companyId";
 
             var userGroups = Query<UserGroup>(
                 sql: sql,

@@ -11,11 +11,13 @@ namespace MqttService.Infrastructure
             services.AddScoped(typeof(UserRepository));
             services.AddScoped(typeof(BranchRepository));
             services.AddScoped(typeof(AdminRepository));
-            
+            services.AddScoped(typeof(LockerRepository));
+
 
             /* SERVICES */
             services.AddScoped(typeof(UserService));
             services.AddScoped(typeof(AuthenticationService));
+            services.AddScoped(typeof(LockerService));
 
             return services;
         }
