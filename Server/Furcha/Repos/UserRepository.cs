@@ -81,6 +81,27 @@ namespace FurchaAdminApi.Repos
             return admin.SingleOrDefault();
         }
 
+        public bool IsUserInGroup(int userId, int groupId)
+        {
+            string sql = $@"SELECT COUNT(1) 
+                    FROM furcha.{nameof(User_UserGroup)} 
+                    WHERE {nameof(User_UserGroup.UserId)} = @userId 
+                    AND {nameof(User_UserGroup.UserGroupId)} = @groupId";
+
+            return QuerySingleOrDefault<int>(sql, new { userId, groupId }) > 0;
+        }
+
+
+        public bool IsUserInBranch(int userId, int branchId)
+        {
+            string sql = $@"SELECT COUNT(1) 
+                    FROM furcha.{nameof(UserBranch)} 
+                    WHERE {nameof(UserBranch.UserId)} = @userId 
+                    AND {nameof(UserBranch.BranchId)} = @branchId";
+
+            return QuerySingleOrDefault<int>(sql, new { userId, branchId }) > 0;
+        }
+
 
         /// <summary>
         /// Returns the list of active users in the current branch
@@ -163,15 +184,22 @@ namespace FurchaAdminApi.Repos
         }
 
 
-        public List<User> SearchUsersByName(string name)
+        public List<User> SearchUserByAdminId(string name, int adminId, List<int> branchIds)
         {
-            var sql = $@"SELECT * 
-                 FROM furcha.{nameof(User)} 
-                 WHERE Name ILIKE @name OR Surname ILIKE @name";
+            var sql = $@"
+                    SELECT u.* 
+                    FROM furcha.""user"" u
+                    INNER JOIN furcha.""userbranch"" ub ON u.""id"" = ub.""userid""
+                    WHERE (u.""Name"" ILIKE @name OR u.""Surname"" ILIKE @name)
+                    AND ub.""branchid"" = ANY(@branchIds)";
 
             var users = Query<User>(
                 sql: sql,
-                param: new { name = $"%{name}%" } // Using wildcards for partial matches
+                param: new
+                {
+                    name = $"%{name}%",
+                    branchIds
+                }
             ).ToList();
 
             return users;

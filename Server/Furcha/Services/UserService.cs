@@ -13,7 +13,7 @@ namespace FurchaAdminApi.Services
         private readonly LockerService _lockerService;
         private readonly LockerRepository _lockerRepository;
         private readonly BranchRepository _branchRepository;
-        
+
 
         public UserService(UserRepository userRepository, AdminRepository adminRepository, LockerService lockerService, LockerRepository lockerRepository, BranchRepository branchRepository)
         {
@@ -24,10 +24,110 @@ namespace FurchaAdminApi.Services
             _branchRepository = branchRepository;
         }
 
-        public List<User> GetFilteredUsersWithPagination(int companyId, int? filterByGroupId, int? filterByBranchId, int pageNumber, int pageSize)
+        private UserResult MapUserToUserResult(User user)
         {
-            return _userRepository.GetFilteredUsersByPagination(companyId, filterByGroupId, filterByBranchId, pageNumber, pageSize);
+            var roleName = _adminRepository.GetRoleById(user.Role).OpenName;
+            var cards = _userRepository.GetUserCards(user.Id);
+            var groups = _userRepository.GetUserGroupsByUserId(user.Id);
+            var branches = _userRepository.GetUserBranchesByUserId(user.Id);
+
+            return new UserResult
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Surname = user.Surname,
+                Role = roleName,
+                State = user.State.ToString(),
+
+                Cards = cards.Select(card => new CardResult
+                {
+                    Id = card.Id,
+                    CardNumber = card.CardNumber
+                }).ToList(),
+
+                UserGroups = groups.Select(group => new UserGroupResult
+                {
+                    Id = group.Id,
+                    UserGroupName = group.Name,
+                }).ToList(),
+
+                Branches = branches.Select(branch => new BranchResult
+                {
+                    Id = branch.Id,
+                    Name = branch.Name
+                }).ToList()
+            };
         }
+
+
+        public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
+        {
+            // Retrieve users based on admin role
+            var users = GetUsersForAdminBasedOnRole(adminId);
+
+            // Filter users by group or branch if applicable
+            if (filterByGroupId.HasValue)
+            {
+                users = users.Where(user => _userRepository.IsUserInGroup(user.Id, filterByGroupId.Value)).ToList();
+            }
+            else if (filterByBranchId.HasValue)
+            {
+                users = users.Where(user => _userRepository.IsUserInBranch(user.Id, filterByBranchId.Value)).ToList();
+            }
+
+            var pagedUsers = users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+            var userResults = pagedUsers.Select(user =>
+            {
+                RoleEnum parsedRole;
+                // Refactor this embaressement
+                if (long.TryParse(user.Role, out long roleId) && Enum.IsDefined(typeof(RoleEnum), roleId))
+                {
+                    parsedRole = (RoleEnum)roleId; 
+                    var roleName = _adminRepository.GetRoleById(parsedRole).OpenName;
+
+                    var cards = _userRepository.GetUserCards(user.Id);
+                    var groups = _userRepository.GetUserGroupsByUserId(user.Id);
+                    var branches = _userRepository.GetUserBranchesByUserId(user.Id);
+
+                    return new UserResult
+                    {
+                        Id = user.Id,
+                        Name = user.Name,
+                        Surname = user.Surname,
+                        Role = roleName,
+                        State = user.State.ToString(),
+                        Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
+                        UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, UserGroupName = group.Name }).ToList(),
+                        Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
+                    };
+                }
+                else
+                {
+                    var roleName = RoleEnum.user.ToString();
+
+                    var cards = _userRepository.GetUserCards(user.Id);
+                    var groups = _userRepository.GetUserGroupsByUserId(user.Id);
+                    var branches = _userRepository.GetUserBranchesByUserId(user.Id);
+
+                    return new UserResult
+                    {
+                        Id = user.Id,
+                        Name = user.Name,
+                        Surname = user.Surname,
+                        Role = roleName,
+                        State = user.State.ToString(),
+                        Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
+                        UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, UserGroupName = group.Name }).ToList(),
+                        Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
+                    };
+                }
+            }).ToList();
+
+            return userResults;
+        }
+
+
 
         public List<BranchFilterResult> GetAdminBranches(int adminId)
         {
@@ -52,12 +152,13 @@ namespace FurchaAdminApi.Services
 
         public List<UserResult> GetUsersForAdminBasedOnRole(int adminId)
         {
-            var admin = _userRepository.GetAdminById(adminId: adminId);
+            var admin = _userRepository.GetAdminById(adminId);
 
             if (admin == null)
             {
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
+
             var users = new List<User>();
 
             if (admin.Role == RoleEnum.LVL5_MasterAdmin)
@@ -68,56 +169,16 @@ namespace FurchaAdminApi.Services
             {
                 users = GetUsersForLVL4Admin(admin);
             }
-            else if (admin.Role != RoleEnum.NotSet)
+            else if (admin.Role != RoleEnum.user)
             {
                 users = GetUsersForCommonAdmin(admin);
             }
             else
             {
-                // Not likely to happen, when user has no role of admin
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
 
-            var userResults = new List<UserResult>();
-
-            foreach (var user in users)
-            {
-                var roleName = _adminRepository.GetRoleById(user.Role).OpenName;
-                var cards = _userRepository.GetUserCards(user.Id);
-                var groups = _userRepository.GetUserGroupsByUserId(user.Id);
-                var branches = _userRepository.GetUserBranchesByUserId(user.Id);
-
-                var userResult = new UserResult
-                {
-                    Id = user.Id,
-                    Name = user.Name,
-                    Surname = user.Surname,
-                    Role = roleName,
-                    State = user.State.ToString(),
-
-                    Cards = cards.Select(card => new CardResult
-                    {
-                        Id = card.Id,
-                        CardNumber = card.CardNumber,
-                    }).ToList(),
-
-                    UserGroups = groups.Select(ug => new UserGroupResult
-                    {
-                        Id = ug.Id,
-                        UserGroupName = ug.Name,
-                    }).ToList(),
-
-                    Branches = branches.Select(b => new BranchResult
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                    }).ToList()
-                };
-
-                userResults.Add(userResult);
-            }
-
-            return userResults;
+            return users.Select(user => MapUserToUserResult(user)).ToList();
         }
 
 
@@ -183,7 +244,7 @@ namespace FurchaAdminApi.Services
 
                 groups = _userRepository.GetUserGroupsByBranchIds(distinctBranchIds);
             }
-            else if (admin.Role != RoleEnum.NotSet) //if a role is added this condition may change
+            else if (admin.Role != RoleEnum.user) //if a role is added this condition may change
             {
                 // later find a smarter way not to repeat this piece of code in 4 places, DRY
                 var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
@@ -252,9 +313,13 @@ namespace FurchaAdminApi.Services
             return groupResults;
         }
 
-        public List<User> SearchUsers(string name)
+        public List<UserResult> SearchUsersOfAdmin(string name, int adminId)
         {
-            return _userRepository.SearchUsersByName(name);
+            var adminBranches = _userRepository.GetAdminBranchesByAdminId(adminId);
+            var branchIds = adminBranches.Select(b => b.Id).ToList();
+            var users = _userRepository.SearchUserByAdminId(name, adminId, branchIds);
+
+            return users.Select(user => MapUserToUserResult(user)).ToList();
         }
 
     }

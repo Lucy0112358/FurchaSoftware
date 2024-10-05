@@ -39,16 +39,21 @@ namespace FurchaAdminApi.Controllers
 
 
         [HttpGet("filtered-users")]
-        public ActionResult<List<User>> GetFilteredUsersWithPagination(
-                 [FromQuery] int companyId,
-                 [FromQuery] int? filterByGroupId,
-                 [FromQuery] int? filterByBranchId,
-                 [FromQuery] int pageNumber = 1,
-                 [FromQuery] int pageSize = 10)
+        public ActionResult<ApiResult<List<UserResult>>> GetFilteredUsersWithPagination(
+              [FromQuery] int adminId,
+              [FromQuery] int? filterByGroupId,
+              [FromQuery] int? filterByBranchId,
+              [FromQuery] int pageNumber = 1,
+              [FromQuery] int pageSize = 10)
         {
-            var users = userService.GetFilteredUsersWithPagination(companyId, filterByGroupId, filterByBranchId, pageNumber, pageSize);
+            var users = userService.GetFilteredUsersByPagination(adminId, filterByGroupId, filterByBranchId, pageNumber, pageSize);
 
-            return Ok(users);
+            if (users == null || !users.Any())
+            {
+                return NotFound(ApiResult<List<UserResult>>.ErrorResult("No filtered users found for the given criteria."));
+            }
+
+            return Ok(ApiResult<List<UserResult>>.Success(users));
         }
 
 
@@ -66,12 +71,19 @@ namespace FurchaAdminApi.Controllers
         }
 
 
-        [HttpGet("searchUser")]
-        public IActionResult SearchUsers([FromQuery] string name)
+        [HttpGet("search-user")]
+        public ActionResult<ApiResult<List<UserResult>>> SearchUsersOfAdmin([FromQuery] string name, [FromQuery] int adminId)
         {
-            var users = userService.SearchUsers(name);
-            return Ok(users);
+            var users = userService.SearchUsersOfAdmin(name, adminId);
+
+            if (users == null || users.Count == 0)
+            {
+                return NotFound(ApiResult<List<UserResult>>.ErrorResult("No users found for the provided admin or search criteria."));
+            }
+
+            return Ok(ApiResult<List<UserResult>>.Success(users));
         }
+
 
     }
 }
