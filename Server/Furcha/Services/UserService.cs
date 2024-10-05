@@ -51,10 +51,8 @@ namespace FurchaAdminApi.Services
 
         public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
         {
-            // Retrieve users based on admin role
             var users = GetUsersForAdminBasedOnRole(adminId);
 
-            // Filter users by group or branch if applicable
             if (filterByGroupId.HasValue)
             {
                 users = users.Where(user => _userRepository.IsUserInGroup(user.Id, filterByGroupId.Value)).ToList();

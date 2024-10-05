@@ -84,9 +84,9 @@ namespace FurchaAdminApi.Repos
         public bool IsUserInGroup(int userId, int groupId)
         {
             string sql = $@"SELECT COUNT(1) 
-                    FROM furcha.{nameof(User_UserGroup)} 
-                    WHERE {nameof(User_UserGroup.UserId)} = @userId 
-                    AND {nameof(User_UserGroup.UserGroupId)} = @groupId";
+                    FROM furcha.""User_UserGroup"" 
+                    WHERE ""UserId"" = @userId 
+                    AND ""UserGroupId"" = @groupId";
 
             return QuerySingleOrDefault<int>(sql, new { userId, groupId }) > 0;
         }
