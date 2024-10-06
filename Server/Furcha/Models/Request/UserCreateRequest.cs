@@ -17,8 +17,8 @@ namespace FurchaAdminApi.Models.Request
 
         public DateTime ActiveTo { get; set; }
 
-        public List<UserGroup> UserGroups { get; set; }
+        public List<int> UserGroups { get; set; }
 
-        public List<Card> Cards { get; set; }
+        public List<string> Cards { get; set; }
     }
 }

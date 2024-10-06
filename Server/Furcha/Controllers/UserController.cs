@@ -1,4 +1,5 @@
 ﻿using Domain.Configuration;
+using Domain.Enums;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
@@ -85,17 +86,23 @@ namespace FurchaAdminApi.Controllers
         }
 
         [HttpPost("add-user")]
-        public ActionResult<ApiResult<List<UserResult>>> AddUser([FromBody] UserCreateRequest userCreateRequest)
+        public ActionResult<ApiResult<UserResult>> AddUser([FromBody] UserCreateRequest userCreateRequest)
         {
-          //  var users = userService.SearchUsersOfAdmin(name, adminId);
-
-          /*  if (users == null || users.Count == 0)
+            if (userCreateRequest == null)
             {
-                return Ok(ApiResult<List<UserResult>>.ErrorResult("No users found for the provided admin or search criteria."));
-            }*/
+                return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
+            }
 
-            return Ok();
+            var result = userService.AddUser(userCreateRequest);
+
+            if (result == null)
+            {
+                return BadRequest(ApiResult<UserResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
+            }
+
+            return Ok(ApiResult<UserResult>.Success(result));
         }
+
 
     }
 }

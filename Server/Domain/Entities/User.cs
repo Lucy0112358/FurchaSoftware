@@ -31,7 +31,6 @@ namespace Domain.Entities
 
         public DateTime? CreatedDate { get; set; }
 
-        public virtual ICollection<UserCard> UserCards { get; set; }
         public virtual ICollection<UserLocker> UserLockers { get; set; }
         public virtual ICollection<UserGroup> UserGroups { get; set; }
         public virtual ICollection<UserBranch> UserBranches { get; set; }
@@ -39,7 +38,6 @@ namespace Domain.Entities
 
         public User()
         {
-            UserCards = new HashSet<UserCard>();
             UserLockers = new HashSet<UserLocker>();
             UserGroups = new HashSet<UserGroup>();
             UserBranches = new HashSet<UserBranch>();
