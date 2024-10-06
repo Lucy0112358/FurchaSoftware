@@ -115,7 +115,7 @@ namespace FurchaAdminApi.Controllers
            var result = new UserGroupResult
            {
                Id = 1, 
-               Name = userGroupRequest.UserGroupName, 
+               Name = userGroupRequest.Name, 
                PermittedLockers = new List<LockerGroupResult>(),
                BranchNames = userGroupRequest.Branches.Select(b => $"Branch {b}").ToList(),
                State = "Active" 
