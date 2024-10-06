@@ -114,8 +114,6 @@ namespace FurchaAdminApi.Services
             return userResults;
         }
 
-
-
         public List<BranchFilterResult> GetAdminBranches(int adminId)
         {
             var branches = _userRepository.GetAllBranchesOfAdmin(adminId);
@@ -135,7 +133,6 @@ namespace FurchaAdminApi.Services
 
             return users;
         }
-
 
         public List<UserResult> GetUsersForAdminBasedOnRole(int adminId)
         {

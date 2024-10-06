@@ -15,10 +15,5 @@ namespace Domain.Entities
         [Column]
         public string CardNumber { get; set; }
 
-        [InverseProperty("LockerCard")]
-        public IEnumerable<UserCard> UserCard { get; set; }
-
-        /*        [ForeignKey("UserId")]
-                public virtual User User { get; set; }*/
     }
 }

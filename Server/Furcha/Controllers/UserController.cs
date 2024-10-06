@@ -1,5 +1,5 @@
 ﻿using Domain.Configuration;
-using Domain.Entities;
+using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -41,12 +41,12 @@ namespace FurchaAdminApi.Controllers
         [HttpGet("filtered-users")]
         public ActionResult<ApiResult<List<UserResult>>> GetFilteredUsersWithPagination(
               [FromQuery] int adminId,
-              [FromQuery] int? filterByGroupId,
-              [FromQuery] int? filterByBranchId,
+              [FromQuery] int? GroupId,
+              [FromQuery] int? BranchId,
               [FromQuery] int pageNumber = 1,
-              [FromQuery] int pageSize = 10)
+              [FromQuery] int page = 10)
         {
-            var users = userService.GetFilteredUsersByPagination(adminId, filterByGroupId, filterByBranchId, pageNumber, pageSize);
+            var users = userService.GetFilteredUsersByPagination(adminId, GroupId, BranchId, pageNumber, page);
 
             if (users == null || !users.Any())
             {
@@ -78,12 +78,24 @@ namespace FurchaAdminApi.Controllers
 
             if (users == null || users.Count == 0)
             {
-                return NotFound(ApiResult<List<UserResult>>.ErrorResult("No users found for the provided admin or search criteria."));
+                return Ok(ApiResult<List<UserResult>>.ErrorResult("No users found for the provided admin or search criteria."));
             }
 
             return Ok(ApiResult<List<UserResult>>.Success(users));
         }
 
+        [HttpPost("add-user")]
+        public ActionResult<ApiResult<List<UserResult>>> AddUser([FromBody] UserCreateRequest userCreateRequest)
+        {
+          //  var users = userService.SearchUsersOfAdmin(name, adminId);
+
+          /*  if (users == null || users.Count == 0)
+            {
+                return Ok(ApiResult<List<UserResult>>.ErrorResult("No users found for the provided admin or search criteria."));
+            }*/
+
+            return Ok();
+        }
 
     }
 }
