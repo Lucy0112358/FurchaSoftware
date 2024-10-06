@@ -141,10 +141,9 @@ namespace FurchaAdminApi.Repos
         public List<Card> GetUserCards(int userId)
         {
             var sql = $@"
-                        SELECT C.* 
-                        FROM furcha.""UserCard"" UC
-                        INNER JOIN furcha.""Card"" C ON UC.""CardId"" = C.""Id""
-                        WHERE UC.""UserId"" = @userId";
+            SELECT C.* 
+            FROM furcha.""Card"" C
+            WHERE C.""UserId"" = @userId";
 
             return Query<Card>(sql: sql, param: new { userId }).ToList();
         }
