@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Enums;
+using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
 using MqttService.Application.Exceptions;
@@ -114,8 +115,6 @@ namespace FurchaAdminApi.Services
             return userResults;
         }
 
-
-
         public List<BranchFilterResult> GetAdminBranches(int adminId)
         {
             var branches = _userRepository.GetAllBranchesOfAdmin(adminId);
@@ -135,7 +134,6 @@ namespace FurchaAdminApi.Services
 
             return users;
         }
-
 
         public List<UserResult> GetUsersForAdminBasedOnRole(int adminId)
         {
@@ -309,5 +307,11 @@ namespace FurchaAdminApi.Services
             return users.Select(user => MapUserToUserResult(user)).ToList();
         }
 
+        public UserResult AddUser(UserCreateRequest newUser)
+        {
+
+           return _userRepository.AddUser(newUser);
+
+        }
     }
 }

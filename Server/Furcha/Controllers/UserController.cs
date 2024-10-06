@@ -1,5 +1,6 @@
 ﻿using Domain.Configuration;
-using Domain.Entities;
+using Domain.Enums;
+using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -41,12 +42,12 @@ namespace FurchaAdminApi.Controllers
         [HttpGet("filtered-users")]
         public ActionResult<ApiResult<List<UserResult>>> GetFilteredUsersWithPagination(
               [FromQuery] int adminId,
-              [FromQuery] int? filterByGroupId,
-              [FromQuery] int? filterByBranchId,
+              [FromQuery] int? GroupId,
+              [FromQuery] int? BranchId,
               [FromQuery] int pageNumber = 1,
-              [FromQuery] int pageSize = 10)
+              [FromQuery] int page = 10)
         {
-            var users = userService.GetFilteredUsersByPagination(adminId, filterByGroupId, filterByBranchId, pageNumber, pageSize);
+            var users = userService.GetFilteredUsersByPagination(adminId, GroupId, BranchId, pageNumber, page);
 
             if (users == null || !users.Any())
             {
@@ -78,12 +79,54 @@ namespace FurchaAdminApi.Controllers
 
             if (users == null || users.Count == 0)
             {
-                return NotFound(ApiResult<List<UserResult>>.ErrorResult("No users found for the provided admin or search criteria."));
+                return Ok(ApiResult<List<UserResult>>.ErrorResult("No users found for the provided admin or search criteria."));
             }
 
             return Ok(ApiResult<List<UserResult>>.Success(users));
         }
 
+        [HttpPost("add-user")]
+        public ActionResult<ApiResult<UserResult>> AddUser([FromBody] UserCreateRequest userCreateRequest)
+        {
+            if (userCreateRequest == null)
+            {
+                return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
+            }
 
+            var result = userService.AddUser(userCreateRequest);
+
+            if (result == null)
+            {
+                return BadRequest(ApiResult<UserResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
+            }
+
+            return Ok(ApiResult<UserResult>.Success(result));
+        }
+
+        [HttpPost("add-user-group")]
+        public ActionResult<ApiResult<UserGroupResult>> AddUserGroup([FromBody] UserGroupRequest userGroupRequest)
+        {
+            if (userGroupRequest == null)
+            {
+                return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid data."));
+            }
+
+           // var result = userService.AddUser(userCreateRequest);
+           var result = new UserGroupResult
+           {
+               Id = 1, 
+               Name = userGroupRequest.UserGroupName, 
+               PermittedLockers = new List<LockerGroupResult>(),
+               BranchNames = userGroupRequest.Branches.Select(b => $"Branch {b}").ToList(),
+               State = "Active" 
+           };
+
+            if (result == null)
+            {
+                return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
+            }
+
+            return Ok(ApiResult<UserGroupResult>.Success(result));
+        }
     }
 }
