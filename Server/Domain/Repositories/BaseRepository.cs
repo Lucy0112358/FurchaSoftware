@@ -463,6 +463,16 @@ namespace MqttService.Application.Repositories
             }
         }
 
+        /// <summary>
+        /// Executes an insert statement against the schema defined by the T TableAttribute.Schema.
+        /// </summary>
+        /// <param name="objectToInsert"></param>
+        /// <returns>The inserted entity</returns>
+/*        protected T Insert<T>(T objectToInsert)
+        {
+            return Insert(objectToInsert, null);
+        }*/
+
 
     }
 }

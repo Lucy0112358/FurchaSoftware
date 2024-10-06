@@ -183,18 +183,6 @@ CREATE TABLE IF NOT EXISTS furcha."UserLocker"
     CONSTRAINT "UserLocker_user_Id" FOREIGN KEY ("UserId") REFERENCES furcha."User" ("Id")
 );
 
--- Create UserCard table
-CREATE TABLE IF NOT EXISTS furcha."UserCard"
-(
-    "Id" INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1),
-    "UserId" INTEGER NOT NULL,
-    "CardId" INTEGER NOT NULL,
-    CONSTRAINT "UserCard_pkey" PRIMARY KEY ("Id"),
-    CONSTRAINT "UserCard_user_Id" FOREIGN KEY ("UserId") REFERENCES furcha."User" ("Id"),
-    CONSTRAINT "UserCard_card_Id" FOREIGN KEY ("CardId") REFERENCES furcha."Card" ("Id"),
-    CONSTRAINT "UserCard_unique_user_card" UNIQUE ("UserId", "CardId")
-);
-
 -- Create UserBranch table
 CREATE TABLE IF NOT EXISTS furcha."UserBranch"
 (
