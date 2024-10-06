@@ -103,6 +103,30 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<UserResult>.Success(result));
         }
 
+        [HttpPost("add-user-group")]
+        public ActionResult<ApiResult<UserGroupResult>> AddUserGroup([FromBody] UserGroupRequest userGroupRequest)
+        {
+            if (userGroupRequest == null)
+            {
+                return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid data."));
+            }
 
+           // var result = userService.AddUser(userCreateRequest);
+           var result = new UserGroupResult
+           {
+               Id = 1, 
+               Name = userGroupRequest.UserGroupName, 
+               PermittedLockers = new List<LockerGroupResult>(),
+               BranchNames = userGroupRequest.Branches.Select(b => $"Branch {b}").ToList(),
+               State = "Active" 
+           };
+
+            if (result == null)
+            {
+                return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
+            }
+
+            return Ok(ApiResult<UserGroupResult>.Success(result));
+        }
     }
 }
