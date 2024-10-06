@@ -1,5 +1,5 @@
 import React from 'react'
-import { userTable, userTableGroups } from '../../data/tableIHeads'
+import { userTable } from '../../data/tableIHeads'
 import { useSelector } from 'react-redux';
 import { getAllUsersData } from '../../redux/slice/userSlice';
 
@@ -10,7 +10,7 @@ function UserTable() {
     <table className="outlet__table min-w-full bg-white " style={{color: '#AAAAAA', minWidth: '1110px'}}>
           <thead>
             <tr className="outlet__table__header">
-              {userTableGroups.map((header) => (
+              {userTable.map((header) => (
                 <th className="text-left" >{header}</th>
               ))}
             </tr>
