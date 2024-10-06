@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 
-export default function CustomSelect({ options, onChange  }) {
+export default function CustomSelect({ options, onChange, multiChoose = false  }) {
   const [selectedOption, setSelectedOption] = useState(null);
 
   const handleChange = (selected) => {
@@ -15,6 +15,7 @@ export default function CustomSelect({ options, onChange  }) {
         value: option.name == "All" ? "" : option.id,
         label: option.name 
       })) : []}
+      isMulti={multiChoose}
       value={selectedOption} 
       onChange={handleChange}
     />

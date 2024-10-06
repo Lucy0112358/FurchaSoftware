@@ -6,8 +6,11 @@ import CustomSelect from '../select/CustomSelect';
 import { useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { filterUserByName, getUserBranches, getUserGroups, userFilter } from '../../redux/api/menuApi';
-import { getUserBranchesData, getUserGroupsData } from '../../redux/slice/menuSlice';
+import { getSelectGroupSelect, getUserBranchesData, getUserGroupsData, setUserGroupSelect } from '../../redux/slice/menuSlice';
 import AddUserModal from '../modals/addUser/AddUserModal';
+import { getAllUsers } from '../../redux/api/userApi';
+import { getAllGroups } from '../../redux/api/groupApi';
+import GeneralAddModal from '../modals/GeneralAddModal';
 
 
 function Menu() {
@@ -15,6 +18,7 @@ function Menu() {
   const dispatch = useDispatch();
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedGroups, setSelectedGroups] = useState(null);
+  const userGroupEnabled = useSelector(getSelectGroupSelect)
 
   //input search by nane
   const [inputValue, setInputValue] = useState('');
@@ -35,14 +39,10 @@ function Menu() {
   };
 
   //Add USER modal part 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
 
   const userBranches = useSelector(getUserBranchesData);
   const userGroups = useSelector(getUserGroupsData);
-  // useSelector(getUserBranches);
-  // const allBrnachOptions = [{ value: '', label: 'All' }, ...branch];
-
-  const [groupEnabled, setGroupEnabled] = useState(false);
   const [manageEnabled, setManageEnabled] = useState(true);
 
   useEffect(() => {
@@ -60,7 +60,6 @@ function Menu() {
     dispatch(getUserBranches());
   }, []);
 
-
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -74,12 +73,10 @@ function Menu() {
     fileInputRef.current.click();
   };
 
-
   const handleInputChange = (e) => {
     let name = e.target.value;
     setInputValue(name);
 
-    // Если таймер уже установлен, очищаем его
     if (debounceTimeout) {
       clearTimeout(debounceTimeout);
     }
@@ -87,37 +84,34 @@ function Menu() {
     setDebounceTimeout(
       setTimeout(() => {
         dispatch(filterUserByName({'name': name}));
-      }, 1000) // 1000 миллисекунд = 1 секунда
+      }, 1000)
     );
   };
 
+  const handleUserGroupSelect = () => {
+    dispatch(setUserGroupSelect(!userGroupEnabled));
+    if(userGroupEnabled){
+      dispatch(getAllUsers())
+    } else {
+      dispatch(getAllGroups())
+    }
+  };
 
   return (
     <div >
       <div className="menu flex justify-around">
-        <div className='menu__add'>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="menu__add__button text-white">
-            <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-            <span className="">Add User</span>
-          </button>
-        </div>
-        <AddUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-          <p>This is a modal content!</p>
-        </AddUserModal>
-
+        <GeneralAddModal />
         <div className="menu__group flex items-center">
           <label className="cursor-pointer">
             <input
               type="checkbox"
               className="sr-only"
-              checked={groupEnabled}
-              onChange={() => setGroupEnabled(!groupEnabled)}
+              checked={userGroupEnabled}
+              onChange={() => handleUserGroupSelect()}
             />
             <div className='menu__group__general'>
-              <div className={`w-10 h-6 bg-gray-400 rounded-full relative transition duration-300 ease-in-out ${groupEnabled ? 'bg-green-500' : ''}`}>
-                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition duration-300 ease-in-out transform ${groupEnabled ? 'translate-x-4' : ''}`}></div>
+              <div className={`w-10 h-6 bg-gray-400 rounded-full relative transition duration-300 ease-in-out ${userGroupEnabled ? 'bg-green-500' : ''}`}>
+                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition duration-300 ease-in-out transform ${userGroupEnabled ? 'translate-x-4' : ''}`}></div>
               </div>
               <span className="text-white">Group</span>
             </div>

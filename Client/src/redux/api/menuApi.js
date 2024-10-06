@@ -11,7 +11,6 @@ export const getUserBranches = createAsyncThunk(
         };
         
         const response = await instance(config);
-        console.log(response.data)
         return response?.data;
       } catch (error) {
         return thunkAPI.rejectWithValue(error.response.data.error.both);
@@ -45,6 +44,25 @@ export const userFilter = createAsyncThunk(
           method: "get",
           url: 'User/filtered-users/?adminId=8',
           params: { ...params },
+        };
+        
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+export const setUserGroup = createAsyncThunk(
+  'menu/setUserGroup',
+  async (data, thunkAPI) => {
+    console.log(data, 7444444444)
+      try {
+        const config = {
+          method: "post",
+          url: 'User/add-user-group/?adminId=8',
+          data: data
         };
         
         const response = await instance(config);

@@ -6,7 +6,8 @@ const initialState = {
   loading: false,
   userBranches: {},
   userGroups: {},
-  selectGroups: {}
+  selectGroups: {},
+  userGroupSelect: false
 };
 
 export const menuSlice = createSlice({
@@ -21,6 +22,9 @@ export const menuSlice = createSlice({
     },
     setUserGroups: (state, action) => {
       state.userGroups = [{ id: 0, name: "All" }, ...action];
+    },
+    setUserGroupSelect: (state) => {
+      state.userGroupSelect = !state.userGroupSelect
     },
   },
 
@@ -56,12 +60,14 @@ export const menuSlice = createSlice({
 
 export const {
   setLoading,
+  setUserGroupSelect
 } = menuSlice.actions;
 
 export const getLoadingNow = (state) => state.menu.loading;
 export const getUserBranchesData = (state) => state.menu.userBranches;
 export const getUserGroupsData = (state) => state.menu.userGroups;
 export const getSelectGroups = (state) => state.menu.selectGroups;
+export const getSelectGroupSelect = (state) => state.menu.userGroupSelect;
 
 
 
