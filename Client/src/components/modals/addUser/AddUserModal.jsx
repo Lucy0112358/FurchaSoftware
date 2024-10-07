@@ -9,6 +9,8 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import CustomSelect from "../../select/CustomSelect";
 import { getUserGroupsData } from "../../../redux/slice/menuSlice";
+import { userFilter } from "../../../redux/api/menuApi";
+import { setUserInfo } from "../../../redux/api/userApi";
 
 
 const AddUserModal = ({ isOpen, onClose, children }) => {
@@ -21,12 +23,41 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const [userRight, setUserRight] = useState({});
 
   // TODO:  User Group
+  const [sentGeneralInfo, setSentGeneralInfo] = useState({
+   "cards": [
+    "8938559966",
+    "15641561",
+  ], 
+  "isPinRequired": true,
+  });
+
+  const sendGroupInfo = (part, key, value) => {
+    addAllInfoForUser(part, key, value);
+    setSentGeneralInfo((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  // TODO:  User Group
   const [selectedGroups, setSelectedGroups] = useState(null);
 
   const userGroups = useSelector(getUserGroupsData);
 
   const handleGroupsSelectChange = (selectedOption) => {
     setSelectedGroups(selectedOption);
+
+    // TODO:
+    // addAllInfoForUserGroup('Group', 'name', selectedBranch) 
+    let id = selectedOption.value
+    console.log(selectedOption, 6666)
+    let ids = selectedOption.map(item => item.value);
+console.log(ids, 7777)
+    setSentGeneralInfo((prev) => ({
+      ...prev,
+      'userGroups' : ids,
+    }))
+    
     dispatch(userFilter({'filterByGroupId': selectedOption.value}));
 
     console.log("Выбранная groups:", selectedOption);
@@ -62,6 +93,12 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       })
       .join('\n\n');
   };
+
+  // TODO: feat
+  const addUser = () =>{
+    dispatch(setUserInfo(sentGeneralInfo))
+    console.log(sentGeneralInfo,888)
+  }
 
   //Branch parttt
   // TODO: feat
@@ -104,7 +141,8 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Name"
                       type="text"
-                      onChange={(e) => addAllInfoForUser('user_info', 'name', e.target.value)}
+                      // onChange={(e) => addAllInfoForUser('user_info', 'name', e.target.value)}
+                      onChange={(e) => sendGroupInfo('user_info', 'name', e.target.value)}
                       className="w-full p-1 border rounded"
                     />
                   </div>
@@ -113,7 +151,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Last name"
                       type="text"
-                      onChange={(e) => addAllInfoForUser('user_info', 'last_name', e.target.value)}
+                      // onChange={(e) => addAllInfoForUser('user_info', 'surname', e.target.value)}
+                      onChange={(e) => sendGroupInfo('user_info', 'surname', e.target.value)}
+
                       className="w-full p-1 border rounded"
                     />
                   </div>
@@ -122,7 +162,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Email"
                       type="email"
-                      onChange={(e) => addAllInfoForUser('user_info', 'email', e.target.value)}
+                      // onChange={(e) => addAllInfoForUser('user_info', 'email', e.target.value)}
+                      onChange={(e) => sendGroupInfo('user_info', 'email', e.target.value)}
+
                       className="w-full p-1 border rounded"
                     />
                   </div>
@@ -131,7 +173,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Phone"
                       type="text"
-                      onChange={(e) => addAllInfoForUser('user_info', 'phone', e.target.value)}
+                      // onChange={(e) => addAllInfoForUser('user_info', 'phone', e.target.value)}
+                      onChange={(e) => sendGroupInfo('user_info', 'phone', e.target.value)}
+
                       className="w-full p-1 border rounded"
                     />
                   </div>
@@ -146,7 +190,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <label className="block text-gray-300">From</label>
                     <input
                       type="date"
-                      onChange={(e) => addAllInfoForUser('active_period', 'from', e.target.value)}
+                      // onChange={(e) => addAllInfoForUser('active_period', 'activeFrom', e.target.value)}
+                      onChange={(e) => sendGroupInfo('active_period', 'activeFrom', e.target.value)}
+                      
                       className="w-full p-1 border rounded"
                     />
                   </div>
@@ -154,7 +200,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <label className="block text-gray-300">To</label>
                     <input
                       type="date"
-                      onChange={(e) => addAllInfoForUser('active_period', 'to', e.target.value)}
+                      // onChange={(e) => addAllInfoForUser('active_period', 'activeTo', e.target.value)}
+                      onChange={(e) => sendGroupInfo('active_period', 'activeTo', e.target.value)}
+
                       className="w-full p-1 border rounded"
                     />
                   </div>
@@ -236,7 +284,11 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                 </button>
               </div>
               <div className="modal__button">
-                <button className="bg-gray-600 text-white rounded ">
+                <button 
+                  className="bg-gray-600 text-white rounded "
+                  onClick={addUser}
+                  
+                  >
                   Save
                 </button>
               </div>
@@ -255,10 +307,6 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
             </div>
           </TabPanel>
         </Tabs>
-
-
-
-
       </div>
     </div>
   );

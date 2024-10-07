@@ -54,6 +54,7 @@ export const userFilter = createAsyncThunk(
     }
 )
 
+// TODO: Change location to UserGroupApi
 export const setUserGroup = createAsyncThunk(
   'menu/setUserGroup',
   async (data, thunkAPI) => {
