@@ -1,4 +1,5 @@
 ﻿using Domain.Configuration;
+using Domain.Entities;
 using Domain.Enums;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FurchaAdminApi.Controllers
 {
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -87,7 +89,9 @@ namespace FurchaAdminApi.Controllers
 
         [HttpPost("add-user")]
         public ActionResult<ApiResult<UserResult>> AddUser([FromBody] UserCreateRequest userCreateRequest)
-        {
+        {   
+                
+
             if (userCreateRequest == null)
             {
                 return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
@@ -100,7 +104,7 @@ namespace FurchaAdminApi.Controllers
                 return BadRequest(ApiResult<UserResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
             }
 
-            return Ok(ApiResult<UserResult>.Success(result));
+            return Ok(ApiResult<Card>.Success(result));
         }
 
         [HttpPost("add-user-group")]

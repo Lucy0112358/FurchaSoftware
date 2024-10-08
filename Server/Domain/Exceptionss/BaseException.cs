@@ -1,8 +1,8 @@
 ﻿using Domain.Enums;
-using MqttService.Infrastructure.Extensions;
+using Domain.Extensions;
 using System.Diagnostics.Contracts;
 
-namespace MqttService.Application.Exceptions
+namespace Domain.Exceptions
 {
     public class BaseException : ApplicationException
     {
@@ -14,6 +14,10 @@ namespace MqttService.Application.Exceptions
         public BaseException(MqttErrorCodeEnum errorCodeType) : base(errorCodeType.GetDescription())
         {
             ErrorCodeEnum = errorCodeType;
+        }
+        public BaseException(ErrorCodeEnum errorCodeType, string message, int? id = null) : base(message)
+        {
+            ErrorCodeEnum = (MqttErrorCodeEnum)errorCodeType;
         }
         public BaseException(ErrorCodeEnum errorCodeType) : base(errorCodeType.GetDescription())
         {

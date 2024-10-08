@@ -1,9 +1,9 @@
 ﻿using Domain.Entities;
 using Domain.Enums;
+using Domain.Exceptions;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
-using MqttService.Application.Exceptions;
 
 namespace FurchaAdminApi.Services
 {
@@ -307,10 +307,10 @@ namespace FurchaAdminApi.Services
             return users.Select(user => MapUserToUserResult(user)).ToList();
         }
 
-        public UserResult AddUser(UserCreateRequest newUser)
+        public Card AddUser(UserCreateRequest newUser)
         {
 
-           return _userRepository.AddUser(newUser);
+            return _userRepository.AddCard(newUser);
 
         }
     }

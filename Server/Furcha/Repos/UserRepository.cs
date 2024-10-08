@@ -1,7 +1,6 @@
-﻿using Dapper;
+﻿using Domain.Configuration;
 using Domain.Entities;
 using FurchaAdminApi.Models.Request;
-using FurchaAdminApi.Models.Result;
 using MqttService.Application.Repositories;
 using Npgsql;
 
@@ -9,12 +8,9 @@ namespace FurchaAdminApi.Repos
 {
     public class UserRepository : BaseRepository
     {
-        private readonly NpgsqlConnection _dbConnection;
 
-        public UserRepository(NpgsqlConnection dbConnection) : base(dbConnection)
+        public UserRepository(NpgsqlConnection dbConnection, ISanitizer sanitizer) : base(dbConnection, sanitizer)
         {
-            _dbConnection = dbConnection;
-            _dbConnection.Open();
         }
 
         /// <summary>
@@ -365,87 +361,20 @@ namespace FurchaAdminApi.Repos
             return branches;
         }
 
-        public UserResult AddUser(UserCreateRequest newUser)
+        /// <summary>
+        /// Inserts a new card into the database.
+        /// </summary>
+        /// <param name="card">The card to be inserted.</param>
+        /// <returns>The inserted card entity.</returns>
+        public Card AddCard(UserCreateRequest card)
         {
-            using (var transaction = _dbConnection.BeginTransaction())
+            var newcard = new Card
             {
-                try
-                {
-                    // Step 1: Insert into User table
-                    var userId = _dbConnection.ExecuteScalar<int>(
-                        @"INSERT INTO furcha.""user"" 
-                    (""Name"", ""Surname"", ""Email"", ""Phone"", ""CompanyId"") 
-                  VALUES 
-                    (@Name, @Surname, @Email, @Phone, @CompanyId)
-                  RETURNING ""id""",
-                        new
-                        {
-                            newUser.Name,
-                            newUser.Surname,
-                            newUser.Email,
-                            newUser.Phone,
-                            CompanyId = 5, // Handle company assignment logic
-                         
-                        }, transaction);
+                UserId = 10, // Example UserId (assuming there's a user with this ID in your database)
+                CardNumber = "1234-5678-9012-3456" // Example Card Number
+            };
 
-                    // Step 2: Insert into User_UserGroup table
-                    if (newUser.UserGroups != null && newUser.UserGroups.Count > 0)
-                    {
-                        foreach (var groupId in newUser.UserGroups)
-                        {
-                            _dbConnection.Execute(
-                                @"INSERT INTO furcha.""User_UserGroup"" 
-                            (""UserId"", ""UserGroupId"") 
-                          VALUES 
-                            (@UserId, @UserGroupId)",
-                                new { UserId = userId, UserGroupId = groupId },
-                                transaction);
-                        }
-                    }
-
-                    // Step 3: Insert into UserCard table
-                    if (newUser.Cards != null && newUser.Cards.Count > 0)
-                    {
-                        foreach (var cardNumber in newUser.Cards)
-                        {
-                            var cardId = _dbConnection.ExecuteScalar<int>(
-                                @"INSERT INTO furcha.""Card"" (""CardNumber"", ""UserId"") 
-                          VALUES 
-                            (@CardNumber, @UserId) 
-                          RETURNING ""Id""",
-                                new { CardNumber = cardNumber, UserId = userId },
-                                transaction);
-                        }
-                    }
-
-                    // Commit transaction if all inserts succeed
-                    transaction.Commit();
-
-                    // Step 4: Return the UserResult
-                    return new UserResult
-                    {
-                        Id = userId,
-                        Name = newUser.Name,
-                        Surname = newUser.Surname,
-                        Role = "", // Assign the role based on additional logic
-                        State = "", // Handle user state logic if applicable
-                        Cards = new List<CardResult>(), // Fill in if needed
-                        UserGroups = new List<UserGroupResult>(), // Fill in if needed
-                        Branches = new List<BranchResult>() // Handle branch association if applicable
-                    };
-                }
-                catch (Exception)
-                {
-                    // Rollback transaction if any step fails
-                    transaction.Rollback();
-                    throw;
-                }
-                finally
-                {
-                    _dbConnection.Dispose();
-                }
-            }
+            return Insert(newcard); // Utilize the Insert method from the base repository
         }
-
     }
 }

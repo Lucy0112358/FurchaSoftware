@@ -2,7 +2,7 @@
 using Npgsql;
 using System.Data;
 
-namespace MqttService.Application.Repositories
+namespace Domain.Repositories
 {
     public class PostgreSqlConnection : IDisposable
     {

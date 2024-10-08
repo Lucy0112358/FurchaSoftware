@@ -37,8 +37,13 @@ namespace MqttService
             builder.Services.AddInfrasructure();
 
             var app = builder.Build();
+            app.UseCors(options =>
+                options.WithOrigins("http://localhost:5173")  
+                .AllowAnyMethod()  
+                .AllowAnyHeader()  
+                .AllowCredentials());  
 
-            // Configure the HTTP request pipeline.
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

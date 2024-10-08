@@ -2,6 +2,7 @@ using Domain.Configuration;
 using FurchaAdminApi.Infrustructures;
 using MqttService.Infrastructure;
 using Npgsql;
+using System.Data;
 
 namespace MqttService
 {
@@ -20,6 +21,14 @@ namespace MqttService
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+            // Register PostgreSQL connection
+            builder.Services.AddTransient<IDbConnection>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
+                return new NpgsqlConnection(connectionString);
+            });
+
             builder.Services.AddScoped<NpgsqlConnection>(provider =>
             {
                 var configuration = provider.GetRequiredService<IConfiguration>();
@@ -37,8 +46,12 @@ namespace MqttService
             builder.Services.GenerateInjectionAdmin();
             builder.Services.AddHttpContextAccessor();
             var app = builder.Build();
+            app.UseCors(options =>
+                options.WithOrigins("http://localhost:5173")  
+                .AllowAnyMethod() 
+                .AllowAnyHeader()  
+                .AllowCredentials());  
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

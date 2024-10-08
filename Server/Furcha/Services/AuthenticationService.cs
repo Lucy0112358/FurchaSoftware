@@ -1,11 +1,11 @@
 ﻿using Domain.Configuration;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.Exceptions;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
 using Microsoft.IdentityModel.Tokens;
-using MqttService.Application.Exceptions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
