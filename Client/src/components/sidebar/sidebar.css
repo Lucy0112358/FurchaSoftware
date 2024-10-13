@@ -1,0 +1,34 @@
+.sidebar__content__link {
+    color: #AAAAAA;
+    display: flex;
+    align-items: center;
+    font-size: 21px;
+}
+
+.sidebar__logo {
+    width: 130px;
+}
+
+.sidebar__content {
+    padding-top: 150px;
+}
+
+.sidebar__content__link p {
+    margin-left: 4px;
+}
+
+.sidebar__content__link:hover {
+    color: white;
+}
+
+@media (max-width: 425px) {}
+
+@media (max-width: 768px) {
+    .sidebar__logo {
+        width: 80px;
+    }
+}
+
+@media (max-width: 1024px) {}
+
+@media (max-width: 1280px) {}

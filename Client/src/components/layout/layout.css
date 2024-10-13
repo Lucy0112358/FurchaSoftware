@@ -1,0 +1,89 @@
+.layout {
+    padding: 50px;
+    display: flex;
+}
+
+.layout__content {
+    padding: 0 0 0 63px;
+}
+
+.layout__outlet {
+    padding-top: 90px;
+}
+
+table th,
+table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* width */
+.outlet__table__wrapper::-webkit-scrollbar {
+    width: 20px;
+}
+
+/* Track */
+.outlet__table__wrapper::-webkit-scrollbar-track {
+    background: #d1d1d1;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    /* border-radius: 5px; */
+    /* border-radius: 0 10px 0 0; */
+}
+
+/* Handle */
+.outlet__table__wrapper::-webkit-scrollbar-thumb {
+    background: #888;
+    border-right: 10px solid #878787;
+    border-top: 10px solid #878787;
+    overflow: hidden;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    /* border-radius: 0 10px 0 0;     */
+}
+
+.outlet__table__wrapper {
+    border-radius: '10px';
+    height: '480px';
+    width: '100%';
+    max-width: '1130px';
+    overflow-x: 'auto'
+}
+
+/* Handle on hover */
+/* .outlet__table__wrapper::-webkit-scrollbar-thumb:hover {
+    background: #555;
+} */
+
+/* Мобильные телефоны */
+@media (max-width: 425px) {
+    .layout {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .layout {
+        padding: 20px;
+    }
+
+    .sidebar__content__link {
+        justify-content: flex-start;
+        font-size: 26px !important;
+    }
+
+    .layout__content {
+        padding: 0px 0 0 0px;
+    }
+
+    .sidebar__content {
+        position: fixed;
+        padding-top: 80px;
+    }
+}
+
+/* Небольшие ноутбуки */
+@media (max-width: 1024px) {}
+
+/* Десктопы */
+@media (max-width: 1280px) {}
