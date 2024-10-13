@@ -14,8 +14,5 @@ namespace Domain.Entities
 
         [ForeignKey("UserGroup")]
         public int UserGroupId { get; set; }
-
-        public virtual User User { get; set; }
-        public virtual UserGroup UserGroup { get; set; }
     }
 }

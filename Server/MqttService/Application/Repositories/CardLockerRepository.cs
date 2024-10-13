@@ -1,5 +1,6 @@
 ﻿using Domain.Configuration;
 using Domain.Entities;
+using Domain.Repositories;
 using Npgsql;
 
 namespace MqttService.Application.Repositories

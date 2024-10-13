@@ -1,13 +1,13 @@
-﻿using Domain.Attributes;
+﻿using Dapper;
+using Domain.Attributes;
 using Domain.Configuration;
-using Domain.Entities;
+using Domain.Enums;
 using Domain.Extensions;
-using Domain.Repositories;
 using Npgsql;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
-namespace MqttService.Application.Repositories
+namespace Domain.Repositories
 {
     public class BaseRepository
     {
@@ -511,27 +511,58 @@ namespace MqttService.Application.Repositories
         protected T Insert<T>(T objectToInsert, PostgreSqlConnection sqlConnection)
         {
             var entityType = typeof(T);
-            var schema = GetSchema(entityType);
+            var schema = GetSchema(entityType); 
             var entityName = entityType.Name;
 
+            // Prepare insert parameters
             var computedColumnsAttribute = entityType.GetCustomAttribute<ComputedColumnsAttribute>();
             var computedColumns = computedColumnsAttribute?.Columns;
 
-            // Prepare insert parameters
-            var (columnsString, parameterString, param) = PrepareInsert(objectToInsert, computedColumns);
+            var columns = new List<string>();
+            var parameters = new List<string>();
+            var propertyList = new List<PropertyInfo>(); // Collect properties included
+            var param = new DynamicParameters();
 
-            // Remove 'id' from the columns and parameters
-            if (columnsString.Contains("[id]"))
+            foreach (var property in entityType.GetProperties())
             {
-                columnsString = columnsString.Replace("[id]", string.Empty).Trim().TrimStart(',');
-                // Remove corresponding parameter if it exists
-                parameterString = parameterString.Replace($"@{nameof(Card.Id)}", string.Empty).Trim().TrimStart(',');
+                // Skip 'Id' property or any computed columns
+                if (property.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) ||
+                    (computedColumns != null && computedColumns.Contains(property.Name)))
+                {
+                    continue;
+                }
+
+                var columnName = property.Name;
+                var value = property.GetValue(objectToInsert);
+
+                // Convert enum to string to pass it to the query
+                if (property.PropertyType.IsEnum && property.PropertyType != typeof(RoleEnum))
+                {
+                    value = value?.ToString(); // Convert enum to string
+                }
+
+                // Wrap column name in double quotes for case sensitivity
+                var quotedColumnName = $"\"{columnName}\"";
+
+                columns.Add(quotedColumnName);
+                parameters.Add($"@{columnName}");
+                param.Add($"@{columnName}", value ?? DBNull.Value); // Handle null values
+
+                propertyList.Add(property); // Add to the list of included properties
             }
 
-            // Construct the insert SQL statement
-            var sql = $@"INSERT INTO {schema}.{entityName} ({columnsString}) 
-                 VALUES({parameterString}) 
-                 RETURNING *;";
+            var columnsString = string.Join(", ", columns);
+            var parameterString = string.Join(", ", parameters.Select((p, idx) =>
+            {
+                var property = propertyList[idx];
+                var isEnum = property.PropertyType.IsEnum && property.PropertyType != typeof(RoleEnum);
+                return isEnum ? $"{p}::{schema}.\"{property.PropertyType.Name}\"" : p;
+            }));
+
+            var sql = $@"INSERT INTO {schema}.""{entityName}"" ({columnsString}) 
+             VALUES({parameterString}) 
+             RETURNING *;";
+
 
             // Execute the query and return the inserted entity
             if (sqlConnection != null)
@@ -546,7 +577,10 @@ namespace MqttService.Application.Repositories
                 }
             }
         }
-2
+
+
+
+
 
 
         private (string columnsString, string parameterString, Dictionary<string, object> paramSanitized) PrepareInsert<T>(T objectToInsert, string[] computedColumns)

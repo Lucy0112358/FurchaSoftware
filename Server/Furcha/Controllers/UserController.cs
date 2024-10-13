@@ -1,6 +1,6 @@
 ﻿using Domain.Configuration;
-using Domain.Entities;
 using Domain.Enums;
+using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
@@ -89,9 +89,7 @@ namespace FurchaAdminApi.Controllers
 
         [HttpPost("add-user")]
         public ActionResult<ApiResult<UserResult>> AddUser([FromBody] UserCreateRequest userCreateRequest)
-        {   
-                
-
+        {
             if (userCreateRequest == null)
             {
                 return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
@@ -104,7 +102,7 @@ namespace FurchaAdminApi.Controllers
                 return BadRequest(ApiResult<UserResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
             }
 
-            return Ok(ApiResult<Card>.Success(result));
+            return Ok(ApiResult<UserResult>.Success(result));
         }
 
         [HttpPost("add-user-group")]
@@ -112,25 +110,30 @@ namespace FurchaAdminApi.Controllers
         {
             if (userGroupRequest == null)
             {
-                return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid data."));
+                return BadRequest(ApiResult<UserGroupResult>.ErrorResult("Invalid data."));
             }
 
-           // var result = userService.AddUser(userCreateRequest);
-           var result = new UserGroupResult
-           {
-               Id = 1, 
-               Name = userGroupRequest.Name, 
-               PermittedLockers = new List<LockerGroupResult>(),
-               BranchNames = userGroupRequest.Branches.Select(b => $"Branch {b}").ToList(),
-               State = "Active" 
-           };
-
-            if (result == null)
+            try
             {
-                return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
-            }
+                var result = userService.AddUserGroup(userGroupRequest);
 
-            return Ok(ApiResult<UserGroupResult>.Success(result));
+                if (result == null)
+                {
+                    return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "Group could not be created."));
+                }
+
+                return Ok(ApiResult<UserGroupResult>.Success(result));
+            }
+            catch (BaseException ex)
+            {
+                return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "Group could not be created."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<UserGroupResult>.ErrorResult("An unexpected error occurred."));
+            }
         }
+
+
     }
 }

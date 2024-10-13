@@ -1,4 +1,4 @@
-CREATE TYPE furcha.user_state AS ENUM ('active', 'suspended');
+CREATE TYPE furcha.user_state AS ENUM ('active', 'suspended', 'expanded', 'scheduled');
 
 CREATE TABLE IF NOT EXISTS furcha."Administrators"
 (
@@ -86,3 +86,5 @@ ADD COLUMN "CompanyId" INTEGER,
 ADD CONSTRAINT fk_company
 FOREIGN KEY ("CompanyId") REFERENCES furcha."Company"("Id");
 
+ALTER TABLE furcha."UserGroup"
+ADD COLUMN "State" furcha."StateEnum";

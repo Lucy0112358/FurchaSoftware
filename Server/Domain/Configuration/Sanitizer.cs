@@ -1,11 +1,11 @@
 ﻿using Domain.Enums;
-using Domain.Exceptions;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html;
 using System.Text;
 using Domain.Extensions;
 using Ganss.XSS;
+using Domain.Exceptionss;
 
 namespace Domain.Configuration
 {
@@ -35,7 +35,7 @@ namespace Domain.Configuration
 
 
     /// <summary>
-    /// Standard sanitizer for my.quitt. Currently removes all HTML tags from input, but may be extended further.
+    /// Currently removes all HTML tags from input, but may be extended further.
     /// </summary>
     public class Sanitizer : ISanitizer
     {

@@ -1,10 +1,10 @@
 using Domain.Configuration;
+using Domain.Enums;
 using FurchaAdminApi.Infrustructures;
-using MqttService.Infrastructure;
 using Npgsql;
 using System.Data;
 
-namespace MqttService
+namespace FurchaAdminApi
 {
     public class Program
     {
@@ -29,12 +29,18 @@ namespace MqttService
                 return new NpgsqlConnection(connectionString);
             });
 
-            builder.Services.AddScoped<NpgsqlConnection>(provider =>
+            builder.Services.AddScoped(provider =>
             {
                 var configuration = provider.GetRequiredService<IConfiguration>();
                 var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
                 return new NpgsqlConnection(connectionString);
             });
+
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("PostgreSqlConnection"));
+            dataSourceBuilder.MapEnum<StateEnum>(); 
+            var dataSource = dataSourceBuilder.Build(); 
+
+            builder.Services.AddSingleton(dataSource);
 
             var encryptionSettingsSection = builder.Configuration.GetSection(nameof(EncryptionSettings));
             builder.Services.Configure<EncryptionSettings>(encryptionSettingsSection);
@@ -47,10 +53,10 @@ namespace MqttService
             builder.Services.AddHttpContextAccessor();
             var app = builder.Build();
             app.UseCors(options =>
-                options.WithOrigins("http://localhost:5173")  
-                .AllowAnyMethod() 
-                .AllowAnyHeader()  
-                .AllowCredentials());  
+                options.WithOrigins("http://localhost:5173")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
 
             if (app.Environment.IsDevelopment())
             {
@@ -62,7 +68,7 @@ namespace MqttService
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
-        }     
+        }
 
     }
 }

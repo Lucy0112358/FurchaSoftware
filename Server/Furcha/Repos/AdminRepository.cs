@@ -1,7 +1,7 @@
 ﻿using Domain.Configuration;
 using Domain.Entities;
 using Domain.Enums;
-using MqttService.Application.Repositories;
+using Domain.Repositories;
 using Npgsql;
 
 namespace FurchaAdminApi.Repos

@@ -1,8 +1,12 @@
 ﻿using Domain.Configuration;
 using Domain.Entities;
+using Domain.Enums;
+using Domain.Exceptionss;
+using Domain.Repositories;
 using FurchaAdminApi.Models.Request;
-using MqttService.Application.Repositories;
+using FurchaAdminApi.Models.Result;
 using Npgsql;
+using System.Transactions;
 
 namespace FurchaAdminApi.Repos
 {
@@ -18,7 +22,7 @@ namespace FurchaAdminApi.Repos
         /// </summary>
         public List<User> GetCompanyUsers(int companyId)
         {
-            var sql = $@"SELECT * FROM furcha.{nameof(User)} WHERE ""CompanyId"" = @companyId";
+            var sql = $@"SELECT * FROM furcha.""{nameof(User)}"" WHERE ""CompanyId"" = @companyId";
             var usersOfCompany = Query<User>(
             sql: sql,
             param: new { companyId });
@@ -61,7 +65,7 @@ namespace FurchaAdminApi.Repos
             var sql = $@"
                     SELECT a.*, u.*
                     FROM furcha.""Administrators"" a
-                    JOIN furcha.""user"" u ON a.""UserId"" = u.""id""
+                    JOIN furcha.""User"" u ON a.""UserId"" = u.""id""
                     WHERE a.""id"" = @adminId
                     LIMIT 1";
 
@@ -95,9 +99,9 @@ namespace FurchaAdminApi.Repos
         public bool IsUserInBranch(int userId, int branchId)
         {
             string sql = $@"SELECT COUNT(1) 
-                    FROM furcha.{nameof(UserBranch)} 
-                    WHERE {nameof(UserBranch.UserId)} = @userId 
-                    AND {nameof(UserBranch.BranchId)} = @branchId";
+                    FROM furcha.""{nameof(UserBranch)}"" 
+                    WHERE ""{nameof(UserBranch.UserId)}"" = @userId 
+                    AND ""{nameof(UserBranch.BranchId)}"" = @branchId";
 
             return QuerySingleOrDefault<int>(sql, new { userId, branchId }) > 0;
         }
@@ -109,10 +113,10 @@ namespace FurchaAdminApi.Repos
         internal List<User> GetAllUsersOfBranch(int branchId)
         {
             var sql = $@"SELECT T.* 
-             FROM furcha.{nameof(User)} T
-             INNER JOIN furcha.{nameof(UserBranch)} T1 
-             ON T.{nameof(User.Id)} = T1.{nameof(UserBranch.UserId)}
-             WHERE T1.{nameof(UserBranch.BranchId)} = @branchId";
+             FROM furcha.""{nameof(User)}"" T
+             INNER JOIN furcha.""{nameof(UserBranch)}"" T1 
+             ON T.{nameof(User.Id)} = T1.""{nameof(UserBranch.UserId)}""
+             WHERE T1.""{nameof(UserBranch.BranchId)}"" = @branchId";
 
             var branchUsers = Query<User>(
                 sql: sql,
@@ -155,10 +159,10 @@ namespace FurchaAdminApi.Repos
         {
             var sql = $@"
                 SELECT Distinct U.* 
-                FROM furcha.User U
-                INNER JOIN furcha.UserBranch UB 
-                ON U.Id = UB.UserId
-                WHERE UB.BranchId = ANY(@branchIds)";
+                FROM furcha.""User"" U
+                INNER JOIN furcha.""UserBranch"" UB 
+                ON U.Id = UB.""UserId""
+                WHERE UB.""BranchId"" = ANY(@branchIds)";
 
             var users = Query<User>(
                 sql: sql,
@@ -187,10 +191,10 @@ namespace FurchaAdminApi.Repos
         {
             var sql = $@"
                     SELECT u.* 
-                    FROM furcha.""user"" u
-                    INNER JOIN furcha.""userbranch"" ub ON u.""id"" = ub.""userid""
+                    FROM furcha.""User"" u
+                    INNER JOIN furcha.""UserBranch"" ub ON u.""id"" = ub.""UserId""
                     WHERE (u.""Name"" ILIKE @name OR u.""Surname"" ILIKE @name)
-                    AND ub.""branchid"" = ANY(@branchIds)";
+                    AND ub.""BranchId"" = ANY(@branchIds)";
 
             var users = Query<User>(
                 sql: sql,
@@ -211,10 +215,10 @@ namespace FurchaAdminApi.Repos
         private List<User> GetUsersOfUserGroup(int groupId)
         {
             var sql = $@"SELECT T.* 
-                  FROM furcha.{nameof(User)} T
-                 INNER JOIN furcha.{nameof(User_UserGroup)} T1 
-                 ON T.{nameof(User.Id)} = T1.{nameof(User_UserGroup.UserId)}
-                 WHERE T1.{nameof(User_UserGroup.UserGroupId)} = @groupId";
+                  FROM furcha.""{nameof(User)}"" T
+                 INNER JOIN furcha.""{nameof(User_UserGroup)}"" T1 
+                 ON T.""{nameof(User.Id)}"" = T1.""{nameof(User_UserGroup.UserId)}""
+                 WHERE T1.""{nameof(User_UserGroup.UserGroupId)}"" = @groupId";
 
             var groupUsers = Query<User>(
                 sql: sql,
@@ -270,10 +274,10 @@ namespace FurchaAdminApi.Repos
             if (filterByGroupId.HasValue)
             {
                 sql = $@"SELECT T.* 
-                 FROM furcha.{nameof(User)} T
-                 INNER JOIN furcha.{nameof(User_UserGroup)} T1 
-                 ON T.{nameof(User.Id)} = T1.{nameof(User_UserGroup.UserId)}
-                 WHERE T1.{nameof(User_UserGroup.UserGroupId)} = @groupId
+                 FROM furcha.""{nameof(User)}"" T
+                 INNER JOIN furcha.""{nameof(User_UserGroup)}"" T1 
+                 ON T.{nameof(User.Id)} = T1.""{nameof(User_UserGroup.UserId)}""
+                 WHERE T1.""{nameof(User_UserGroup.UserGroupId)}"" = @groupId
                  LIMIT @pageSize OFFSET @offset";
 
                 queryParams = new { groupId = filterByGroupId.Value, pageSize, offset };
@@ -281,10 +285,10 @@ namespace FurchaAdminApi.Repos
             else if (filterByBranchId.HasValue)
             {
                 sql = $@"SELECT T.* 
-                 FROM furcha.{nameof(User)} T
-                 INNER JOIN furcha.{nameof(UserBranch)} T1 
-                 ON T.{nameof(User.Id)} = T1.{nameof(UserBranch.UserId)}
-                 WHERE T1.{nameof(UserBranch.BranchId)} = @branchId
+                 FROM furcha.""{nameof(User)}"" T
+                 INNER JOIN furcha.""{nameof(UserBranch)}"" T1 
+                 ON T.{nameof(User.Id)} = T1.""{nameof(UserBranch.UserId)}""
+                 WHERE T1.""{nameof(UserBranch.BranchId)}"" = @branchId
                  LIMIT @pageSize OFFSET @offset";
 
                 queryParams = new { branchId = filterByBranchId.Value, pageSize, offset };
@@ -350,9 +354,9 @@ namespace FurchaAdminApi.Repos
             var sql = $@"
                 SELECT B.* 
                 FROM furcha.""Branch"" B
-                INNER JOIN furcha.""userbranch"" UB 
-                ON B.""Id"" = UB.""branchid""
-                WHERE UB.""userid"" = @useerId";
+                INNER JOIN furcha.""UserBranch"" UB 
+                ON B.""Id"" = UB.""BranchId""
+                WHERE UB.""UserId"" = @useerId";
 
             var branches = Query<Branch>(
                 sql: sql,
@@ -362,19 +366,166 @@ namespace FurchaAdminApi.Repos
         }
 
         /// <summary>
-        /// Inserts a new card into the database.
+        /// Returns the company ID associated with a given admin ID
         /// </summary>
-        /// <param name="card">The card to be inserted.</param>
-        /// <returns>The inserted card entity.</returns>
-        public Card AddCard(UserCreateRequest card)
+        /// <param name="adminId">The ID of the administrator</param>
+        /// <returns>The company ID associated with the administrator, or null if not found</returns>
+        public int? GetCompanyIdByAdminId(int adminId)
         {
-            var newcard = new Card
+            var sql = $@"
+                    SELECT a.""CompanyId""
+                    FROM furcha.""Administrators"" a                   
+                    WHERE a.""id"" = @adminId
+                    LIMIT 1";
+
+            var companyId = QuerySingleOrDefault<int?>(sql, new { adminId });
+
+            return companyId;
+        }
+
+        /// <summary>
+        /// Inserts a new user into the database with the role USER
+        /// </summary>
+        /// <param name="newUser">The user to be inserted.</param>
+        /// <returns>The inserted user model.</returns>
+        public UserResult AddUser(UserCreateRequest newUser)
+        {
+            var companyId = GetCompanyIdByAdminId(newUser.adminId);
+            var state = new StateEnum();
+
+            if (companyId == null)
             {
-                UserId = 10, // Example UserId (assuming there's a user with this ID in your database)
-                CardNumber = "1234-5678-9012-3456" // Example Card Number
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
+            }
+            // add columns in db for activeTo and activeFrom
+            if (newUser.ActiveFrom != null && newUser.ActiveFrom > DateTime.Now)
+            {
+                state = StateEnum.active;
+            }
+            else if (newUser.ActiveFrom != null && newUser.ActiveTo < DateTime.Now)
+            {
+                state = StateEnum.expanded;
+            }
+            else
+            {
+                state = StateEnum.active;
+            }
+
+            try
+            {
+                using (var transactionScope = new TransactionScope())
+                {
+                    var user = new User
+                    {
+                        Name = newUser.Name,
+                        Surname = newUser.Surname,
+                        Email = newUser.Email,
+                        Phone = newUser.Phone,
+                        CreatedDate = DateTime.Now,
+                        State = state,
+                        CompanyId = (int)companyId,
+                        // UserLockers = GetUserLockersByCards(request.Cards), // Map card strings to UserLockers or other logic
+                        Role = RoleEnum.user
+                    };
+
+                    var insertedUser = Insert(user);
+
+                    if (insertedUser == null)
+                    {
+                        throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
+                    }
+
+                    AddCardsByNumbers(newUser.Cards, insertedUser.Id);
+
+                    AddUserGroupsForNewUser(newUser.UserGroups, insertedUser.Id);
+
+                    transactionScope.Complete();
+
+                    return new UserResult
+                    {
+                        Id = insertedUser.Id,
+                        Name = insertedUser.Name,
+                        Surname = insertedUser.Surname,
+                        Role = insertedUser.Role.ToString(),
+                        State = insertedUser.State.ToString(),
+
+                    };
+                }
+            }
+            catch (BaseException ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "An unexpected error occurred while adding the user.");
+            }
+        }
+
+        public void AddUserGroupsForNewUser(List<int> groupIds, int userId)
+        {
+            try
+            {
+                groupIds.ForEach(id =>
+                {
+                    var userUserGroup = new User_UserGroup
+                    {
+                        UserId = userId,
+                        UserGroupId = id
+                    };
+
+                    Insert(userUserGroup);
+                });
+            }
+            catch (Exception ex)
+            {
+#warning add a more specific error message here
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
+            }
+
+        }
+
+        public List<Card> AddCardsByNumbers(List<string> cardNumbers, int userId)
+        {
+            var result = new List<Card>();
+            try
+            {
+                foreach (var cardNumber in cardNumbers)
+                {
+                    var card = new Card
+                    {
+                        CardNumber = cardNumber,
+                        UserId = userId
+                    };
+
+                    result.Add(card);
+
+                    Insert(card);
+                }
+            }
+            catch (Exception ex)
+            {
+#warning add a more specific error message here
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
+            }
+
+            return result;
+        }
+
+        public UserGroup AddUserGroup(UserGroupRequest userGroupRequest)
+        {
+            var companyId = GetCompanyIdByAdminId(userGroupRequest.adminId);
+            var group = new UserGroup
+            {
+                State = StateEnum.active,
+                CompanyId = (int)companyId,
+                Name = userGroupRequest.Name,
+                Description = string.Empty
             };
 
-            return Insert(newcard); // Utilize the Insert method from the base repository
+            Insert(group);
+
+            return group;
         }
     }
 }

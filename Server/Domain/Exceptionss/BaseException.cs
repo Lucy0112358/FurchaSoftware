@@ -2,7 +2,7 @@
 using Domain.Extensions;
 using System.Diagnostics.Contracts;
 
-namespace Domain.Exceptions
+namespace Domain.Exceptionss
 {
     public class BaseException : ApplicationException
     {

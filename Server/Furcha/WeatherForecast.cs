@@ -1,4 +1,4 @@
-namespace Furcha
+namespace FurchaAdminApi
 {
     public class WeatherForecast
     {

@@ -2,7 +2,7 @@
 using FurchaAdminApi.Repos;
 using FurchaAdminApi.Services;
 
-namespace MqttService.Infrastructure
+namespace FurchaAdminApi.Infrustructures
 {
     public static class AdminServiceInjection
     {
