@@ -23,10 +23,11 @@ export const setUserInfo = createAsyncThunk(
   'menu/setUserInfo',
   async (data, thunkAPI) => {
     console.log(data, 7444444444)
+    data.adminId = 8;
       try {
         const config = {
           method: "post",
-          url: 'User/add-user/?adminId=8',
+          url: 'User/add-user',
           data: data
         };
         

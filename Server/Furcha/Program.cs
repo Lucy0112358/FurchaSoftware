@@ -1,3 +1,4 @@
+using FurchaAdminApi.Infrustructures;
 using MqttService.Infrastructure;
 using Npgsql;
 using System.Data;
@@ -19,6 +20,17 @@ namespace FurchaAdminApi
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policyBuilder =>
+                {
+                    policyBuilder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+            });
+
             builder.Services.AddScoped<NpgsqlConnection>(provider =>
             {
                 var configuration = provider.GetRequiredService<IConfiguration>();
@@ -26,14 +38,8 @@ namespace FurchaAdminApi
                 return new NpgsqlConnection(connectionString);
             });
 
-            builder.Services.AddScoped<NpgsqlConnection>(provider =>
-            {
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
-                return new NpgsqlConnection(connectionString);
-            });
-
             builder.Services.GenerateInjectionAdmin();
+            builder.Services.AddHttpContextAccessor();
 
             var app = builder.Build();
 
@@ -42,6 +48,8 @@ namespace FurchaAdminApi
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseCors("AllowAll");
 
             app.UseHttpsRedirection();
             app.UseAuthorization();

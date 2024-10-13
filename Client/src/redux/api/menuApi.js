@@ -59,10 +59,11 @@ export const setUserGroup = createAsyncThunk(
   'menu/setUserGroup',
   async (data, thunkAPI) => {
     console.log(data, 7444444444)
+    data.adminId=8
       try {
         const config = {
           method: "post",
-          url: 'User/add-user-group/?adminId=8',
+          url: 'User/add-user-group',
           data: data
         };
         
