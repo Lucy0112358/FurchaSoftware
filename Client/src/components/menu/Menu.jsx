@@ -6,7 +6,7 @@ import CustomSelect from '../select/CustomSelect';
 import { useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { filterUserByName, getUserBranches, getUserGroups, userFilter } from '../../redux/api/menuApi';
-import { getSelectGroupSelect, getUserBranchesData, getUserGroupsData, setUserGroupSelect } from '../../redux/slice/menuSlice';
+import { getSelectGroupSelect, getUserBranchesData, getUserGroupsData, setMenuFilter, setUserGroupSelect } from '../../redux/slice/menuSlice';
 import AddUserModal from '../modals/addUser/AddUserModal';
 import { getAllUsers } from '../../redux/api/userApi';
 import { getAllGroups } from '../../redux/api/groupApi';
@@ -20,7 +20,10 @@ function Menu() {
   const dispatch = useDispatch();
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedGroups, setSelectedGroups] = useState(null);
-  const userGroupEnabled = useSelector(getSelectGroupSelect)
+  const userGroupEnabled = useSelector(getSelectGroupSelect);
+  const [filters, setFilters] = useState({});
+
+  console.log(filters, "filtersfilters")
 
   //input search by nane
   const [inputValue, setInputValue] = useState('');
@@ -28,17 +31,28 @@ function Menu() {
 
   const handleSelectChange = (selectedOption) => {
     setSelectedBranch(selectedOption);
-
-    dispatch(userFilter({ 'filterByBranchId': selectedOption.value }));
-    console.log("Выбранная опция:", selectedOption);
-  };
-
+    addFilters(selectedOption, 'filterByBranchId')
+  }
   const handleGroupsSelectChange = (selectedOption) => {
     setSelectedGroups(selectedOption);
-    dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
+    addFilters(selectedOption, 'filterByGroupId')
 
-    console.log("Выбранная groups:", selectedOption);
+    // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
+
+    // console.log("Выбранная groups:", selectedOption);
   };
+
+  const addFilters = (selectedOption, key) => {
+    setFilters((prevFilters) => {
+      const updatedFilters = {
+        ...prevFilters,
+        [key]: selectedOption.value,
+      };
+
+      dispatch(userFilter(updatedFilters));
+      return updatedFilters;
+    });
+  }
 
   //Add USER modal part 
   // const [isModalOpen, setIsModalOpen] = useState(false);
@@ -75,8 +89,9 @@ function Menu() {
     fileInputRef.current.click();
   };
 
-  const handleInputChange = (e) => {
+  const handleFilterName = (e) => {
     let name = e.target.value;
+    setFilters({})
     setInputValue(name);
 
     if (debounceTimeout) {
@@ -135,7 +150,7 @@ function Menu() {
             <input
               type="text"
               value={inputValue}
-              onChange={handleInputChange}
+              onChange={handleFilterName}
               className="w-full rounded"
             />
             <label className="text-white block">Search User</label>

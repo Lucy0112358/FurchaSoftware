@@ -12,7 +12,7 @@ import Unspecified from '../lockers/unspecified/Unspecified';
 
 function UserTable() {
   const allUsers = useSelector(getAllUsersData);
-console.log(allUsers);
+console.log(allUsers, "sdada");
 
   return (
     <>
@@ -24,7 +24,7 @@ console.log(allUsers);
     <Unspecified lockernumber="7" /> */}
 
 
-      {allUsers.length ?
+      {allUsers?.length ?
         <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA', minWidth: '1110px' }}>
           <thead>
             <tr className="outlet__table__header">

@@ -43,11 +43,11 @@ table td {
 }
 
 .outlet__table__wrapper {
-    border-radius: '10px';
-    height: '480px';
-    width: '100%';
-    max-width: '1130px';
-    overflow-x: 'auto'
+    border-radius: 10px;
+    height: 480px;
+    width: 100%;
+    max-width: 1130px;
+    overflow-x: auto;
 }
 
 /* Handle on hover */
