@@ -2,7 +2,7 @@ using MqttService.Infrastructure;
 using Npgsql;
 using System.Data;
 
-namespace FurchaAdminApi
+namespace MqttService
 {
     public class Program
     {
@@ -19,6 +19,14 @@ namespace FurchaAdminApi
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+            // Register PostgreSQL connection
+            builder.Services.AddTransient<IDbConnection>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
+                return new NpgsqlConnection(connectionString);
+            });
+
             builder.Services.AddScoped<NpgsqlConnection>(provider =>
             {
                 var configuration = provider.GetRequiredService<IConfiguration>();
@@ -26,17 +34,25 @@ namespace FurchaAdminApi
                 return new NpgsqlConnection(connectionString);
             });
 
-            builder.Services.AddScoped<NpgsqlConnection>(provider =>
+            builder.Services.AddTransient<IDbConnection>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
                 var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
                 return new NpgsqlConnection(connectionString);
             });
 
-            builder.Services.GenerateInjectionAdmin();
+            var encryptionSettingsSection = builder.Configuration.GetSection(nameof(EncryptionSettings));
+            builder.Services.Configure<EncryptionSettings>(encryptionSettingsSection);
+            var encryptionSettings = new EncryptionSettings();
+            encryptionSettingsSection.Bind(encryptionSettings);
 
             var app = builder.Build();
+            app.UseCors(options =>
+options.WithOrigins("http://localhost:5173")
+.AllowAnyMethod()
+.AllowAnyHeader());
 
+            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
