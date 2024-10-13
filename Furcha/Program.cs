@@ -1,3 +1,5 @@
+using Domain.Configuration;
+using FurchaAdminApi.Infrustructures;
 using MqttService.Infrastructure;
 using Npgsql;
 using System.Data;
@@ -19,14 +21,6 @@ namespace MqttService
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            // Register PostgreSQL connection
-            builder.Services.AddTransient<IDbConnection>(sp =>
-            {
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
-                return new NpgsqlConnection(connectionString);
-            });
-
             builder.Services.AddScoped<NpgsqlConnection>(provider =>
             {
                 var configuration = provider.GetRequiredService<IConfiguration>();
@@ -34,9 +28,27 @@ namespace MqttService
                 return new NpgsqlConnection(connectionString);
             });
 
-            builder.Services.GenerateInjectionAdmin();
+            builder.Services.AddTransient<IDbConnection>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
+                return new NpgsqlConnection(connectionString);
+            });
 
+            var encryptionSettingsSection = builder.Configuration.GetSection(nameof(EncryptionSettings));
+            builder.Services.Configure<EncryptionSettings>(encryptionSettingsSection);
+            var encryptionSettings = new EncryptionSettings();
+            encryptionSettingsSection.Bind(encryptionSettings);
+
+            JwtConfiguration.SetupJwtAuthentication(builder, EncryptionSettings.EncryptionKey, issuer: EncryptionSettings.Issuer, audience: EncryptionSettings.Audience);
+
+            builder.Services.GenerateInjectionAdmin();
+            builder.Services.AddHttpContextAccessor();
             var app = builder.Build();
+            app.UseCors(options =>
+options.WithOrigins("http://localhost:5173")
+.AllowAnyMethod()
+.AllowAnyHeader());
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -49,6 +61,7 @@ namespace MqttService
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
-        }
+        }     
+
     }
 }
