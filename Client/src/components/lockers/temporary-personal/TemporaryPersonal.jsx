@@ -8,9 +8,9 @@ function TemporaryPersonal({ label, lockernumber }) {
         <div className='locker__number'>
           {lockernumber}
         </div>
-        <div class="mini-qwer"></div>
-        <div class="very-mini">
-          <div class="aaaa">
+        <div class="mini-part"></div>
+        <div class="label">
+          <div class="label-value">
             {label}
           </div>
         </div>

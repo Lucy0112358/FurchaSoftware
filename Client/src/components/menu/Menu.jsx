@@ -11,6 +11,8 @@ import AddUserModal from '../modals/addUser/AddUserModal';
 import { getAllUsers } from '../../redux/api/userApi';
 import { getAllGroups } from '../../redux/api/groupApi';
 import GeneralAddModal from '../modals/GeneralAddModal';
+import { TbPlugConnected } from "react-icons/tb";
+import MediaQuery from 'react-responsive'
 
 
 function Menu() {
@@ -27,13 +29,13 @@ function Menu() {
   const handleSelectChange = (selectedOption) => {
     setSelectedBranch(selectedOption);
 
-    dispatch(userFilter({'filterByBranchId': selectedOption.value}));
+    dispatch(userFilter({ 'filterByBranchId': selectedOption.value }));
     console.log("Выбранная опция:", selectedOption);
   };
 
   const handleGroupsSelectChange = (selectedOption) => {
     setSelectedGroups(selectedOption);
-    dispatch(userFilter({'filterByGroupId': selectedOption.value}));
+    dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
 
     console.log("Выбранная groups:", selectedOption);
   };
@@ -50,9 +52,9 @@ function Menu() {
     let path = location.pathname;
     console.log(path);
     if (path == '/' || path == '/users') {
-       dispatch(getUserGroups());
+      dispatch(getUserGroups());
     } else if (path == '/modules') {
-      
+
     }
   }, [location]);
 
@@ -83,14 +85,14 @@ function Menu() {
 
     setDebounceTimeout(
       setTimeout(() => {
-        dispatch(filterUserByName({'name': name}));
+        dispatch(filterUserByName({ 'name': name }));
       }, 1000)
     );
   };
 
   const handleUserGroupSelect = () => {
     dispatch(setUserGroupSelect(!userGroupEnabled));
-    if(userGroupEnabled){
+    if (userGroupEnabled) {
       dispatch(getAllUsers())
     } else {
       dispatch(getAllGroups())
@@ -121,11 +123,11 @@ function Menu() {
         <div className="menu__filter flex space-x-4">
           <div className='flex flex-col'>
             <div className='menu__filter__select'>
-              <CustomSelect options={userBranches}  onChange={handleSelectChange} />
+              <CustomSelect options={userBranches} onChange={handleSelectChange} />
               <label className="text-white block">Site</label>
             </div>
             <div className='menu__filter__select'>
-              <CustomSelect options={userGroups}  onChange={handleGroupsSelectChange} />
+              <CustomSelect options={userGroups} onChange={handleGroupsSelectChange} />
               <label className="text-white block">User Group</label>
             </div>
           </div>
@@ -160,17 +162,26 @@ function Menu() {
           </div>
         </div>
 
+        {/* <div className='menu__connection__and__manage'> */}
         <div className="menu__connection flex items-start text-white">
-          <span className="menu__connection__status"></span>
-          <span>Connection</span>
+          <MediaQuery minWidth={769}>
+            <span className="menu__connection__status"></span>
+            <span>Connection</span>
+          </MediaQuery>
+          <MediaQuery maxWidth={768}>
+            <TbPlugConnected className='menu__connection__status__icon' />
+          </MediaQuery>
         </div>
 
         <div className="flex items-center text-white flex-col">
-          <div className="flex flex-col items-end">
-            <span>Michael</span>
-            <span>(Administrator)</span>
-          </div>
-          <div className="flex items-center ml-4 flex-col mt-3">
+          <MediaQuery minWidth={550}>
+            <div className="flex flex-col items-end">
+              <span>Michael</span>
+              <span>(Administrator)</span>
+            </div>
+          </MediaQuery>
+
+          <div className="manage__page">
             <label className="inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
@@ -185,6 +196,8 @@ function Menu() {
             <span>Manage</span>
           </div>
         </div>
+        {/* </div> */}
+
       </div>
       <div className="menu__filter__mobile hidden">
         <div className='flex justify-between'>
@@ -206,7 +219,7 @@ function Menu() {
         </div>
 
       </div>
-    </div>
+    </div >
   );
 }
 

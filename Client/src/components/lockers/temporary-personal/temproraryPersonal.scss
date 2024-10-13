@@ -9,7 +9,7 @@
         display: flex;
     }
 
-    .mini-qwer {
+    .mini-part {
         width: 80px;
         height: 80px;
         background-color: #45d8f9;
@@ -19,7 +19,7 @@
         transform: rotate(42deg);
     }
 
-    .very-mini {
+    .label {
         width: 40px;
         height: 40px;
         background-color: #45d8f9;
@@ -29,7 +29,7 @@
         right: 0;
     }
 
-    .aaaa {
+    .label-value {
         padding: 10px;
         align-content: center;
         width: 100%;
@@ -38,7 +38,7 @@
         border-radius: 10px;
     }
 
-    .aaaa::before {
+    .label-value::before {
         content: '';
         width: 2px;
         height: 20px;
@@ -55,7 +55,7 @@
     }
 
 
-    .aaaa::after {
+    .label-value::after {
         content: '';
         width: 20px;
         height: 2px;
