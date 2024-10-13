@@ -1,5 +1,4 @@
-﻿using Domain.Enums;
-using MQTTnet;
+﻿using MQTTnet;
 using MQTTnet.Client;
 using MqttService.Application.Interfaces;
 using MqttService.Application.Models.MqttRequest;

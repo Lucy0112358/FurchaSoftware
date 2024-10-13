@@ -1,6 +1,7 @@
 ﻿using Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Domain.Entities
 {
@@ -21,9 +22,6 @@ namespace Domain.Entities
         /// </summary>
         public int CompanyId { get; set; }
         public RoleEnum Role { get; set; }
-
-        public string CountryCode { get; set; }
-
         public string Name { get; set; }
 
         public string Surname { get; set; }
@@ -31,17 +29,5 @@ namespace Domain.Entities
 
         public DateTime? CreatedDate { get; set; }
 
-        public virtual ICollection<UserLocker> UserLockers { get; set; }
-        public virtual ICollection<UserGroup> UserGroups { get; set; }
-        public virtual ICollection<UserBranch> UserBranches { get; set; }
-        public virtual ICollection<UserEventLogs> UserEventLogs { get; set; }
-
-        public User()
-        {
-            UserLockers = new HashSet<UserLocker>();
-            UserGroups = new HashSet<UserGroup>();
-            UserBranches = new HashSet<UserBranch>();
-            UserEventLogs = new HashSet<UserEventLogs>();
-        }
     }
 }

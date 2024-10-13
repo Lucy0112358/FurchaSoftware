@@ -2,7 +2,9 @@
 {
     public enum StateEnum
     {
-        Active = 0,   
-        Suspended = 1
+        active = 0,   
+        suspended = 1,
+        expanded = 2,
+        scheduled 
     }
 }

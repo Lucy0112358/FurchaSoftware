@@ -1,18 +1,27 @@
-﻿using MqttService.Infrastructure.Extensions;
+﻿using Dapper;
+using Domain.Attributes;
+using Domain.Configuration;
+using Domain.Enums;
+using Domain.Extensions;
 using Npgsql;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
-namespace MqttService.Application.Repositories
+namespace Domain.Repositories
 {
     public class BaseRepository
     {
         public readonly string furchaSchema = "furcha";
         private readonly NpgsqlConnection furchaContext;
+        private const string _defaultPkColumnName = "Id";
+        private const string _createdDate = "CreatedDate";
+        private const string _modifiedDate = "ModifiedDate";
+        private readonly ISanitizer sanitizer;
 
-        public BaseRepository(NpgsqlConnection dbConnection)
+        public BaseRepository(NpgsqlConnection dbConnection, ISanitizer sanitizer)
         {
             furchaContext = dbConnection;
+            this.sanitizer = sanitizer;
         }
 
         /// <summary>
@@ -468,12 +477,211 @@ namespace MqttService.Application.Repositories
         /// </summary>
         /// <param name="objectToInsert"></param>
         /// <returns>The inserted entity</returns>
-/*        protected T Insert<T>(T objectToInsert)
+        protected T Insert<T>(T objectToInsert)
         {
             return Insert(objectToInsert, null);
-        }*/
+        }
+
+        /// <summary>
+        /// Executes an insert statement against the schema defined by the T TableAttribute.Schema.
+        /// The Db connection is managed internally but only 1 connection is used for all inserted items (reducing insert time for many elements by about 50-60%).
+        /// </summary>
+        protected IEnumerable<T> Insert<T>(IEnumerable<T> objectsToInsert)
+        {
+            using (var sqlConnection = new PostgreSqlConnection(furchaContext.ConnectionString))
+            {
+                var insertedItems = new List<T>();
+
+                foreach (var objectToInsert in objectsToInsert)
+                {
+                    insertedItems.Add(Insert(objectToInsert, sqlConnection));
+                }
+
+                return insertedItems;
+            }
+        }
+
+        /// <summary>
+        /// Executes an insert statement against the schema defined by the T TableAttribute.Schema.
+        /// The Db connection is provided and managed by the caller for better performance.
+        /// </summary>
+        /// <param name="objectToInsert"></param>
+        /// <param name="sqlConnection"></param>
+        /// <returns>The inserted entity</returns>
+        protected T Insert<T>(T objectToInsert, PostgreSqlConnection sqlConnection)
+        {
+            var entityType = typeof(T);
+            var schema = GetSchema(entityType); 
+            var entityName = entityType.Name;
+
+            // Prepare insert parameters
+            var computedColumnsAttribute = entityType.GetCustomAttribute<ComputedColumnsAttribute>();
+            var computedColumns = computedColumnsAttribute?.Columns;
+
+            var columns = new List<string>();
+            var parameters = new List<string>();
+            var propertyList = new List<PropertyInfo>(); // Collect properties included
+            var param = new DynamicParameters();
+
+            foreach (var property in entityType.GetProperties())
+            {
+                // Skip 'Id' property or any computed columns
+                if (property.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) ||
+                    (computedColumns != null && computedColumns.Contains(property.Name)))
+                {
+                    continue;
+                }
+
+                var columnName = property.Name;
+                var value = property.GetValue(objectToInsert);
+
+                // Convert enum to string to pass it to the query
+                if (property.PropertyType.IsEnum && property.PropertyType != typeof(RoleEnum))
+                {
+                    value = value?.ToString(); // Convert enum to string
+                }
+
+                // Wrap column name in double quotes for case sensitivity
+                var quotedColumnName = $"\"{columnName}\"";
+
+                columns.Add(quotedColumnName);
+                parameters.Add($"@{columnName}");
+                param.Add($"@{columnName}", value ?? DBNull.Value); // Handle null values
+
+                propertyList.Add(property); // Add to the list of included properties
+            }
+
+            var columnsString = string.Join(", ", columns);
+            var parameterString = string.Join(", ", parameters.Select((p, idx) =>
+            {
+                var property = propertyList[idx];
+                var isEnum = property.PropertyType.IsEnum && property.PropertyType != typeof(RoleEnum);
+                return isEnum ? $"{p}::{schema}.\"{property.PropertyType.Name}\"" : p;
+            }));
+
+            var sql = $@"INSERT INTO {schema}.""{entityName}"" ({columnsString}) 
+             VALUES({parameterString}) 
+             RETURNING *;";
 
 
+            // Execute the query and return the inserted entity
+            if (sqlConnection != null)
+            {
+                return sqlConnection.Query<T>(sql: sql, param: param).Single();
+            }
+            else
+            {
+                using (var internalSqlConnection = new PostgreSqlConnection(furchaContext.ConnectionString))
+                {
+                    return internalSqlConnection.Query<T>(sql: sql, param: param).Single();
+                }
+            }
+        }
+
+
+
+
+
+
+        private (string columnsString, string parameterString, Dictionary<string, object> paramSanitized) PrepareInsert<T>(T objectToInsert, string[] computedColumns)
+        {
+            var properties = objectToInsert.GetType().GetProperties();
+
+            var columnsString = "";
+            var parameterString = "";
+
+            // The param list must be created from scratch and all HTML will be removed from it (to avoid injection attacks)
+            var paramSanitized = new Dictionary<string, object>();
+
+            for (var i = 0; i < properties.Length; i++)
+            {
+                var columnAttribute = properties[i].GetCustomAttribute<ColumnAttribute>();
+
+                // skip fields without [Column] attribute (=> computed fields that don't exist in the database)
+                if (columnAttribute == null)
+                {
+                    continue;
+                }
+
+                // sometimes the property name of the model is different than the column name in the db table
+                var dbColumnName = columnAttribute.Name ?? properties[i].Name;
+
+                //We skip the Id column if it has the value 0 as it is automatically generated by the db
+                if (dbColumnName == _defaultPkColumnName)
+                {
+                    var idValue = (int)properties[i].GetValue(objectToInsert);
+                    if (idValue == default)
+                    {
+                        continue;
+                    }
+                }
+
+                // skip fields with [ComputedColumn] attribute (=> computed column of the database)
+                if (computedColumns != null && computedColumns.Contains(dbColumnName))
+                {
+                    continue;
+                }
+
+                // skip fields that are populated by the DB
+                if (dbColumnName == _createdDate || dbColumnName == _modifiedDate)
+                {
+                    continue;
+                }
+
+                if (CanUseType(properties[i].PropertyType))
+                {
+                    var valueToInsert = sanitizer.SanitizeAndThrowExceptionIfHtml(properties[i].GetValue(objectToInsert));
+
+                    paramSanitized.Add(dbColumnName, valueToInsert);
+
+                    columnsString += $"{(string.IsNullOrEmpty(columnsString) ? string.Empty : ",")}\"{dbColumnName}\"";
+                    parameterString += $"{(string.IsNullOrEmpty(parameterString) ? string.Empty : ",")}{GetInsertParameter(dbColumnName)}";
+                }
+            }
+
+            return (columnsString, parameterString, paramSanitized);
+        }
+
+        /// <summary>
+        /// Prepares the parameter value for a generated insert statement.
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        private string GetInsertParameter(string propertyName)
+        {
+            return $"@{propertyName}";
+        }
+
+        /// <summary>
+        /// Defines which types can be used to do the mapping with the query generation.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private bool CanUseType(Type type)
+        {
+            if (type.IsPrimitive)
+            {
+                return true;
+            }
+
+            if (type.IsClass && type.Name == "String")
+            {
+                return true;
+            }
+
+            if (type.IsValueType && (type.Name == "DateTime" || type.Name == "DateOnly" || type.Name == "Decimal" || type.Name == "Guid" || type.Name.Contains("DbId")))
+            {
+                return true;
+            }
+
+            if (type.IsValueType && type.GenericTypeArguments.Length > 0)
+            {
+                return CanUseType(type.GenericTypeArguments[0]);
+            }
+
+            return false;
+        }
     }
 }
 

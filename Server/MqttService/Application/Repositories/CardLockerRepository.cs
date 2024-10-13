@@ -1,4 +1,6 @@
-﻿using Domain.Entities;
+﻿using Domain.Configuration;
+using Domain.Entities;
+using Domain.Repositories;
 using Npgsql;
 
 namespace MqttService.Application.Repositories
@@ -7,7 +9,7 @@ namespace MqttService.Application.Repositories
     {
         private readonly NpgsqlConnection _dbConnection;
 
-        public CardLockerRepository(NpgsqlConnection dbConnection) : base(dbConnection)
+        public CardLockerRepository(NpgsqlConnection dbConnection, ISanitizer sanitizer) : base(dbConnection, sanitizer)
         {
             _dbConnection = dbConnection;
         }

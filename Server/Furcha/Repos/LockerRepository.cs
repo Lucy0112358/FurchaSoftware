@@ -1,5 +1,6 @@
-﻿using Domain.Entities;
-using MqttService.Application.Repositories;
+﻿using Domain.Configuration;
+using Domain.Entities;
+using Domain.Repositories;
 using Npgsql;
 
 namespace FurchaAdminApi.Repos
@@ -8,7 +9,7 @@ namespace FurchaAdminApi.Repos
     {
         private readonly NpgsqlConnection _dbConnection;
 
-        public LockerRepository(NpgsqlConnection dbConnection) : base(dbConnection)
+        public LockerRepository(NpgsqlConnection dbConnection, ISanitizer sanitizer) : base(dbConnection, sanitizer)
         {
             _dbConnection = dbConnection;
         }

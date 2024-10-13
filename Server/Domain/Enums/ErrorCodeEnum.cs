@@ -13,7 +13,8 @@ namespace Domain.Enums
 
         [Description("The user is trying to login using a Microsoft provider email. Redirect to provider login.")]
         LoginWithMicrosoftEmail = 10301,
-
+        [Description("The input must not contain HTML.")]
+        InputPotentiallyDangerous = 3701,
         /// <summary>
         /// If Admin's role is not super or master, they can only be assigned to 1 branch.
         /// We show this error, if they have access to more than 1 branch
@@ -22,7 +23,8 @@ namespace Domain.Enums
         AdminHasMoreBranchesThanPermitted = 10302,
 
         [Description("An error occured, please try again later")]
-        GenericErrorRetry = 1
+        GenericErrorRetry = 1,
+
 
     }
 }

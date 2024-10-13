@@ -1,9 +1,9 @@
 ﻿using Domain.Entities;
 using Domain.Enums;
+using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
-using MqttService.Application.Exceptions;
 
 namespace FurchaAdminApi.Services
 {
@@ -27,7 +27,7 @@ namespace FurchaAdminApi.Services
 
         private UserResult MapUserToUserResult(User user)
         {
-           var roleName = user.Role.ToString();
+            var roleName = user.Role.ToString();
 
             // Gather user data
             var cards = _userRepository.GetUserCards(user.Id);
@@ -46,9 +46,6 @@ namespace FurchaAdminApi.Services
                 Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
             };
         }
-
-
-
 
         public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
         {
@@ -309,9 +306,35 @@ namespace FurchaAdminApi.Services
 
         public UserResult AddUser(UserCreateRequest newUser)
         {
+            if (newUser.IsPinRequired == true)
+            {
+                // generate a 4-number pin unique within a branch
+            }
 
-           return _userRepository.AddUser(newUser);
+#warning add columns in db for activeTo and activeFrom, decide user STATE based on that, add this logic into GetAllUsersOfAdmin methode, where it identifies user's state based on active period
+
+            var result = _userRepository.AddUser(newUser);
+
+            return result;
 
         }
+
+        public UserGroupResult AddUserGroup(UserGroupRequest userGroupRequest)
+        {
+            var group = _userRepository.AddUserGroup(userGroupRequest);
+
+            var result = new UserGroupResult
+            {
+                PermittedLockers = new List<LockerGroupResult>(),
+                Name = group.Name,
+                BranchNames = new List<string>(),
+                State = group.State.ToString(),
+                Id = group.Id
+            };
+
+            return result;
+        }
+
+
     }
 }

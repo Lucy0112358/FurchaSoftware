@@ -19,19 +19,10 @@ namespace Domain.Entities
         [MaxLength(255)]
         public string Name { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Required]
         public StateEnum State { get; set; }
 
-        [JsonIgnore]
-        [ForeignKey("CompanyId")]
-        public virtual Company Company { get; set; }
-
-        [JsonIgnore]
-        public virtual ICollection<UserGroup_LockerGroup> UserGroupLockerGroups { get; set; }
-
-        [JsonIgnore]
-        public virtual ICollection<UserGroup_Branch> UserGroupBranches { get; set; }
     }
 }

@@ -1,9 +1,10 @@
 using Domain.Configuration;
+using Domain.Enums;
 using FurchaAdminApi.Infrustructures;
-using MqttService.Infrastructure;
 using Npgsql;
+using System.Data;
 
-namespace MqttService
+namespace FurchaAdminApi
 {
     public class Program
     {
@@ -20,12 +21,26 @@ namespace MqttService
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            builder.Services.AddScoped<NpgsqlConnection>(provider =>
+            // Register PostgreSQL connection
+            builder.Services.AddTransient<IDbConnection>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
+                return new NpgsqlConnection(connectionString);
+            });
+
+            builder.Services.AddScoped(provider =>
             {
                 var configuration = provider.GetRequiredService<IConfiguration>();
                 var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
                 return new NpgsqlConnection(connectionString);
             });
+
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("PostgreSqlConnection"));
+            dataSourceBuilder.MapEnum<StateEnum>(); 
+            var dataSource = dataSourceBuilder.Build(); 
+
+            builder.Services.AddSingleton(dataSource);
 
             var encryptionSettingsSection = builder.Configuration.GetSection(nameof(EncryptionSettings));
             builder.Services.Configure<EncryptionSettings>(encryptionSettingsSection);
@@ -37,8 +52,12 @@ namespace MqttService
             builder.Services.GenerateInjectionAdmin();
             builder.Services.AddHttpContextAccessor();
             var app = builder.Build();
+            app.UseCors(options =>
+                options.WithOrigins("http://localhost:5173")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -49,7 +68,7 @@ namespace MqttService
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
-        }     
+        }
 
     }
 }

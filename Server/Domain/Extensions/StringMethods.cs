@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace MqttService.Infrastructure.Extensions
+namespace Domain.Extensions
 {
     public static class StringMethods
     {

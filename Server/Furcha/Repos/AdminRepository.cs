@@ -1,17 +1,16 @@
-﻿using Domain.Entities;
+﻿using Domain.Configuration;
+using Domain.Entities;
 using Domain.Enums;
-using MqttService.Application.Repositories;
+using Domain.Repositories;
 using Npgsql;
 
 namespace FurchaAdminApi.Repos
 {
     public class AdminRepository : BaseRepository
     {
-        private readonly NpgsqlConnection _dbConnection;
 
-        public AdminRepository(NpgsqlConnection dbConnection) : base(dbConnection)
+        public AdminRepository(NpgsqlConnection dbConnection, ISanitizer sanitizer) : base(dbConnection, sanitizer)
         {
-            _dbConnection = dbConnection;
         }
 
         /// <summary>

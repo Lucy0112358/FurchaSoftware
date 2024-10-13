@@ -1,7 +1,8 @@
-﻿using FurchaAdminApi.Repos;
+﻿using Domain.Configuration;
+using FurchaAdminApi.Repos;
 using FurchaAdminApi.Services;
 
-namespace MqttService.Infrastructure
+namespace FurchaAdminApi.Infrustructures
 {
     public static class AdminServiceInjection
     {
@@ -18,6 +19,7 @@ namespace MqttService.Infrastructure
             services.AddScoped(typeof(UserService));
             services.AddScoped(typeof(AuthenticationService));
             services.AddScoped(typeof(LockerService));
+            services.AddScoped(typeof(ISanitizer), typeof(Sanitizer));
 
             return services;
         }

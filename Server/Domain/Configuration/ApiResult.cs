@@ -1,5 +1,5 @@
 ﻿using Domain.Enums;
-using MqttService.Infrastructure.Extensions;
+using Domain.Extensions;
 
 namespace Domain.Configuration
 {
