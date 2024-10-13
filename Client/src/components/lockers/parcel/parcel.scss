@@ -1,0 +1,41 @@
+.parcel__locker {
+  width: 100px;
+  height: 100px;
+  background-color: #ffe680;
+  border-radius: 10px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ddd;
+
+  .labels {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    margin-bottom: -5px;
+  }
+
+  .left-label {
+    color: #ff2a2a;
+    font-size: 17px;
+    font-weight: bold;
+  }
+
+  .right-label {
+    color: #333;
+    font-size: 17px;
+  }
+
+  .number {
+    font-size: 32px;
+    color: #333;
+  }
+
+  .id {
+    font-size: 12px;
+    color: #333;
+  }
+}

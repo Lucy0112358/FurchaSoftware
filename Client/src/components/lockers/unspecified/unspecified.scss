@@ -1,0 +1,19 @@
+.unspecified__locker {
+  .design-box {
+    width: 100px;
+    height: 100px;
+    background-color: #dbdbdb;
+    border-radius: 10px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 5px solid #ed833b
+  }
+
+  .number {
+    font-size: 32px;
+    color: #333;
+  }
+
+}

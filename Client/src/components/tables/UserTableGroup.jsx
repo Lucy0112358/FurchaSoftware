@@ -2,6 +2,7 @@ import React from 'react'
 import { userTableGroups } from '../../data/tableIHeads'
 import { useSelector } from 'react-redux';
 import { getAllGroupsData } from '../../redux/slice/groupSlice';
+import NoData from '../no-data/NoData';
 
 function UserTableGroup() {
   const allUserGroups = useSelector(getAllGroupsData);
@@ -10,7 +11,10 @@ function UserTableGroup() {
   
 
   return (
-    <table className="outlet__table min-w-full bg-white " style={{color: '#AAAAAA', minWidth: '1110px'}}>
+    <>
+    {
+      allUserGroups.length ?
+        <table className="outlet__table min-w-full bg-white " style={{color: '#AAAAAA', minWidth: '1110px'}}>
           <thead>
             <tr className="outlet__table__header">
               {userTableGroups.map((header) => (
@@ -44,7 +48,8 @@ function UserTableGroup() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table>:  <NoData text="No Groups" />}
+    </>
   )
 }
 

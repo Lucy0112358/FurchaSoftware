@@ -42,6 +42,14 @@ table td {
     /* border-radius: 0 10px 0 0;     */
 }
 
+.outlet__table__wrapper {
+    border-radius: '10px';
+    height: '480px';
+    width: '100%';
+    max-width: '1130px';
+    overflow-x: 'auto'
+}
+
 /* Handle on hover */
 /* .outlet__table__wrapper::-webkit-scrollbar-thumb:hover {
     background: #555;
