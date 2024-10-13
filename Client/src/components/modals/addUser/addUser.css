@@ -61,3 +61,14 @@ input[type="checkbox"]::before {
 .react-tabs__tab:focus:after {
     content: none !important;
 }
+
+.add__modal__group__select {
+    width: 70%;
+    margin-right: 15px;
+}
+
+.card__manage {
+    padding: 10px;
+    background-color: white;
+    border-radius: 5px;
+}

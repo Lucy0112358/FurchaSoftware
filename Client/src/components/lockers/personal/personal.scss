@@ -1,0 +1,28 @@
+.personal__locker {
+  .design-box {
+    width: 100px;
+    height: 100px;
+    background-color: #45d8f9;
+    border-radius: 10px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+  }
+
+  .label {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 15px;
+    padding: 7px;
+    color: #333;
+  }
+
+  .number {
+    font-size: 25px;
+    color: #333;
+  }
+
+}

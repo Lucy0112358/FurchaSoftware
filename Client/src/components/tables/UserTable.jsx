@@ -2,12 +2,30 @@ import React from 'react'
 import { userTable } from '../../data/tableIHeads'
 import { useSelector } from 'react-redux';
 import { getAllUsersData } from '../../redux/slice/userSlice';
+import NoData from '../no-data/NoData';
+import TemporaryPersonal from '../lockers/temporary-personal/TemporaryPersonal';
+import Personal from '../lockers/personal/Personal';
+import Common from '../lockers/common/Common';
+import Hand from '../lockers/hand/Hand';
+import Parcel from '../lockers/parcel/Parcel';
+import Unspecified from '../lockers/unspecified/Unspecified';
 
 function UserTable() {
   const allUsers = useSelector(getAllUsersData);
+console.log(allUsers);
 
   return (
-    <table className="outlet__table min-w-full bg-white " style={{color: '#AAAAAA', minWidth: '1110px'}}>
+    <>
+    {/* <TemporaryPersonal label="TO" lockernumber="87" />
+    <Personal label="SJ" lockernumber="87" />
+    <Common label="QQ" lockernumber="99" />
+    <Hand  lockernumber="87" />
+    <Parcel label="SJ" lockernumber="7" size="L" orderNum="44623598"/>
+    <Unspecified lockernumber="7" /> */}
+
+
+      {allUsers.length ?
+        <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA', minWidth: '1110px' }}>
           <thead>
             <tr className="outlet__table__header">
               {userTable.map((header) => (
@@ -24,7 +42,7 @@ function UserTable() {
                 <td>{user.name}</td>
                 <td>{user.surname}</td>
                 <td>{user.role}</td>
-                 <td>
+                <td>
                   {user.cards?.map((card, idx) => (
                     <div key={idx}>{card.cardNumber}</div>
                   ))}
@@ -45,7 +63,9 @@ function UserTable() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table> : <NoData text="No Users" />
+      }
+    </>
   )
 }
 

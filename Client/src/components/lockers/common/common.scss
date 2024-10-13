@@ -1,0 +1,36 @@
+.common__locker {
+  .design-box {
+    width: 100px;
+    height: 100px;
+    background-color: #ff7da8;
+    border-radius: 10px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+  }
+  
+  .number {
+    font-size: 25px;
+    color: #333;
+  }
+  
+  .corner {
+    border-radius: 6px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-top: 30px solid green;
+      border-right: 30px solid transparent;
+  }
+  
+  .corner-white {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-right: 5px solid transparent;
+  }
+}
