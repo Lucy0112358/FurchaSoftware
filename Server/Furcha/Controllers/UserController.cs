@@ -44,12 +44,12 @@ namespace FurchaAdminApi.Controllers
         [HttpGet("filtered-users")]
         public ActionResult<ApiResult<List<UserResult>>> GetFilteredUsersWithPagination(
               [FromQuery] int adminId,
-              [FromQuery] int? GroupId,
-              [FromQuery] int? BranchId,
+              [FromQuery] int? groupId,
+              [FromQuery] int? branchId,
               [FromQuery] int pageNumber = 1,
               [FromQuery] int page = 10)
         {
-            var users = userService.GetFilteredUsersByPagination(adminId, GroupId, BranchId, pageNumber, page);
+            var users = userService.GetFilteredUsersByPagination(adminId, groupId, branchId, pageNumber, page);
 
             if (users == null || !users.Any())
             {
