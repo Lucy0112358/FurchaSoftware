@@ -161,7 +161,7 @@ namespace FurchaAdminApi.Repos
                 SELECT Distinct U.* 
                 FROM furcha.""User"" U
                 INNER JOIN furcha.""UserBranch"" UB 
-                ON U.Id = UB.""UserId""
+                ON U.""id"" = UB.""UserId""
                 WHERE UB.""BranchId"" = ANY(@branchIds)";
 
             var users = Query<User>(
@@ -527,5 +527,25 @@ namespace FurchaAdminApi.Repos
 
             return group;
         }
+
+        public List<User> GetUsersByBranchGroupAndUserIds(List<int> userIds, int? branchId, int? groupId)
+        {
+            var sql = $@"
+        SELECT u.*
+        FROM furcha.""User"" u
+        LEFT JOIN furcha.""UserBranch"" ub ON u.""id"" = ub.""UserId""
+        LEFT JOIN furcha.""User_UserGroup"" ug ON u.""id"" = ug.""UserId""
+        WHERE u.""id"" = ANY(@userIds)
+        AND (@branchId IS NULL OR ub.""BranchId"" = @branchId)
+        AND (@groupId IS NULL OR ug.""UserGroupId"" = @groupId)";
+
+            var users = Query<User>(
+                sql: sql,
+                param: new { userIds, branchId, groupId }).ToList();
+
+            return users;
+        }
+
+
     }
 }

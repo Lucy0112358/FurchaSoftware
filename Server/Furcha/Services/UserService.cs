@@ -49,68 +49,45 @@ namespace FurchaAdminApi.Services
 
         public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
         {
+            // Get all users based on admin's role
             var users = GetUsersForAdminBasedOnRole(adminId);
 
-            if (filterByGroupId.HasValue)
-            {
-                users = users.Where(user => _userRepository.IsUserInGroup(user.Id, filterByGroupId.Value)).ToList();
-            }
-            if (filterByBranchId.HasValue)
-            {
-                users = users.Where(user => _userRepository.IsUserInBranch(user.Id, filterByBranchId.Value)).ToList();
-            }
+            // Get user IDs
+            var userIds = users.Select(x => x.Id).ToList();
 
-            var pagedUsers = users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            // Filter users by branch and group using the repository method
+            var filteredUsers = _userRepository.GetUsersByBranchGroupAndUserIds(userIds, filterByBranchId, filterByGroupId);
 
+            // Apply pagination
+            var pagedUsers = filteredUsers.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+            // Map to UserResult
             var userResults = pagedUsers.Select(user =>
             {
-                RoleEnum parsedRole;
-                // Refactor this embaressement
-                if (long.TryParse(user.Role, out long roleId) && Enum.IsDefined(typeof(RoleEnum), roleId))
+
+
+                // Get related cards, groups, and branches for the user
+                var cards = _userRepository.GetUserCards(user.Id);
+                var groups = _userRepository.GetUserGroupsByUserId(user.Id);
+                var branches = _userRepository.GetUserBranchesByUserId(user.Id);
+
+                // Return a new UserResult with all related data
+                return new UserResult
                 {
-                    parsedRole = (RoleEnum)roleId;
-                    var roleName = _adminRepository.GetRoleById(parsedRole).OpenName;
-
-                    var cards = _userRepository.GetUserCards(user.Id);
-                    var groups = _userRepository.GetUserGroupsByUserId(user.Id);
-                    var branches = _userRepository.GetUserBranchesByUserId(user.Id);
-
-                    return new UserResult
-                    {
-                        Id = user.Id,
-                        Name = user.Name,
-                        Surname = user.Surname,
-                        Role = roleName,
-                        State = user.State.ToString(),
-                        Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
-                        UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, Name = group.Name }).ToList(),
-                        Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
-                    };
-                }
-                else
-                {
-                    var roleName = RoleEnum.user.ToString();
-
-                    var cards = _userRepository.GetUserCards(user.Id);
-                    var groups = _userRepository.GetUserGroupsByUserId(user.Id);
-                    var branches = _userRepository.GetUserBranchesByUserId(user.Id);
-
-                    return new UserResult
-                    {
-                        Id = user.Id,
-                        Name = user.Name,
-                        Surname = user.Surname,
-                        Role = roleName,
-                        State = user.State.ToString(),
-                        Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
-                        UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, Name = group.Name }).ToList(),
-                        Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
-                    };
-                }
+                    Id = user.Id,
+                    Name = user.Name,
+                    Surname = user.Surname,
+                    Role = RoleEnum.user.ToString(),
+                    State = user.State.ToString(),
+                    Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
+                    UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, Name = group.Name }).ToList(),
+                    Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
+                };
             }).ToList();
 
             return userResults;
         }
+
 
         public List<BranchFilterResult> GetAdminBranches(int adminId)
         {
