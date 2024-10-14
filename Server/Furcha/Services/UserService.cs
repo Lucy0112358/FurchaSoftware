@@ -55,7 +55,7 @@ namespace FurchaAdminApi.Services
             {
                 users = users.Where(user => _userRepository.IsUserInGroup(user.Id, filterByGroupId.Value)).ToList();
             }
-            else if (filterByBranchId.HasValue)
+            if (filterByBranchId.HasValue)
             {
                 users = users.Where(user => _userRepository.IsUserInBranch(user.Id, filterByBranchId.Value)).ToList();
             }
@@ -297,11 +297,15 @@ namespace FurchaAdminApi.Services
 
         public List<UserResult> SearchUsersOfAdmin(string name, int adminId)
         {
-            var adminBranches = _userRepository.GetAdminBranchesByAdminId(adminId);
-            var branchIds = adminBranches.Select(b => b.Id).ToList();
-            var users = _userRepository.SearchUserByAdminId(name, adminId, branchIds);
 
-            return users.Select(user => MapUserToUserResult(user)).ToList();
+            var users = GetUsersForAdminBasedOnRole(adminId);
+            var filteredUsers = users
+                  .Where(u => u.Name.Contains(name, StringComparison.OrdinalIgnoreCase)
+                           || u.Surname.Contains(name, StringComparison.OrdinalIgnoreCase))
+                  .ToList();
+
+
+            return filteredUsers;
         }
 
         public UserResult AddUser(UserCreateRequest newUser)
