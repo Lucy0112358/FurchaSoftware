@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getAllUsers } from "../api/userApi";
+import { filterUserByName, userFilter } from "../api/menuApi";
 // import { getUserSites } from "../api/userApi";
 // import { APP_BASE_URL } from "../../config";
 
@@ -22,6 +23,9 @@ export const userSlice = createSlice({
         ...action.payload,
       };
     },
+    setUser: (state, action) => {
+      state.allUsers = action.payload.data;
+    },
   },
 
   extraReducers: (builder) => {
@@ -31,7 +35,13 @@ export const userSlice = createSlice({
       })
       .addCase(getAllUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.allUsers = action.payload.data;
+        userSlice.caseReducers.setUser(state, action);
+      })
+      .addCase(userFilter.fulfilled, (state, action) => {
+        userSlice.caseReducers.setUser(state, action);
+      })
+      .addCase(filterUserByName.fulfilled, (state, action) => {
+        userSlice.caseReducers.setUser(state, action);
       })
       .addCase(getAllUsers.rejected, (state, action) => {
         state.errorMessage = action.payload;

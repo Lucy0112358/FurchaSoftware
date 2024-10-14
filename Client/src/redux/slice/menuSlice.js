@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getUserBranches, getUserGroups } from "../api/menuApi";
+import { getUserBranches, getUserGroups, userFilter } from "../api/menuApi";
+import { userSlice } from "./userSlice";
 // import { APP_BASE_URL } from "../../config";
 
 const initialState = {
@@ -7,7 +8,8 @@ const initialState = {
   userBranches: {},
   userGroups: {},
   selectGroups: {},
-  userGroupSelect: false
+  userGroupSelect: false,
+  menuFilter: {},
 };
 
 export const menuSlice = createSlice({
@@ -26,6 +28,9 @@ export const menuSlice = createSlice({
     setUserGroupSelect: (state) => {
       state.userGroupSelect = !state.userGroupSelect
     },
+    setMenuFilter: (state, action) => {
+      state.menuFilter = action.payload;
+    }
   },
 
   extraReducers: (builder) => {
@@ -60,7 +65,8 @@ export const menuSlice = createSlice({
 
 export const {
   setLoading,
-  setUserGroupSelect
+  setUserGroupSelect,
+  setMenuFilter
 } = menuSlice.actions;
 
 export const getLoadingNow = (state) => state.menu.loading;
@@ -68,7 +74,7 @@ export const getUserBranchesData = (state) => state.menu.userBranches;
 export const getUserGroupsData = (state) => state.menu.userGroups;
 export const getSelectGroups = (state) => state.menu.selectGroups;
 export const getSelectGroupSelect = (state) => state.menu.userGroupSelect;
-
+export const getMenuFilter = (state) => state.menu.menuFilter;
 
 
 export default menuSlice.reducer;
