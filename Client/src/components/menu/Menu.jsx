@@ -31,11 +31,11 @@ function Menu() {
 
   const handleSelectChange = (selectedOption) => {
     setSelectedBranch(selectedOption);
-    addFilters(selectedOption, 'filterByBranchId')
+    addFilters(selectedOption, 'branchId')
   }
   const handleGroupsSelectChange = (selectedOption) => {
     setSelectedGroups(selectedOption);
-    addFilters(selectedOption, 'filterByGroupId')
+    addFilters(selectedOption, 'groupId')
 
     // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
 
