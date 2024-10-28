@@ -76,8 +76,14 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
 
   const addUserGroup = () => {
     dispatch(setUserGroup(sentGeneralInfo))
-    console.log(sentGeneralInfo,888)
-  };  
+    .then((response) => {
+      console.log(response);
+      if (response && response.payload.isSuccess) {
+        onClose();
+      }
+    })
+  .catch((error) => console.error('Error updating user info:', error));
+  }
 
   const sendGroupInfo = (part, key, value) => {
     addAllInfoForUserGroup(part, key, value);

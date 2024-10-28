@@ -94,6 +94,13 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   // TODO: feat
   const addUser = () => {
     dispatch(setUserInfo(sentGeneralInfo))
+    .then((response) => {
+      console.log(response);
+      if (response && response.payload.isSuccess) {
+        onClose();
+      }
+    })
+  .catch((error) => console.error('Error updating user info:', error));
   }
   console.log(sentGeneralInfo, 888)
 
@@ -264,7 +271,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                   <div className="flex justify-center">
                     <button
                       onClick={() => setAddGroupModalSwitch(!addGroupModalSwitch)}
-                      class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center"
+                      className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center"
                     >
                       <IoMdAdd className="fill-current mr-2" />
                       <span>Add Group</span>

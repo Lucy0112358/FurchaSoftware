@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAllUsers } from "../api/userApi";
+import { getAllUsers, setUserInfo } from "../api/userApi";
 import { filterUserByName, userFilter } from "../api/menuApi";
 // import { getUserSites } from "../api/userApi";
 // import { APP_BASE_URL } from "../../config";
@@ -37,16 +37,30 @@ export const userSlice = createSlice({
         state.loading = false;
         userSlice.caseReducers.setUser(state, action);
       })
+      .addCase(getAllUsers.rejected, (state, action) => {
+        state.errorMessage = action.payload;
+        state.loading = false;
+      })
+      .addCase(setUserInfo.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(setUserInfo.fulfilled, (state, action) => {
+        state.loading = false;
+        state.allUsers.push(action.payload.data);
+        console.log(action.payload.data);
+        // userSlice.caseReducers.setUser(state, action);
+      })
+      .addCase(setUserInfo.rejected, (state, action) => {
+        state.errorMessage = action.payload;
+        state.loading = false;
+      })
       .addCase(userFilter.fulfilled, (state, action) => {
         userSlice.caseReducers.setUser(state, action);
       })
       .addCase(filterUserByName.fulfilled, (state, action) => {
         userSlice.caseReducers.setUser(state, action);
       })
-      .addCase(getAllUsers.rejected, (state, action) => {
-        state.errorMessage = action.payload;
-        state.loading = false;
-      })
+      
   },
 });
 
