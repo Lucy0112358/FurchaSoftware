@@ -4,30 +4,29 @@ import { getAllUsers } from "../../redux/api/userApi";
 import { getAllUsersData } from "../../redux/slice/userSlice";
 import { getSelectGroupSelect } from "../../redux/slice/menuSlice";
 import UserTable from "../../components/tables/UserTable";
-import './user.css';
+import './locker.css';
 import UserTableGroup from "../../components/tables/UserTableGroup";
-import OfficeName from "../../components/headers/OfficeName";
+import LockerTable from "../../components/tables/LockerTable";
 
-const Users = () => {
-  const dispatch = useDispatch();
-  const userGroupSelected = useSelector(getSelectGroupSelect);
+const Lockers = () => {
+  // const dispatch = useDispatch();
+  // const userGroupSelected = useSelector(getSelectGroupSelect);
 
-  useEffect(() => {
-    dispatch(getAllUsers());
-  }, []);
+  // useEffect(() => {
+  //   dispatch(getAllUsers());
+  // }, []);
 
   // const allUsers = useSelector(getAllUsersData);
 
   return (
-    <div className="">
-      <OfficeName name="Tallinn Office" />
+    <div id="lockers">
       <div className="outlet__table__wrapper overflow-x-auto mt-2">
         {
-          !userGroupSelected ? <UserTable /> : <UserTableGroup />
+          <LockerTable />
         }
       </div>
     </div>
   );
 };
 
-export default Users;
+export default Lockers;

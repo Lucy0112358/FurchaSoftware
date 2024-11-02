@@ -16,7 +16,7 @@ import MediaQuery from 'react-responsive'
 import LockerTypes from './locker/LockerTypes';
 
 
-function Menu() {
+function UserMenu() {
   const location = useLocation();
   const dispatch = useDispatch();
   const [selectedBranch, setSelectedBranch] = useState(null);

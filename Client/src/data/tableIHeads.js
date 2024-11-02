@@ -16,3 +16,11 @@ export const userTableGroups = [
     'Branch',
     'State',
 ];
+
+export const lockerTable = [
+    'Locker ID',
+    'Type',
+    'User',
+    'Status',
+    'State',
+];
