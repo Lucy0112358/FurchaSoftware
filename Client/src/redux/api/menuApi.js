@@ -1,8 +1,8 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import instance from "../../config/axios/axiosConfig";
 
-export const getUserBranches = createAsyncThunk(
-  'menu/getUserBranches',
+export const getBranches = createAsyncThunk(
+  'menu/getBranches',
   async (_, thunkAPI) => {
       try {
         const config = {
