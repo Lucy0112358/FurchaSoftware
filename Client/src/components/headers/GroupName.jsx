@@ -2,7 +2,7 @@ import React from 'react'
 
 function GroupName({name}) {
   return (
-    <h1 className="text-xl ml-2" style={{ color: '#AAAAAA' }}>{name}</h1>
+    <h1 className="text-xl" style={{ color: '#AAAAAA' }}>{name}</h1>
 
   )
 }

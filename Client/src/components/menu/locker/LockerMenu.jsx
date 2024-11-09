@@ -26,8 +26,6 @@ function LockerMenu() {
 
 
     console.log(lockerFilters, "lockerFilterslockerFilters");
-    
-
 
 
     const handleSelectChange = (selectedOption) => {

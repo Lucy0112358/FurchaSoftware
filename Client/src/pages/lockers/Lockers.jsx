@@ -2,13 +2,15 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllUsers } from "../../redux/api/userApi";
 import { getAllUsersData } from "../../redux/slice/userSlice";
-import { getSelectGroupSelect } from "../../redux/slice/menuSlice";
+import { getLockerStatusSelect, getSelectGroupSelect } from "../../redux/slice/menuSlice";
 import UserTable from "../../components/tables/UserTable";
 import './locker.css';
 import UserTableGroup from "../../components/tables/UserTableGroup";
 import LockerTable from "../../components/tables/LockerTable";
+import LockerTableGroup from "../../components/tables/LockerTableGroup";
 
 const Lockers = () => {
+  const lockerStatusSelect = useSelector(getLockerStatusSelect)
   // const dispatch = useDispatch();
   // const userGroupSelected = useSelector(getSelectGroupSelect);
 
@@ -20,11 +22,17 @@ const Lockers = () => {
 
   return (
     <div id="lockers">
-      <div className="outlet__table__wrapper overflow-x-auto mt-2">
+      {!lockerStatusSelect ?
+        <div >
         {
           <LockerTable />
         }
       </div>
+      :
+      <div >
+        <LockerTableGroup />
+      </div>
+      }
     </div>
   );
 };
