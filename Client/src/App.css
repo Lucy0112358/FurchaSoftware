@@ -26,6 +26,10 @@ a {
   color: inherit;
 }
 
+input[type="radio"] {
+  accent-color: black;
+}
+
 /* Мобильные телефоны */
 @media (max-width: 425px) {
   /* Ваши стили для телефонов */

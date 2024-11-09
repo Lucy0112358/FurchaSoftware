@@ -5,14 +5,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
 import 'react-tabs/style/react-tabs.css';
 import CustomSelect from "../../select/CustomSelect";
-import { getUserBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
+import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
 import { setUserGroup } from "../../../redux/api/menuApi";
 
 
 const AddUserGroupModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
   const dispatch = useDispatch();
-  const userBranches = useSelector(getUserBranchesData);
+  const userBranches = useSelector(getBranchesData);
   const [selectedBranch, setSelectedBranch] = useState([]);
   const [sentGeneralInfo, setSentGeneralInfo] = useState({
     branches: [],
@@ -76,8 +76,14 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
 
   const addUserGroup = () => {
     dispatch(setUserGroup(sentGeneralInfo))
-    console.log(sentGeneralInfo,888)
-  };  
+    .then((response) => {
+      console.log(response);
+      if (response && response.payload.isSuccess) {
+        onClose();
+      }
+    })
+  .catch((error) => console.error('Error updating user info:', error));
+  }
 
   const sendGroupInfo = (part, key, value) => {
     addAllInfoForUserGroup(part, key, value);

@@ -1,0 +1,7 @@
+/* .outlet__table td, th {
+    padding: 10px 0;
+} */
+
+#lockers tr td {
+    width: 20%;
+}

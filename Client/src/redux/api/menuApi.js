@@ -1,8 +1,8 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import instance from "../../config/axios/axiosConfig";
 
-export const getUserBranches = createAsyncThunk(
-  'menu/getUserBranches',
+export const getBranches = createAsyncThunk(
+  'menu/getBranches',
   async (_, thunkAPI) => {
       try {
         const config = {
@@ -58,7 +58,6 @@ export const userFilter = createAsyncThunk(
 export const setUserGroup = createAsyncThunk(
   'menu/setUserGroup',
   async (data, thunkAPI) => {
-    alert()
     console.log(data, 7444444444)
     data.adminId=8
       try {

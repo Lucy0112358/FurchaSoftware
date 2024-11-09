@@ -1,0 +1,43 @@
+{
+    "data": [
+        {
+            "officeName": "Tallin office",
+            "lockers": [
+                {
+                    "groupName": "LG1 - 1st floor Lockers",
+                    "groupLockers": [
+                        {
+                            "id": 1,
+                            "lockerType": "common",
+                            "isActive": true,
+                            "isOpen": true,
+                            "lockerStatus": "open",
+                            "groupId": 6
+                        },
+                        {
+                            "id": 2,
+                            "lockerType": "hand",
+                            "isActive": true,
+                            "isOpen": true,
+                            "lockerStatus": "open",
+                            "groupId": 6
+                        }
+                    ]
+                },
+                {
+                    "groupName": "LG1 - 2st floor Lockers",
+                    "groupLockers": [
+                        {
+                            "id": 1,
+                            "lockerType": "common",
+                            "isActive": true,
+                            "isOpen": true,
+                            "lockerStatus": "open",
+                            "groupId": 6
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

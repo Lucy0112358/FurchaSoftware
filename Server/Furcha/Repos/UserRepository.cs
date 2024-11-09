@@ -458,7 +458,7 @@ namespace FurchaAdminApi.Repos
             }
             catch (Exception ex)
             {
-                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "An unexpected error occurred while adding the user.");
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
             }
         }
 

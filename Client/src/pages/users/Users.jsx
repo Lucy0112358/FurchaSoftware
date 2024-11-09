@@ -6,6 +6,7 @@ import { getSelectGroupSelect } from "../../redux/slice/menuSlice";
 import UserTable from "../../components/tables/UserTable";
 import './user.css';
 import UserTableGroup from "../../components/tables/UserTableGroup";
+import OfficeName from "../../components/headers/OfficeName";
 
 const Users = () => {
   const dispatch = useDispatch();
@@ -19,7 +20,7 @@ const Users = () => {
 
   return (
     <div className="">
-      <h1 className="text-2xl" style={{ color: '#AAAAAA' }}>Tallinn Office</h1>
+      <OfficeName name="Tallinn Office" />
       <div className="outlet__table__wrapper overflow-x-auto mt-2">
         {
           !userGroupSelected ? <UserTable /> : <UserTableGroup />
