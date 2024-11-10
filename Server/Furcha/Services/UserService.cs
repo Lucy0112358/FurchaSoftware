@@ -251,7 +251,7 @@ namespace FurchaAdminApi.Services
                 {
                     var res = new LockerGroupResult()
                     {
-                        LockerGroupName = item.LockerGroupName
+                        LockerGroupName = item.Name
                     };
 
                     lockerGroupResults.Add(res);
