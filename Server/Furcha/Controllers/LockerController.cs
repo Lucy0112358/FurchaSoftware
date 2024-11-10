@@ -53,16 +53,22 @@ namespace FurchaAdminApi.Controllers
             return "value";
         }
 
+
+        public class LockerGroupRequest
+        {
+            public int BranchId { get; set; }
+            public string Name { get; set; }
+        }
         // POST api/<LockerController>
         [HttpPost]
-        public ActionResult<ApiResult<string>> Post(int branchId, string name)
+        public ActionResult<ApiResult<string>> Post([FromBody] LockerGroupRequest request)
         {
-            if (branchId == null || string.IsNullOrEmpty(name))
+            if (request == null || request.BranchId == 0 || string.IsNullOrEmpty(request.Name))
             {
                 return BadRequest(ApiResult<string>.ErrorResult("Invalid request data."));
             }
 
-            bool isCreated = _lockerService.CreateLockerGroup(branchId, name);
+            bool isCreated = _lockerService.CreateLockerGroup(request.BranchId, request.Name);
 
             if (!isCreated)
             {
