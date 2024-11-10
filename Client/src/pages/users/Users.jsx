@@ -21,7 +21,7 @@ const Users = () => {
   return (
     <div className="">
       <OfficeName name="Tallinn Office" />
-      <div className="outlet__table__wrapper overflow-x-auto mt-2">
+      <div >
         {
           !userGroupSelected ? <UserTable /> : <UserTableGroup />
         }
