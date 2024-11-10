@@ -27,6 +27,9 @@ namespace Domain.Entities
         public int Status { get; set; }
 
         [Column]
+        public int BranchId { get; set; }
+
+        [Column]
         public string PasswordHash { get; set; }
 
         [InverseProperty("LockerCard")]

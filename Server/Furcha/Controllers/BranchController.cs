@@ -1,5 +1,4 @@
 ﻿using Domain.Configuration;
-using Domain.Entities;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
 using Microsoft.AspNetCore.Authorization;

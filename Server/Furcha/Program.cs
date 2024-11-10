@@ -1,7 +1,5 @@
-using FurchaAdminApi.Infrustructures;
-using MqttService.Infrastructure;
+﻿using FurchaAdminApi.Infrustructures;
 using Npgsql;
-using System.Data;
 
 namespace FurchaAdminApi
 {
