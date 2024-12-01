@@ -16,6 +16,7 @@ import MediaQuery from 'react-responsive'
 import LockerTypes from './locker/components/lockerTypes/LockerTypes';
 import UserMenu from './user/UserMenu';
 import LockerMenu from './locker/LockerMenu';
+import ModulesMenu from './modules/ModulesMenu';
 
 
 function Menu() {
@@ -76,6 +77,8 @@ function Menu() {
           <UserMenu />
           : path == '/lockers' ?
             <LockerMenu />
+            : path == '/modules' ?
+            <ModulesMenu />
             : null
       }
     </div >
