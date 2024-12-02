@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
@@ -15,7 +16,7 @@ namespace Domain.Entities
         public int GroupId { get; set; }
 
         [Column]
-        public int LockerTypeId { get; set; }
+        public LockerTypeEnum LockerType { get; set; }
 
         [Column]
         public int IsActive { get; set; }
