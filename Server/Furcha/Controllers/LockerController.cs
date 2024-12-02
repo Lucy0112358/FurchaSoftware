@@ -4,6 +4,8 @@ using FurchaAdminApi.Services;
 using Domain.Configuration;
 using Domain.Extensions;
 using FurchaAdminApi.Models.Result;
+using MqttService.Application.Models.MqttRequest;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FurchaAdminApi.Controllers
 {
@@ -19,9 +21,10 @@ namespace FurchaAdminApi.Controllers
             _lockerService = lockerService;
         }
 
+        [Authorize]
         // GET: api/<LockerController>
         [HttpGet]
-        public ActionResult<IEnumerable<Locker>> Get(
+        public ActionResult<IEnumerable<OfficeResult>> Get(
             int? lockerType = null,
             int? lockerGroupId = null,
             int? branchId = null,
@@ -59,6 +62,7 @@ namespace FurchaAdminApi.Controllers
             public int BranchId { get; set; }
             public string Name { get; set; }
         }
+
         // POST api/<LockerController>
         [HttpPost]
         public ActionResult<ApiResult<string>> Post([FromBody] LockerGroupRequest request)
@@ -76,6 +80,33 @@ namespace FurchaAdminApi.Controllers
             }
 
             return Ok(ApiResult<string>.Success("LockerGroup created successfully."));
+        }
+
+        [HttpPost("CreateModule")]
+        public ActionResult<ApiResult<bool>> CreateModule([FromBody] CreateModuleRequest request)
+        {
+            if (request == null || request.BranchId == 0)
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult("Invalid request data."));
+            }
+
+            bool isCreated = _lockerService.CreateModule(request);
+
+            if (!isCreated)
+            {
+                return StatusCode(500, ApiResult<bool>.ErrorResult("Failed to create module."));
+            }
+
+            return Ok(ApiResult<bool>.Success(true));
+        }
+
+#warning When auth is done, this methode must return only modules accessible for the logged in admin
+        [HttpGet("GetModules")]
+        public ActionResult<ApiResult<List<ModuleResulr>>> GetModules()
+        {
+            var modules = new List<ModuleResulr>();
+
+            return Ok(ApiResult<List<ModuleResulr>>.Success(modules));
         }
 
         [HttpGet("admin-lockerGroups")]
