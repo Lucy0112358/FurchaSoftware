@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getBranches, getUserGroups, setUserGroup, userFilter } from "../api/menuApi";
+import { getBranches, getLockerGroupsData, getUserGroups, setUserGroup, userFilter } from "../api/menuApi";
 import { userSlice } from "./userSlice";
 // import { APP_BASE_URL } from "../../config";
 
@@ -22,7 +22,10 @@ export const menuSlice = createSlice({
       state.loading = action.payload.loading;
     },
     setUserBranches: (state, action) => {
-      state.userBranches = [{ id: 0, name: "All" }, ...action];
+      state.branches = [{ id: 0, name: "All" }, ...action];
+    },
+    setLockerGroup: (state, action) => {
+      state.lockerGroups = [{ id: 0, name: "All" }, ...action];
     },
     setUserGroups: (state, action) => {
       state.userGroups = [{ id: 0, name: "All" }, ...action];
@@ -41,7 +44,11 @@ export const menuSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getBranches.fulfilled, (state, action) => {
-        menuSlice.caseReducers.setBranches(state, action.payload.data);
+        menuSlice.caseReducers.setUserBranches(state, action.payload.data);
+        // state.userBranch = action.payload;
+      })
+      .addCase(getLockerGroupsData.fulfilled, (state, action) => {
+        menuSlice.caseReducers.setLockerGroup(state, action.payload.data);
         // state.userBranch = action.payload;
       })
       .addCase(getUserGroups.fulfilled, (state, action) => {

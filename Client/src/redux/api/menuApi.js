@@ -75,6 +75,26 @@ export const setUserGroup = createAsyncThunk(
     }
 )
 
+export const setLockerGroup = createAsyncThunk(
+  'menu/setLockerGroup',
+  async (data, thunkAPI) => {
+    data.adminId=8
+      try {
+        const config = {
+          method: "post",
+          url: 'Locker',
+          data: data
+        };
+        
+        const response = await instance(config);
+        thunkAPI.dispatch(getLockerGroupsData());
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
 //Temprorary for testing
 export const filterUserByName = createAsyncThunk(
   'menu/filterUserByName',
@@ -93,3 +113,23 @@ export const filterUserByName = createAsyncThunk(
       }
     }
 )
+
+
+export const getLockerGroupsData = createAsyncThunk(
+  'menu/getLockerGroupsData',
+  async (_, thunkAPI) => {
+      try {
+        const config = {
+          method: "get",
+          url: 'Locker/admin-lockerGroups/?adminId=8',
+        };
+        
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+

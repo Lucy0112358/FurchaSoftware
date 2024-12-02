@@ -170,8 +170,10 @@ namespace FurchaAdminApi.Repos
             //INNER JOIN furcha.""AdminLockerGroup"" alg ON alg.LockerGroupId = lg.Id
             //WHERE alg.AdminId = @AdminId";
             string query = @"
+
             SELECT lg.""Id"", lg.""Name"", lg.""Description"", lg.""BranchId""
             FROM furcha.""LockerGroup"" lg";
+
 
             var lockers = Query<LockerGroup>(
     sql: query,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import LockerModal from '../../modals/locker/LockerModal'
 import { assets } from '../../../assets/assets';
 import MediaQuery from 'react-responsive'
@@ -11,6 +11,7 @@ import LockerTypes from './components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
 import { getLockerFilter, setLockerFilter } from '../../../redux/slice/lockerSlice';
 import { getLockers } from '../../../redux/api/lockerApi';
+import { getLockerGroupsData } from '../../../redux/api/menuApi';
 
 function LockerMenu() {
     const dispatch = useDispatch();
@@ -23,6 +24,10 @@ function LockerMenu() {
     const lockerFilters = useSelector(getLockerFilter)
     const [inputValue, setInputValue] = useState('');
     const [debounceTimeout, setDebounceTimeout] = useState(null);
+
+    useEffect(() => {
+        dispatch(getLockerGroupsData());
+    }, []);
 
 
     console.log(lockerFilters, "lockerFilterslockerFilters");
@@ -169,9 +174,7 @@ function LockerMenu() {
                         </div>
                     </div>
                 </div>
-                <div className='flex justify-end w-full'>
-                    <LockerTypes addFilters={addFilters}/>
-                </div>
+               
                 <div className="menu__filter__mobile hidden">
                     <div className='flex justify-between'>
                         <div className='menu__filter__select'>
@@ -193,6 +196,9 @@ function LockerMenu() {
                     </div>
 
 
+                </div>
+                <div className='flex justify-end w-full'>
+                    <LockerTypes addFilters={addFilters}/>
                 </div>
             </>
         )
