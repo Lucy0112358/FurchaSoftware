@@ -55,6 +55,10 @@ function LockerTable() {
       }
     ]
   }
+  // const handleRightClick = (event) => {
+  //   event.preventDefault();
+  //   console.log('Правое касание мыши!');
+  // };
 
 
   //End Generate Locker data part

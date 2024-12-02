@@ -1,96 +1,45 @@
 import React, { useState } from "react";
-// import './addUserGroup.css';
 import '../modal.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
 import 'react-tabs/style/react-tabs.css';
 import CustomSelect from "../../select/CustomSelect";
-import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
-import { setUserGroup } from "../../../redux/api/menuApi";
+import { getBranchesData } from "../../../redux/slice/menuSlice";
+import './lockerModal.css';
+import { setLockerGroup } from "../../../redux/api/menuApi";
+import { toast } from "react-toastify";
 
 
 const LockerModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
   const branches = useSelector(getBranchesData);
 
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
   // const branches = useSelector(getBranchesData);
   // const [selectedBranch, setSelectedBranch] = useState([]);
-  // const [sentGeneralInfo, setSentGeneralInfo] = useState({
-  //   branches: [],
-  //   name: '',
-  // });
+  const [sentGeneralInfo, setSentGeneralInfo] = useState({});
 
-  // console.log(sentGeneralInfo, 111111111111)
+  const addLockerGroup = () => {
+    dispatch(setLockerGroup(sentGeneralInfo))
+    .then((response) => {
+      console.log(response);
+      if (response && response.payload.isSuccess) {
+        toast.success("Locker Group created successfully");
+        onClose();
+      }
+    })
+  .catch((error) => {
+    toast.error("Something went wrong");
+  });
+  }
 
-  // const userInfo = useSelector(getAddUserInfo);
-  // const [groupRight, setGroupRight] = useState({});
-
-  // const addAllInfoForUserGroup = (part, key, value) => {
-  //   const updatedUserInfo = {
-  //     [part]: {
-  //       ...userInfo[part],
-  //       [key]: value,
-  //     },
-  //   };
-  //   dispatch(setAddUserInfo(updatedUserInfo));
-
-  //   setGroupRight((prev) => ({
-  //     ...prev,
-  //     ...updatedUserInfo,
-  //   }));
-  // };
-
-  // const formatUserRightText = () => {
-  //   const userRightsEntries = Object.entries(groupRight);
-  //   return userRightsEntries
-  //     .map(([part, values]) => {
-  //       const valuesEntries = Object.entries(values).map(([key, value]) => {
-  //         console.log(values , key, "valuevaluevalue")
-  //         if (Array.isArray(value)) {
-  //           return `${key}: ${value.join(', ')}`;
-  //         } else if (typeof value === 'object') {
-  //           const { value: val, label } = value;
-  //           return `${key}: ${label}`;
-  //         }
-  //         return `${key}: ${value}`;
-  //       });
-  //       console.log(valuesEntries, part, values, "valuesEntries")
-  //       return `${part}:\n${valuesEntries.join('\n')}`;
-  //     })
-  //     .join('\n\n');
-  // };
-
-  // const addBranchHandle = () => {
-  //   addAllInfoForUserGroup('Branch', 'name', selectedBranch) 
-  //   let id = selectedBranch.value
-  //   setSentGeneralInfo((prev) => ({
-  //     ...prev,
-  //     'branches' : [...prev.branches, id],
-  //   }))
-  // };
-
-  // const addUserGroup = () => {
-  //   dispatch(setUserGroup(sentGeneralInfo))
-  //   .then((response) => {
-  //     console.log(response);
-  //     if (response && response.payload.isSuccess) {
-  //       onClose();
-  //     }
-  //   })
-  // .catch((error) => console.error('Error updating user info:', error));
-  // }
-
-  // const sendGroupInfo = (part, key, value) => {
-  //   addAllInfoForUserGroup(part, key, value);
-  //   setSentGeneralInfo((prev) => ({
-  //     ...prev,
-  //     [key]: value,
-  //   }));
-  // };
+  const sendGroupInfo = (key, value) => {
+    setSentGeneralInfo((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
   const handleSelectChange = (selectedOption) => {
-    setSelectedBranch(selectedOption);
-    
+    sendGroupInfo('branchId', selectedOption.value);
     console.log("Выбранная опция:", selectedOption);
   };
 
@@ -98,7 +47,7 @@ const LockerModal = ({ isOpen, onClose, children }) => {
     <div
       className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10"
     >
-      <div className="add__modal__content add__modal__content__addUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto">
+      <div className="add__modal__content add__modal__content__addLockerGroup rounded-lg shadow-lg w-full max-w-4xl overflow-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">Create Locker Group</h2>
           <button
@@ -133,7 +82,7 @@ const LockerModal = ({ isOpen, onClose, children }) => {
                 <input
                   placeholder="Group Name"
                   type="text"
-                  // onChange={(e) => sendGroupInfo('Group', 'name', e.target.value)}
+                  onChange={(e) => sendGroupInfo('name', e.target.value)}
                   className="w-full p-1 border rounded"
                 />
               </div>
@@ -150,7 +99,7 @@ const LockerModal = ({ isOpen, onClose, children }) => {
           <div className="modal__button">
             <button 
               className="bg-gray-600 text-white rounded"
-              // onClick={addUserGroup}
+              onClick={addLockerGroup}
             >
               Save
             </button>

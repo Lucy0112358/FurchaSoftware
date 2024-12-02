@@ -21,6 +21,10 @@
     color: white;
 }
 
+.sidebar__content__link.active {
+    color: white;
+}
+
 @media (max-width: 425px) {}
 
 @media (max-width: 768px) {
