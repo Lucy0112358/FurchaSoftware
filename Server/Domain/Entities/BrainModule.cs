@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Domain.Entities
 {
@@ -8,16 +9,16 @@ namespace Domain.Entities
         public int Id { get; set; }
 
         [Column]
-        public int GroupId { get; set; }
+        public int? GroupId { get; set; }
 
         [Column]
         public int BranchId { get; set; }
 
         [Column]
-        public string TextField { get; set; }
+        public string MacAddress { get; set; }
 
         [Column]
-        public string Ip { get; set; }
+        public string IpAddress { get; set; } = "default";
 
     }
 }

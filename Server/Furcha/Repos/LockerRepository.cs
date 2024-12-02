@@ -152,6 +152,14 @@ namespace FurchaAdminApi.Repos
             return result;
         }
 
+        internal BrainModule CreateModule(BrainModule module)
+        {
+            var result = Insert(module);
+
+            return result;
+        }
+
+#warning after auth get only valid for admin
         public List<LockerGroup> GetLockerGroupsByAdminId(int adminId)
         {
             //string query = @"
@@ -159,12 +167,11 @@ namespace FurchaAdminApi.Repos
             //FROM furcha.""LockerGroup"" lg
             //INNER JOIN furcha.""AdminLockerGroup"" alg ON alg.LockerGroupId = lg.Id
             //WHERE alg.AdminId = @AdminId";
+            //INNER JOIN furcha.""AdminLockerGroup"" alg ON alg.LockerGroupId = lg.Id
+            //WHERE alg.AdminId = @AdminId";
             string query = @"
-            SELECT lg.Id, lg.Name, lg.Description, lg.State 
-            FROM furcha.""LockerGroup"" lg
-            INNER JOIN furcha.""AdminLockerGroup"" alg ON alg.LockerGroupId = lg.Id
-            WHERE alg.AdminId = @AdminId
-            AND lg.""BranchId"" BETWEEN 1 AND 10";
+            SELECT lg.""Id"", lg.""Name"", lg.""Description"", lg.""BranchId""
+            FROM furcha.""LockerGroup"" lg";
 
             var lockers = Query<LockerGroup>(
     sql: query,

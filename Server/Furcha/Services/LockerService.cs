@@ -1,6 +1,9 @@
 ﻿using Domain.Entities;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
+using MqttService.Application.Models.MqttRequest;
+using System.Net.Mail;
+using System.Transactions;
 
 namespace FurchaAdminApi.Services
 {
@@ -35,12 +38,59 @@ namespace FurchaAdminApi.Services
         /// <param name="isActive">Indicates if the locker is active.</param>
         /// <param name="lockerStatus">The current status of the locker.</param>
         /// <returns>A list of lockers that match the specified criteria.</returns>
-        public List<Locker> GetLockersByFilters(int? lockerType, int? lockerGroupId, int? branchId, string? status, bool? isActive, string? lockerStatus)
+        public List<OfficeResult> GetLockersByFilters(int? lockerType, int? lockerGroupId, int? branchId, string? status, bool? isActive, string? lockerStatus)
         {
             var lockers = _lockerRepository.GetLockersByCriteria(lockerType, lockerGroupId, branchId, status, isActive, lockerStatus);
-            return lockers ?? new List<Locker>();
+
+            var res = lockers.GroupBy(l => l.BranchId).ToList();
+
+          //  var results = res.Select(branchGroup => new OfficeResult
+          //  {
+          //      OfficeName = $"Branch {branchGroup.Key}", // Replace with branch name if available
+          //      Lockers = branchGroup
+          //.GroupBy(l => l.GroupId)
+          //.Select(group => new Locker
+          //{
+          //    GroupName = $"LG{group.Key} - Floor Lockers", // Replace with actual group name if available
+          //    GroupLockers = group.Select(locker => new Locker
+          //    {
+          //        Id = locker.Id,
+          //        LockerType = locker.LockerType.ToString(), // Convert to a string representation
+          //        IsActive = locker.IsActive == 1,
+          //        IsOpen = locker.IsOpen == 1,
+          //        LockerStatus = locker.Status.ToString(), // Map status to string
+          //        GroupId = locker.GroupId
+          //    }).ToList()
+          //}).ToList()
+          //  }).ToList();
+
+            return new List<OfficeResult>();
         }
 
+        internal bool CreateModule(CreateModuleRequest request)
+        {
+            //using (var transaction = new TransactionScope())
+            //{
+            var module = new BrainModule
+            {
+                BranchId = request.BranchId,
+                GroupId = request.LockerGroupId,
+                MacAddress = request.MacAddress,
+            };
+
+            _lockerRepository.CreateModule(module);
+
+            //  List<Locker> lockers = new List<Locker>();
+            //for (int i = request.MinNumber; i <= request.MaxNumber; i++)
+            //{
+            //    lockers[i].Number = i;
+            //}
+
+            //}
+
+
+            return true;
+        }
         internal bool CreateLockerGroup(int branchId, string name)
         {
             var result = new LockerGroup()
@@ -49,7 +99,7 @@ namespace FurchaAdminApi.Services
                 Name = name
             };
 
-             _lockerRepository.CreateLockerGroup(result);
+            _lockerRepository.CreateLockerGroup(result);
 
             return true;
         }

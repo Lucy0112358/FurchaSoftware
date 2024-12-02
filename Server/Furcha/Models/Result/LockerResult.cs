@@ -1,8 +1,11 @@
-﻿namespace FurchaAdminApi.Models.Result
+﻿using Domain.Entities;
+
+namespace FurchaAdminApi.Models.Result
 {
     public class LockerResult
     {
-        public int Id { get; set; }
-        public int Number { get; set; }
+        public string GroupName { get; set; }
+        public List<Locker> GroupLockers { get; set; }
     }
 }
+
