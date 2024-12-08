@@ -11,12 +11,23 @@ import { IoMdAdd } from "react-icons/io";
 import CustomCheckbox from "../../checkbox/CustomCheckbox";
 import { filterGroupByBranch, getModuleModalBranches, getModuleModalGroupes } from "../../../redux/slice/moduleSlice";
 import { addModuleFunc } from "../../../redux/api/moduleApi";
+import { getLockerOptions } from "../../../enums/LockerTypes";
 
 
 const ModulesModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
   const branches = useSelector(getModuleModalBranches);
   const lockerGroups = useSelector(getModuleModalGroupes)
+  const [selectedOption, setSelectedOption] = useState(null);
+
+  const lockerOptions = getLockerOptions().map((lockerType) => ({
+    id: lockerType,
+    name: lockerType.charAt(0).toUpperCase() + lockerType.slice(1),
+  }));
+
+  const handleLockerTypeChange = (selectedOption) => {
+    sendGroupInfo('lockerType', selectedOption.value);
+  };
 
   const dispatch = useDispatch();
   // const branches = useSelector(getBranchesData);
@@ -32,7 +43,7 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
   }, []);
 
   console.log(sentGeneralInfo, 8889);
-  
+
 
 
   const addModules = () => {
@@ -146,7 +157,7 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
               <label className="block text-gray-300">Locker type(optional)</label>
               <div className="flex ">
                 <div className="w-5/6 mr-2">
-                  {/* <CustomSelect options={branches} onChange={handleBranchChange} /> */}
+                  <CustomSelect options={lockerOptions} onChange={handleLockerTypeChange} />
                   "personal"
                 </div>
               </div>

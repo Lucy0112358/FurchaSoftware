@@ -12,7 +12,7 @@ import Unspecified from '../lockers/unspecified/Unspecified';
 
 function UserTable() {
   const allUsers = useSelector(getAllUsersData);
-  console.log(allUsers, "sdada");
+  // console.log(allUsers, "sdada");
 
   return (
     <>
@@ -30,8 +30,8 @@ function UserTable() {
           <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA', minWidth: '1110px' }}>
             <thead>
               <tr className="outlet__table__header">
-                {userTable.map((header) => (
-                  <th className="text-left" >{header}</th>
+                {userTable.map((header, index) => (
+                  <th key={index} className="text-left" >{header}</th>
                 ))}
               </tr>
             </thead>

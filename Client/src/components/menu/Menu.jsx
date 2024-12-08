@@ -28,7 +28,7 @@ function Menu() {
   const [filters, setFilters] = useState({});
   const [path, setPath] = useState('/');
 
-  console.log(filters, "filtersfilters")
+  // console.log(filters, "filtersfilters")
 
   //input search by nane
   const [inputValue, setInputValue] = useState('');
@@ -62,9 +62,14 @@ function Menu() {
   //Add USER modal part 
   // const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const userBranches = useSelector(getBranchesData);
-  const userGroups = useSelector(getUserGroupsData);
-  const [manageEnabled, setManageEnabled] = useState(true);
+  // const userBranches = useSelector(getBranchesData);
+  // const userGroups = useSelector(getUserGroupsData);
+  // const [manageEnabled, setManageEnabled] = useState(true);
+
+  useEffect(() => {
+    dispatch(getBranches());
+    dispatch(getUserGroups());
+  }, []);
 
   useEffect(() => {
     setPath(location.pathname);

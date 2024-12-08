@@ -44,7 +44,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
     return userRightsEntries
       .map(([part, values]) => {
         const valuesEntries = Object.entries(values).map(([key, value]) => {
-          console.log(values , key, "valuevaluevalue")
+          console.log(values, key, "valuevaluevalue")
           if (Array.isArray(value)) {
             return `${key}: ${value.join(', ')}`;
           } else if (typeof value === 'object') {
@@ -61,28 +61,28 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
 
   const handleSelectChange = (selectedOption) => {
     setSelectedBranch(selectedOption);
-    
+
     console.log("Выбранная опция:", selectedOption);
   };
 
   const addBranchHandle = () => {
-    addAllInfoForUserGroup('Branch', 'name', selectedBranch) 
+    addAllInfoForUserGroup('Branch', 'name', selectedBranch)
     let id = selectedBranch.value
     setSentGeneralInfo((prev) => ({
       ...prev,
-      'branches' : [...prev.branches, id],
+      'branches': [...prev.branches, id],
     }))
   };
 
   const addUserGroup = () => {
     dispatch(setUserGroup(sentGeneralInfo))
-    .then((response) => {
-      console.log(response);
-      if (response && response.payload.isSuccess) {
-        onClose();
-      }
-    })
-  .catch((error) => console.error('Error updating user info:', error));
+      .then((response) => {
+        console.log(response);
+        if (response && response.payload.isSuccess) {
+          onClose()
+        }
+      })
+      .catch((error) => console.error('Error updating user info:', error));
   }
 
   const sendGroupInfo = (part, key, value) => {
@@ -132,7 +132,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
                 <CustomSelect options={userBranches} onChange={handleSelectChange} />
               </div>
               <div className="section__add">
-                <button 
+                <button
                   className="text-white font-bold rounded"
                   onClick={() => addBranchHandle()}
                 >
@@ -149,8 +149,8 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
               <label className="block text-gray-300">Group rights details</label>
               <textarea
                 className="w-full p-1 border rounded h-24"
-                // value={groupRight}
                 value={formatUserRightText()}
+                readOnly
               ></textarea>
             </div>
           </div>
@@ -164,7 +164,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
             </button>
           </div>
           <div className="modal__button">
-            <button 
+            <button
               className="bg-gray-600 text-white rounded"
               onClick={addUserGroup}
             >
