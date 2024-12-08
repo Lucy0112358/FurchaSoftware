@@ -37,6 +37,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const branches = useSelector(getBranchesData);
   const filteredBranchGroups = useSelector(getFilteredLockerGroups)
 
+  console.log(filteredBranchGroups, "filteredBranchGroupsfilteredBranchGroups");
+
+
 
   // TODO:  User Group
   const [sentGeneralInfo, setSentGeneralInfo] = useState({
@@ -402,7 +405,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
             </div>
           </TabPanel>
           <TabPanel>
-            <div className="flex justify-between">
+            <div className="flex justify-between flex-col">
               <div className="add__modal__content__part__select">
                 <span>Branch</span>
                 <div className="add__modal__content__part__group grid gap-4 mb-4 mr-2">
@@ -412,28 +415,23 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                 </div>
               </div>
               <div>
-                {filteredBranchGroups?.data?.length ? (
-                  filteredBranchGroups.data.map((locker, index) => (
-                    <React.Fragment key={index}>
-                      <OfficeName name={locker.officeName} />
-                      <div className='pl-5'>
-                        {locker.lockers.map((lockerGroup, groupIndex) => (
-                          <React.Fragment key={groupIndex}>
-                            <GroupName name={lockerGroup.groupName} />
-                            <div className='flex flex-wrap mb-4'>
-                              {lockerGroup.groupLockers.map((item, itemIndex) => (
-                                <dvi className="mr-2 mb-2">
-                                  <GenerateLocker item={item} index={itemIndex} />
-                                </dvi>
-                              ))}
-                            </div>
-                          </React.Fragment>
-                        ))}
-                      </div>
-                    </React.Fragment>
-                  ))
+                {filteredBranchGroups?.length ? (
+                  <div className='pl-5'>
+                    {filteredBranchGroups.map((lockerGroup, groupIndex) => (
+                      <React.Fragment key={groupIndex}>
+                        <GroupName name={lockerGroup.groupName} />
+                        <div className='flex flex-wrap mb-4'>
+                          {lockerGroup.groupLockers.map((item, itemIndex) => (
+                            <dvi className="mr-2 mb-2">
+                              <GenerateLocker item={item} index={itemIndex} />
+                            </dvi>
+                          ))}
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
                 ) : (
-                  <NoData text="No Lockers" />
+                  <NoData text="No Selected Lockers" />
                 )}
               </div>
             </div>

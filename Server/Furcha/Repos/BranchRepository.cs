@@ -44,7 +44,7 @@ namespace FurchaAdminApi.Repos
         SELECT b.*
         FROM furcha.""Branch"" b
         INNER JOIN furcha.""AdminBranch"" ab ON b.""Id"" = ab.""BranchId""
-        WHERE ab.""AdminId"" = @AdminId";
+        WHERE ab.""AdministratorId"" = @AdminId";
 
             var branches = Query<Branch>(
                 sql: sql,

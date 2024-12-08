@@ -20,10 +20,12 @@ const Modules = () => {
         dispatch(getModules())
     }, []);
 
+    console.log(allModules.data, "allModules");
+    
     return (
         <div>
-            {allModules.data?.length ? (
-                allModules.data?.map((moduleGroupe, index) => (
+            {allModules.length ? (
+                allModules.map((moduleGroupe, index) => (
                     <React.Fragment key={index}>
                         <OfficeName name={moduleGroupe.officeName} />
                         <div className='pl-5'>
