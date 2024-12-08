@@ -4,7 +4,7 @@ import { RiAddBoxLine } from "react-icons/ri";
 import { assets } from '../../../assets/assets';
 import CustomSelect from '../../select/CustomSelect';
 import { useDispatch, useSelector } from 'react-redux';
-import { filterUserByName, getBranches, getUserGroups, userFilter } from '../../../redux/api/menuApi';
+import { filterUserByName, getBranches, getLockerGroupsData, getUserGroups, userFilter } from '../../../redux/api/menuApi';
 import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter, setUserGroupSelect } from '../../../redux/slice/menuSlice';
 import AddUserModal from '../../modals/addUser/AddUserModal';
 import { getAllUsers } from '../../../redux/api/userApi';
@@ -23,7 +23,11 @@ function UserMenu() {
     const userGroupEnabled = useSelector(getSelectGroupSelect);
     const [filters, setFilters] = useState({});
 
-    console.log(filters, "filtersfilters")
+    const branches = useSelector(getBranchesData);
+
+    console.log(branches, 78888888);
+
+    // console.log(filters, "filtersfilters")
 
     //input search by nane
     const [inputValue, setInputValue] = useState('');
@@ -57,12 +61,13 @@ function UserMenu() {
     //Add USER modal part 
     // const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const userBranches = useSelector(getBranchesData);
+    // const userBranches = useSelector(getBranchesData);
     const userGroups = useSelector(getUserGroupsData);
     const [manageEnabled, setManageEnabled] = useState(true);
 
     useEffect(() => {
         dispatch(getBranches());
+        dispatch(getLockerGroupsData());
     }, []);
 
     const handleFileChange = (event) => {
@@ -127,7 +132,7 @@ function UserMenu() {
                 <div className="menu__filter flex space-x-4">
                     <div className='flex flex-col'>
                         <div className='menu__filter__select'>
-                            <CustomSelect options={userBranches} onChange={handleSelectChange} />
+                            <CustomSelect options={branches} onChange={handleSelectChange} />
                             <label className="text-white block">Site</label>
                         </div>
                         <div className='menu__filter__select'>
@@ -206,11 +211,11 @@ function UserMenu() {
             <div className="menu__filter__mobile hidden">
                 <div className='flex justify-between'>
                     <div className='menu__filter__select'>
-                        <CustomSelect />
+                        <CustomSelect options={branches} onChange={handleSelectChange} />
                         <label className="text-white block">Site</label>
                     </div>
                     <div className='menu__filter__select'>
-                        <CustomSelect />
+                        <CustomSelect options={userGroups} onChange={handleGroupsSelectChange} />
                         <label className="text-white block">User Group</label>
                     </div>
                     <div className='menu__filter__search'>

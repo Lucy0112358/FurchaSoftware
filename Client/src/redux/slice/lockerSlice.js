@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { getLockerGroupsByBranchId } from "../api/branchApi";
 // import { getAllGroups } from "../api/groupApi";
 
 const initialState = {
@@ -7,6 +8,7 @@ const initialState = {
   lockerFilters: {
     lockerStatus: 'all',
   },
+  filteredLockerGroups: [],
 };
 
 export const lockerSlice = createSlice({
@@ -26,17 +28,20 @@ export const lockerSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      // .addCase(getAllGroups.pending, (state) => {
-      //   state.loading = true;
-      // })
-      // .addCase(getAllGroups.fulfilled, (state, action) => {
-      //   state.loading = false;
-      //   state.allGroup = action.payload.data;
-      // })
-      // .addCase(getAllGroups.rejected, (state, action) => {
-      //   state.errorMessage = action.payload;
-      //   state.loading = false;
-      // })
+      .addCase(getLockerGroupsByBranchId.fulfilled, (state, action) => {
+        state.filteredLockerGroups = action.payload.data;
+      })
+    // .addCase(getAllGroups.pending, (state) => {
+    //   state.loading = true;
+    // })
+    // .addCase(getAllGroups.fulfilled, (state, action) => {
+    //   state.loading = false;
+    //   state.allGroup = action.payload.data;
+    // })
+    // .addCase(getAllGroups.rejected, (state, action) => {
+    //   state.errorMessage = action.payload;
+    //   state.loading = false;
+    // })
   },
 });
 
@@ -50,5 +55,7 @@ export const getLoadingNow = (state) => state.locker.loading;
 export const getLockerFilter = (state) => state.locker.lockerFilters
 
 export const getAllLockersData = (state) => state.locker.allLockers;
+
+export const getFilteredLockerGroups = (state) => state.locker.filteredLockerGroups
 
 export default lockerSlice.reducer;

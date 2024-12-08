@@ -8,12 +8,18 @@ import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import CustomSelect from "../../select/CustomSelect";
-import { getUserGroupsData } from "../../../redux/slice/menuSlice";
+import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
 import { userFilter } from "../../../redux/api/menuApi";
 import { setUserInfo } from "../../../redux/api/userApi";
 import { IoMdAdd } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
 import AddUserGroupModal from "../addUserGroup/AddUserGroupModal";
+import { getLockerGroupsByBranchId } from "../../../redux/api/branchApi";
+import { getFilteredLockerGroups } from "../../../redux/slice/lockerSlice";
+import OfficeName from "../../headers/OfficeName";
+import GroupName from "../../headers/GroupName";
+import GenerateLocker from "../../lockers/GenerateLocker";
+import NoData from "../../no-data/NoData";
 
 
 const AddUserModal = ({ isOpen, onClose, children }) => {
@@ -27,6 +33,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const cardRef = useRef(null);
   const [cards, setCards] = useState([]);
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
+
+  const branches = useSelector(getBranchesData);
+  const filteredBranchGroups = useSelector(getFilteredLockerGroups)
 
 
   // TODO:  User Group
@@ -94,13 +103,13 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   // TODO: feat
   const addUser = () => {
     dispatch(setUserInfo(sentGeneralInfo))
-    .then((response) => {
-      console.log(response);
-      if (response && response.payload.isSuccess) {
-        onClose();
-      }
-    })
-  .catch((error) => console.error('Error updating user info:', error));
+      .then((response) => {
+        console.log(response);
+        if (response && response.payload.isSuccess) {
+          onClose();
+        }
+      })
+      .catch((error) => console.error('Error updating user info:', error));
   }
   console.log(sentGeneralInfo, 888)
 
@@ -118,7 +127,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
         'cards': prev.cards ? addNewCardToCards : [newCard],
       }))
       sendGroupInfo('Card No', 'cards', addNewCardToCards)
-     
+
     }
   }
 
@@ -130,6 +139,12 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       'cards': withoutDeletedCards,
     }))
     sendGroupInfo('Card No', 'cards', withoutDeletedCards)
+  }
+
+  const handleSelectBranch = (selectedOption) => {
+    console.log(selectedOption.value, 999);
+    dispatch(getLockerGroupsByBranchId(selectedOption.value));
+
   }
 
   //End Card part
@@ -159,7 +174,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   //   setSelectedBranch(selectedOption);
   //   console.log("Выбранная опция:", selectedOption);
   // };
-
+  // console.log(addGroupModalSwitch, 888)
 
   return (
     <div
@@ -270,13 +285,18 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                   </div>
                   <div className="flex justify-center">
                     <button
-                      onClick={() => setAddGroupModalSwitch(!addGroupModalSwitch)}
+                      onClick={() => setAddGroupModalSwitch(true)}
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center"
                     >
                       <IoMdAdd className="fill-current mr-2" />
                       <span>Add Group</span>
-                      <AddUserGroupModal isOpen={addGroupModalSwitch} onClose={() => setAddGroupModalSwitch(false)} />
-                     
+                      <AddUserGroupModal isOpen={addGroupModalSwitch}
+                        onClose={(e) => {
+                          if (e?.stopPropagation) e.stopPropagation();
+                          setAddGroupModalSwitch(false);
+                        }}
+                      />
+
                     </button>
                   </div>
                 </div>
@@ -329,8 +349,8 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                       <div className="flex">
                         <div className="generation w-full">
                           <div className="generation__checkbox flex items-center">
-                            <CustomCheckbox 
-                              id={'pin'} 
+                            <CustomCheckbox
+                              id={'pin'}
                               onChange={(checked) => handePin(checked)}
                             />
                             <span className="text-white">PIN</span>
@@ -358,7 +378,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     className="w-full p-1 border rounded h-24"
                     // value={userRight}
                     readOnly
-                    value={formatUserRightText()}
+                    defaultValue={formatUserRightText()}
                   ></textarea>
                 </div>
               </div>
@@ -384,12 +404,37 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
           <TabPanel>
             <div className="flex justify-between">
               <div className="add__modal__content__part__select">
-                <span>Lockers</span>
+                <span>Branch</span>
                 <div className="add__modal__content__part__group grid gap-4 mb-4 mr-2">
                   <div>
-                    <CustomSelectTest />
+                    <CustomSelect options={branches} onChange={handleSelectBranch} />
                   </div>
                 </div>
+              </div>
+              <div>
+                {filteredBranchGroups?.data?.length ? (
+                  filteredBranchGroups.data.map((locker, index) => (
+                    <React.Fragment key={index}>
+                      <OfficeName name={locker.officeName} />
+                      <div className='pl-5'>
+                        {locker.lockers.map((lockerGroup, groupIndex) => (
+                          <React.Fragment key={groupIndex}>
+                            <GroupName name={lockerGroup.groupName} />
+                            <div className='flex flex-wrap mb-4'>
+                              {lockerGroup.groupLockers.map((item, itemIndex) => (
+                                <dvi className="mr-2 mb-2">
+                                  <GenerateLocker item={item} index={itemIndex} />
+                                </dvi>
+                              ))}
+                            </div>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <NoData text="No Lockers" />
+                )}
               </div>
             </div>
           </TabPanel>

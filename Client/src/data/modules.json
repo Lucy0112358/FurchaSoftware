@@ -7,12 +7,12 @@
                     "groupName": "LG1 - 1st floor Lockers",
                     "groupModules": [
                         {
-                            "startItem": 1,
-                            "endItem": 256
+                            "firstLocker": 1,
+                            "lastLocker": 256
                         },
                         {
-                            "startItem": 257,
-                            "endItem": 512
+                            "firstLocker": 257,
+                            "lastLocker": 512
                         }
                     ]
                 },
@@ -20,8 +20,8 @@
                     "groupName": "LG1 - 2st floor Lockers",
                     "groupModules": [
                         {
-                            "startItem": 1,
-                            "endItem": 20
+                            "firstLocker": 1,
+                            "lastLocker": 20
                         }
                     ]
                 }
