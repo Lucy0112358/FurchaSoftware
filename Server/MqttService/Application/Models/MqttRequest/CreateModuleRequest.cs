@@ -4,10 +4,10 @@ namespace MqttService.Application.Models.MqttRequest
 {
     public class CreateModuleRequest
     {
-        public LockerTypeEnum? LockerType { get; set; } = null;
+        public string LockerType { get; set; } = null;
         public int BranchId { get; set; }
-        public int MaxNumber { get; set; }
-        public int MinNumber { get; set; }
+        public int LastLocker { get; set; }
+        public int FirstLocker { get; set; }
         public string MacAddress { get; set; }
         public int? LockerGroupId { get; set; } = null;
     }

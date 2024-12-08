@@ -3,11 +3,11 @@ import instance from "../../config/axios/axiosConfig";
 
 export const getLockerGroupsByBranchId = createAsyncThunk(
   'branch/getLockerGroupsByBranchId',
-  async ({id}, thunkAPI) => {
+  async (id, thunkAPI) => {
       try {
         const config = {
           method: "get",
-          url: `Locker/index/${id}`,
+          url: `Locker/GetGroupsWithLockers?branchId=${id}`,
         };
        
         const response = await instance(config);

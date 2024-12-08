@@ -80,7 +80,7 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
   }
 
   const handleLockerGroupChange = (selectedOption) => {
-    sendGroupInfo('groupId', selectedOption.value);
+    sendGroupInfo('lockerGroupId', selectedOption.value);
   };
 
   return (
@@ -158,7 +158,6 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
               <div className="flex ">
                 <div className="w-5/6 mr-2">
                   <CustomSelect options={lockerOptions} onChange={handleLockerTypeChange} />
-                  "personal"
                 </div>
               </div>
               <label className="block text-gray-300">Locker numbers</label>
