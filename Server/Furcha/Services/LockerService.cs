@@ -10,10 +10,12 @@ namespace FurchaAdminApi.Services
     public class LockerService
     {
         private readonly LockerRepository _lockerRepository;
+        private readonly BranchRepository _branchRepository;
 
-        public LockerService(LockerRepository lockerRepository)
+        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository)
         {
             _lockerRepository = lockerRepository;
+            _branchRepository = branchRepository;
         }
         /// <summary>
         /// Each user in the group should have access to same lockers in the lockerGroup. <br></br>
@@ -42,30 +44,112 @@ namespace FurchaAdminApi.Services
         {
             var lockers = _lockerRepository.GetLockersByCriteria(lockerType, lockerGroupId, branchId, status, isActive, lockerStatus);
 
-            var res = lockers.GroupBy(l => l.BranchId).ToList();
+            var adminBranches = _branchRepository.GetBranchesByAdminId(8);
 
-          //  var results = res.Select(branchGroup => new OfficeResult
-          //  {
-          //      OfficeName = $"Branch {branchGroup.Key}", // Replace with branch name if available
-          //      Lockers = branchGroup
-          //.GroupBy(l => l.GroupId)
-          //.Select(group => new Locker
-          //{
-          //    GroupName = $"LG{group.Key} - Floor Lockers", // Replace with actual group name if available
-          //    GroupLockers = group.Select(locker => new Locker
-          //    {
-          //        Id = locker.Id,
-          //        LockerType = locker.LockerType.ToString(), // Convert to a string representation
-          //        IsActive = locker.IsActive == 1,
-          //        IsOpen = locker.IsOpen == 1,
-          //        LockerStatus = locker.Status.ToString(), // Map status to string
-          //        GroupId = locker.GroupId
-          //    }).ToList()
-          //}).ToList()
-          //  }).ToList();
+            var results = new List<OfficeResult>();
 
-            return new List<OfficeResult>();
+            foreach (var branch in adminBranches)
+            {
+                var branchLockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branch.Id);
+
+                var lockerResults = new List<LockersResult>();
+
+                foreach (var group in branchLockerGroups)
+                {
+                    var groupLockers = lockers.Where(locker => locker.GroupId == group.Id).ToList();
+
+                    if (groupLockers.Any())
+                    {
+                        lockerResults.Add(new LockersResult
+                        {
+                            GroupName = group.Name,
+                            GroupLockers = groupLockers.Select(locker => new Locker
+                            {
+                                Id = locker.Id,
+                                LockerType = locker.LockerType,
+                                IsActive = locker.IsActive,
+                                IsOpen = locker.IsOpen,
+                                Status = locker.Status,
+                                GroupId = locker.GroupId
+                            }).ToList()
+                        });
+                    }
+                }
+
+                if (lockerResults.Any())
+                {
+                    results.Add(new OfficeResult
+                    {
+                        OfficeName = branch.Name,
+                        Lockers = lockerResults
+                    });
+                }
+            }
+
+            return results;
         }
+
+        public List<LockersResult> GetGroupsWithLockers(int branchId)
+        {
+            var lockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branchId);
+
+            var lockers = _lockerRepository.GetLockersByBranchId(branchId);
+
+            var results = lockerGroups.Select(group => new LockersResult
+            {
+                GroupName = group.Name,
+                GroupLockers = lockers.Where(locker => locker.GroupId == group.Id).ToList()
+            }).ToList();
+
+            return results;
+        }
+
+
+
+        /// <summary>
+        /// Retrieves lockers based on specified filtering criteria.
+        /// </summary>
+        public List<ModuleResult> GetModules()
+        {
+#warning auth
+            var adminBranches = _branchRepository.GetBranchesByAdminId(8);
+
+            var result = new List<ModuleResult>();
+
+            foreach (var branch in adminBranches)
+            {
+                var branchLockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branch.Id);
+
+                var moduleInfos = new List<ModuleInfo>();
+
+                foreach (var group in branchLockerGroups)
+                {
+                    var groupModules = _lockerRepository.GetModulesByGroupId(group.Id);
+
+                    if (groupModules.Any())
+                    {
+                        moduleInfos.Add(new ModuleInfo
+                        {
+                            GroupName = group.Name,
+                            GroupModules = groupModules
+                        });
+                    }
+                }
+
+                if (moduleInfos.Any())
+                {
+                    result.Add(new ModuleResult
+                    {
+                        OfficeName = branch.Name,
+                        Modules = moduleInfos
+                    });
+                }
+            }
+
+            return result;
+        }
+
+
 
         internal bool CreateModule(CreateModuleRequest request)
         {

@@ -2,7 +2,7 @@
 
 namespace FurchaAdminApi.Models.Result
 {
-    public class LockerResult
+    public class LockersResult
     {
         public string GroupName { get; set; }
         public List<Locker> GroupLockers { get; set; }

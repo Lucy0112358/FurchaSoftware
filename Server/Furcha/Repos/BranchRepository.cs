@@ -35,6 +35,26 @@ namespace FurchaAdminApi.Repos
             return GetSingle<Company>(Id);
         }
 
+        /// <summary>
+        /// Gets the branches, which are accessible to the logged in administrator
+        /// </summary>
+        public List<Branch> GetBranchesByAdminId(int adminId)
+        {
+            var sql = @"
+        SELECT b.*
+        FROM furcha.""Branch"" b
+        INNER JOIN furcha.""AdminBranch"" ab ON b.""Id"" = ab.""BranchId""
+        WHERE ab.""AdminId"" = @AdminId";
+
+            var branches = Query<Branch>(
+                sql: sql,
+                param: new { AdminId = adminId }
+            ).ToList();
+
+            return branches;
+        }
+
+
         public List<Branch> GetBranchesOfUserGroup(int userGroupId)
         {
             var sql = @"

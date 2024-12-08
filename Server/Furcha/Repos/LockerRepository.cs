@@ -82,6 +82,43 @@ namespace FurchaAdminApi.Repos
             return lockers;
         }
 
+        /// <summary>
+        /// Retrieves all Brain Modules associated with a specific locker group.
+        /// </summary>
+        /// <param name="groupId">The ID of the locker group.</param>
+        /// <returns>A list of Brain Modules associated with the locker group, or null if none are found.</returns>
+        public List<BrainModule> GetModulesByGroupId(int groupId)
+        {
+            var sql = @"
+        SELECT bm.*
+        FROM furcha.""BrainModule"" bm      
+        WHERE ""GroupId"" = @GroupId";
+
+            var brainModules = Query<BrainModule>(
+                sql: sql,
+                param: new { GroupId = groupId }
+            ).ToList();
+
+            return brainModules;
+        }
+
+
+        public List<LockerGroup> GetLockerGroupsByBranchId(int branchId)
+        {
+            var sql = @"
+        SELECT lg.*
+        FROM furcha.""LockerGroup"" lg
+        WHERE lg.""BranchId"" = @BranchId";
+
+            var lockerGroups = Query<LockerGroup>(
+                sql: sql,
+                param: new { BranchId = branchId }
+            ).ToList();
+
+            return lockerGroups;
+        }
+
+
         internal List<LockerGroup> GetLockerGroupsByUserGroup(int ugId)
         {
             var sql = @"
@@ -98,6 +135,26 @@ namespace FurchaAdminApi.Repos
 
             return lockerGroups;
         }
+
+
+        /// <summary>
+        /// Retrieves lockers based on the specified locker group
+        /// </summary>
+        public List<Locker> GetLockersOfGroup(int groupId)
+        {
+            var sql = @"
+        SELECT l.*
+        FROM furcha.""Locker"" l
+        WHERE l.""groupid"" = @GroupId";
+
+            var lockers = Query<Locker>(
+                sql: sql,
+                param: new { GroupId = groupId }
+            ).ToList();
+
+            return lockers;
+        }
+
 
         /// <summary>
         /// Retrieves lockers based on the specified filter criteria, including full locker details.
@@ -140,6 +197,28 @@ namespace FurchaAdminApi.Repos
 
             return lockers;
         }
+
+        /// <summary>
+        /// Retrieves all lockers associated with a specific branch.
+        /// </summary>
+        /// <param name="branchId">The ID of the branch.</param>
+        /// <returns>A list of lockers belonging to the specified branch.</returns>
+        public List<Locker> GetLockersByBranchId(int branchId)
+        {
+            var sql = @"
+        SELECT l.*
+        FROM furcha.""Locker"" l
+        INNER JOIN furcha.""LockerGroup"" lg ON l.""groupid"" = lg.""Id""
+        WHERE lg.""BranchId"" = @BranchId";
+
+            var lockers = Query<Locker>(
+                sql: sql,
+                param: new { BranchId = branchId }
+            ).ToList();
+
+            return lockers;
+        }
+
 
         /// <summary>
         /// Create a locker group and connect it with a branch,
