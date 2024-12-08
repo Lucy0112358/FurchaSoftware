@@ -102,11 +102,11 @@ namespace FurchaAdminApi.Controllers
 
 #warning When auth is done, this methode must return only modules accessible for the logged in admin
         [HttpGet("GetModules")]
-        public ActionResult<ApiResult<List<ModuleResulr>>> GetModules()
+        public ActionResult<ApiResult<List<ModuleResult>>> GetModules()
         {
-            var modules = new List<ModuleResulr>();
+            var modules = _lockerService.GetModules();
 
-            return Ok(ApiResult<List<ModuleResulr>>.Success(modules));
+            return Ok(ApiResult<List<ModuleResult>>.Success(modules));
         }
 
         [HttpGet("admin-lockerGroups")]
@@ -126,6 +126,19 @@ namespace FurchaAdminApi.Controllers
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
+        }
+
+        [HttpGet("GetGroupsWithLockers")]
+        public ActionResult<ApiResult<List<LockersResult>>> GetGroupsWithLockers([FromQuery] int branchId)
+        {
+            var groupsWithLockers = _lockerService.GetGroupsWithLockers(branchId);
+
+            if (groupsWithLockers == null || !groupsWithLockers.Any())
+            {
+                return NotFound(ApiResult<List<LockerGroupResult>>.ErrorResult("No groups with lockers found."));
+            }
+
+            return Ok(ApiResult<List<LockersResult>>.Success(groupsWithLockers));
         }
 
         // DELETE api/<LockerController>/5
