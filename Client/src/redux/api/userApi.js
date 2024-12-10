@@ -11,7 +11,7 @@ export const getAllUsers = createAsyncThunk(
         };
         
         const response = await instance(config);
-        console.log(response.data, "aaaaaaaalllllllllllllUserrrrrr")
+        // console.log(response.data, "aaaaaaaalllllllllllllUserrrrrr")
         return response?.data;
       } catch (error) {
         return thunkAPI.rejectWithValue(error.response.data.error.both);

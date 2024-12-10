@@ -92,14 +92,16 @@ namespace FurchaAdminApi.Services
         public List<LockersResult> GetGroupsWithLockers(int branchId)
         {
             var lockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branchId);
-
             var lockers = _lockerRepository.GetLockersByBranchId(branchId);
 
-            var results = lockerGroups.Select(group => new LockersResult
-            {
-                GroupName = group.Name,
-                GroupLockers = lockers.Where(locker => locker.GroupId == group.Id).ToList()
-            }).ToList();
+            var results = lockerGroups
+                .Select(group => new LockersResult
+                {
+                    GroupName = group.Name,
+                    GroupLockers = lockers.Where(locker => locker.GroupId == group.Id).ToList()
+                })
+                .Where(result => result.GroupLockers.Any()) 
+                .ToList();
 
             return results;
         }

@@ -25,9 +25,9 @@ function LockerMenu() {
     const [inputValue, setInputValue] = useState('');
     const [debounceTimeout, setDebounceTimeout] = useState(null);
 
-    useEffect(() => {
-        dispatch(getLockerGroupsData());
-    }, []);
+    // useEffect(() => {
+    //     dispatch(getLockerGroupsData());
+    // }, []);
 
 
     console.log(lockerFilters, "lockerFilterslockerFilters");
