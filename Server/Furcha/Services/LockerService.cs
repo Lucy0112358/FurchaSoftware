@@ -150,7 +150,7 @@ namespace FurchaAdminApi.Services
         }
 
 
-
+#warning needs to be changed to MQTT
         internal bool CreateModule(CreateModuleRequest request)
         {
             //using (var transaction = new TransactionScope())
@@ -164,11 +164,13 @@ namespace FurchaAdminApi.Services
 
             _lockerRepository.CreateModule(module);
 
-            //  List<Locker> lockers = new List<Locker>();
-            //for (int i = request.MinNumber; i <= request.MaxNumber; i++)
-            //{
-            //    lockers[i].Number = i;
-            //}
+            List<Locker> lockers = new List<Locker>();
+            for (int i = request.MinNumber; i <= request.MaxNumber; i++)
+            {
+                lockers[i].Number = i;
+                lockers[i].LockerType = request.LockerType.ToString() ?? Domain.Enums.LockerTypeEnum.Common.ToString();
+                _lockerRepository.CreateLocker(lockers[i]);
+            }
 
             //}
 

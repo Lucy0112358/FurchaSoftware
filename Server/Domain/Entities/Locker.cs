@@ -16,7 +16,7 @@ namespace Domain.Entities
         public int GroupId { get; set; }
 
         [Column]
-        public LockerTypeEnum LockerType { get; set; }
+        public string LockerType { get; set; }
 
         [Column]
         public int IsActive { get; set; }

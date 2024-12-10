@@ -238,6 +238,13 @@ namespace FurchaAdminApi.Repos
             return result;
         }
 
+        internal Locker CreateLocker(Locker module)
+        {
+            var result = Insert(module);
+
+            return result;
+        }
+
 #warning after auth get only valid for admin
         public List<LockerGroup> GetLockerGroupsByAdminId(int adminId)
         {
