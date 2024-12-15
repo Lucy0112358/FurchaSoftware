@@ -4,7 +4,7 @@ namespace MqttService.Application.Models.MqttRequest
 {
     public class CreateModuleRequest
     {
-        public string LockerType { get; set; } = null;
+        public locker_type LockerType { get; set; } = locker_type.Common;
         public int BranchId { get; set; }
         public int LastLocker { get; set; }
         public int FirstLocker { get; set; }

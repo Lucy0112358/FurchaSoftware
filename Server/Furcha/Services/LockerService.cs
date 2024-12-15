@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
 using MqttService.Application.Models.MqttRequest;
@@ -56,7 +57,7 @@ namespace FurchaAdminApi.Services
 
                 foreach (var group in branchLockerGroups)
                 {
-                    var groupLockers = lockers.Where(locker => locker.GroupId == group.Id).ToList();
+                    var groupLockers = lockers.Where(locker => locker.groupid == group.Id).ToList();
 
                     if (groupLockers.Any())
                     {
@@ -69,8 +70,8 @@ namespace FurchaAdminApi.Services
                                 LockerType = locker.LockerType,
                                 IsActive = locker.IsActive,
                                 IsOpen = locker.IsOpen,
-                                Status = locker.Status,
-                                GroupId = locker.GroupId
+                            //    Status = locker.Status,
+                                groupid = locker.groupid
                             }).ToList()
                         });
                     }
@@ -98,7 +99,7 @@ namespace FurchaAdminApi.Services
                 .Select(group => new LockersResult
                 {
                     GroupName = group.Name,
-                    GroupLockers = lockers.Where(locker => locker.GroupId == group.Id).ToList()
+                    GroupLockers = lockers.Where(locker => locker.groupid == group.Id).ToList()
                 })
                 .Where(result => result.GroupLockers.Any()) 
                 .ToList();
@@ -166,12 +167,16 @@ namespace FurchaAdminApi.Services
 
             _lockerRepository.CreateModule(module);
 
-            List<Locker> lockers = new List<Locker>();
-            for (int i = request.MinNumber; i <= request.MaxNumber; i++)
+            for (int i = request.FirstLocker; i < request.LastLocker; i++)
             {
-                lockers[i].Number = i;
-                lockers[i].LockerType = request.LockerType.ToString() ?? Domain.Enums.LockerTypeEnum.Common.ToString();
-                _lockerRepository.CreateLocker(lockers[i]);
+                var locker = new Locker
+                {
+                    number = i,
+                    LockerType = request.LockerType.ToString(),
+                    PasswordHash = "default"
+                };
+              
+                _lockerRepository.CreateLocker(locker);
             }
 
             //}

@@ -239,7 +239,7 @@ namespace FurchaAdminApi.Services
                     var permittedLockerResult = new PermittedLockerResult()
                     {
                         LockerId = permittedLocker.Id,
-                        LockerNumber = permittedLocker.Number
+                        LockerNumber = permittedLocker.number
                     };
 
                     permittedLockerResults.Add(permittedLockerResult);

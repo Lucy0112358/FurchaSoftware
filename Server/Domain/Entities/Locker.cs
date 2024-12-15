@@ -1,5 +1,6 @@
 ﻿using Domain.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Domain.Entities
 {
@@ -10,10 +11,10 @@ namespace Domain.Entities
         public int Id { get; set; }
 
         [Column]
-        public long Number { get; set; }
+        public long number { get; set; }
 
         [Column]
-        public int GroupId { get; set; }
+        public int groupid { get; set; }
 
         [Column]
         public string LockerType { get; set; }
@@ -24,17 +25,18 @@ namespace Domain.Entities
         [Column]
         public int IsOpen { get; set; }
 
-        [Column]
-        public int Status { get; set; }
+        //[Column]
+        //public int Status { get; set; }
 
         [Column]
         public int BranchId { get; set; }
 
         [Column]
         public string PasswordHash { get; set; }
+        //[JsonIgnore]
 
-        [InverseProperty("LockerCard")]
-        public IEnumerable<UserLocker> UserLocker { get; set; }
+        //[InverseProperty("LockerCard")]
+        //public IEnumerable<UserLocker> UserLocker { get; set; }
 
     }
 }

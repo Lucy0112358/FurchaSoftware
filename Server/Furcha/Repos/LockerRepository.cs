@@ -92,7 +92,7 @@ namespace FurchaAdminApi.Repos
             var sql = @"
         SELECT bm.*
         FROM furcha.""BrainModule"" bm      
-        WHERE ""GroupId"" = @GroupId";
+        WHERE ""groupid"" = @groupid";
 
             var brainModules = Query<BrainModule>(
                 sql: sql,
@@ -124,7 +124,7 @@ namespace FurchaAdminApi.Repos
             var sql = @"
                     SELECT DISTINCT lg.*
                     FROM furcha.""LockerGroup"" lg
-                    INNER JOIN furcha.""Locker"" l ON lg.""Id"" = l.GroupId
+                    INNER JOIN furcha.""Locker"" l ON lg.""Id"" = l.groupid
                     INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""LockerId""
                     WHERE ugl.""UserGroupId"" = @UserGroupId";
 
@@ -145,7 +145,7 @@ namespace FurchaAdminApi.Repos
             var sql = @"
         SELECT l.*
         FROM furcha.""Locker"" l
-        WHERE l.""groupid"" = @GroupId";
+        WHERE l.""groupid"" = @groupid";
 
             var lockers = Query<Locker>(
                 sql: sql,
