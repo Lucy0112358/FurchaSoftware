@@ -35,7 +35,7 @@ namespace FurchaAdminApi.Repos
         /// </summary>
         public User? GetAdminByEmail(string email)
         {
-            var sql = $@"SELECT * FROM furcha.""User"" WHERE Email = @email LIMIT 1";
+            var sql = $@"SELECT * FROM furcha.""User"" WHERE ""Email"" = @email LIMIT 1";
             var admin = Query<User>(
             sql: sql,
             param: new { email });
