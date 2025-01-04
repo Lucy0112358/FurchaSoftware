@@ -172,8 +172,9 @@ namespace FurchaAdminApi.Services
                 var locker = new Locker
                 {
                     number = i,
-                    LockerType = request.LockerType.ToString(),
-                    PasswordHash = "default"
+                    LockerType = locker_type.Personal.ToString(),
+                    PasswordHash = "default",
+                    BranchId = request.BranchId
                 };
               
                 _lockerRepository.CreateLocker(locker);
