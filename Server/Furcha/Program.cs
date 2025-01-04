@@ -89,8 +89,8 @@ namespace FurchaAdminApi
             app.UseCors("AllowAll");
 
             app.UseHttpsRedirection(); 
-            app.UseAuthentication(); 
-            app.UseAuthorization();
+            //app.UseAuthentication(); 
+            //app.UseAuthorization();
             app.MapControllers();
             app.Run();
         }
