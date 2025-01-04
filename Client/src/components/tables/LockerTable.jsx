@@ -155,15 +155,15 @@ function LockerTable() {
             <OfficeName name={locker.officeName} />
             {locker.lockers.map((lockerGroup, groupIndex) => (
               <React.Fragment key={groupIndex}>
-                <div className='ml-2'>
+                <div className='ml-2 mt-3'>
                   <GroupName name={lockerGroup.groupName} />
                 </div>
                 <div className="outlet__table__wrapper overflow-x-auto mt-2"
                  style={{ height: lockerGroup?.groupLockers?.length >= 10 ? '480px' : 'auto' }}
                  >
                   <table
-                    className="outlet__table min-w-full bg-white mb-4 "
-                    style={{ color: '#AAAAAA', minWidth: '1110px' }}
+                    className="outlet__table min-w-full bg-white"
+                    style={{color: '#AAAAAA', minWidth: '1110px', borderRadius: lockerGroup?.groupLockers?.length >= 10 ? '0px' : '10px' }}
                   >
                     <thead>
                       <tr className="outlet__table__header">

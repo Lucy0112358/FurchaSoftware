@@ -418,9 +418,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                 {filteredBranchGroups?.length ? (
                   <div className='pl-5'>
                     {filteredBranchGroups.map((lockerGroup, groupIndex) => (
-                      <React.Fragment key={groupIndex}>
-                        <GroupName name={lockerGroup.groupName} />
-                        <div className='flex flex-wrap mb-4'>
+                        <React.Fragment key={groupIndex}>
+                          <GroupName name={lockerGroup.groupName} />
+                          <div className='flex flex-wrap mb-4'>
                           {lockerGroup.groupLockers.map((item, itemIndex) => (
                             <dvi className="mr-2 mb-2">
                               <GenerateLocker item={item} index={itemIndex} />

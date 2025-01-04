@@ -17,6 +17,7 @@ import LockerTypes from './locker/components/lockerTypes/LockerTypes';
 import UserMenu from './user/UserMenu';
 import LockerMenu from './locker/LockerMenu';
 import ModulesMenu from './modules/ModulesMenu';
+import AdminMenu from './admin/AdminMenu';
 
 
 function Menu() {
@@ -82,9 +83,11 @@ function Menu() {
           <UserMenu />
           : path == '/lockers' ?
             <LockerMenu />
-            : path == '/modules' ?
-            <ModulesMenu />
-            : null
+            : path == '/admins' ?
+              <AdminMenu />
+              : path == '/modules' ?
+                <ModulesMenu />
+                : null
       }
     </div >
   );

@@ -24,3 +24,13 @@ export const lockerTable = [
     'Status',
     'State',
 ];
+
+export const adminTable = [
+    'User ID',
+    'User Name',
+    'Last Name',
+    'Role',
+    'Card No.',
+    'Branch',
+    'State',
+];
