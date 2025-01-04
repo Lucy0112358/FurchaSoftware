@@ -92,7 +92,7 @@ namespace FurchaAdminApi.Repos
             var sql = @"
         SELECT bm.*
         FROM furcha.""BrainModule"" bm      
-        WHERE ""groupid"" = @groupid";
+        WHERE ""GroupId"" = @groupid";
 
             var brainModules = Query<BrainModule>(
                 sql: sql,
