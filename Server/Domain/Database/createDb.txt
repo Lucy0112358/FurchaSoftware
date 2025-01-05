@@ -314,3 +314,6 @@ ALTER TABLE furcha."Locker"
 ADD COLUMN "BranchId" INTEGER,
 ADD CONSTRAINT fk_branch
 FOREIGN KEY ("BranchId") REFERENCES furcha."Branch"("Id") ON DELETE SET NULL;
+
+ALTER TABLE furcha."Locker"ADD COLUMN "BrainId" INT,
+ADD CONSTRAINT "FK_Locker_BrainModule"FOREIGN KEY ("BrainId") REFERENCES furcha."BrainModule" ("Id");.

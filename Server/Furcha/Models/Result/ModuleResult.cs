@@ -17,8 +17,8 @@ namespace FurchaAdminApi.Models.Result
 
     public class ModuleLockers
     {
-        public int FirstNumber { get; set; }
-        public int LastNumber { get; set; }
+        public int FirstLocker { get; set; }
+        public int LastLocker { get; set; }
 
     }
 }

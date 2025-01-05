@@ -139,8 +139,8 @@ namespace FurchaAdminApi.Services
                             var moduleCount = _lockerRepository.GetLockersByBrainId(module.BranchId).Count;
                             moduleLockers.Add(new ModuleLockers
                             {
-                                FirstNumber = currentNumber,
-                                LastNumber = currentNumber + moduleCount + 1
+                                FirstLocker = currentNumber,
+                                LastLocker = currentNumber + moduleCount + 1
                             });
 
                             currentNumber += moduleCount;
