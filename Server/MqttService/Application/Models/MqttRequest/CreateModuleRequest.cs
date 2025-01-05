@@ -1,10 +1,12 @@
 ﻿using Domain.Enums;
+using System.Text.Json.Serialization;
 
 namespace MqttService.Application.Models.MqttRequest
 {
     public class CreateModuleRequest
     {
-        public locker_type LockerType { get; set; } = locker_type.Common;
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public locker_type LockerType { get; set; }
         public int BranchId { get; set; }
         public int LastLocker { get; set; }
         public int FirstLocker { get; set; }
