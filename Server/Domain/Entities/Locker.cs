@@ -14,7 +14,7 @@ namespace Domain.Entities
         public long number { get; set; }
 
         [Column]
-        public int groupid { get; set; }
+        public int? groupid { get; set; }
 
         [Column]
         public string LockerType { get; set; }
