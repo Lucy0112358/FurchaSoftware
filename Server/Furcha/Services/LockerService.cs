@@ -70,7 +70,7 @@ namespace FurchaAdminApi.Services
                                 LockerType = locker.LockerType,
                                 IsActive = locker.IsActive,
                                 IsOpen = locker.IsOpen,
-                            //    Status = locker.Status,
+                                //    Status = locker.Status,
                                 groupid = locker.groupid
                             }).ToList()
                         });
@@ -101,7 +101,7 @@ namespace FurchaAdminApi.Services
                     GroupName = group.Name,
                     GroupLockers = lockers.Where(locker => locker.groupid == group.Id).ToList()
                 })
-                .Where(result => result.GroupLockers.Any()) 
+                .Where(result => result.GroupLockers.Any())
                 .ToList();
 
             return results;
@@ -118,6 +118,7 @@ namespace FurchaAdminApi.Services
             var adminBranches = _branchRepository.GetBranchesByAdminId(8);
 
             var result = new List<ModuleResult>();
+            int currentNumber = 1;
 
             foreach (var branch in adminBranches)
             {
@@ -131,10 +132,24 @@ namespace FurchaAdminApi.Services
 
                     if (groupModules.Any())
                     {
+                        var moduleLockers = new List<ModuleLockers>();
+
+                        foreach (var module in groupModules)
+                        {
+                            var moduleCount = _lockerRepository.GetLockersByBrainId(module.BranchId).Count;
+                            moduleLockers.Add(new ModuleLockers
+                            {
+                                FirstNumber = currentNumber,
+                                LastNumber = currentNumber + moduleCount + 1
+                            });
+
+                            currentNumber += moduleCount;
+                        }
+
                         moduleInfos.Add(new ModuleInfo
                         {
                             GroupName = group.Name,
-                            GroupModules = groupModules
+                            GroupModules = moduleLockers
                         });
                     }
                 }
@@ -151,6 +166,7 @@ namespace FurchaAdminApi.Services
 
             return result;
         }
+
 
 
 #warning needs to be changed to MQTT
@@ -172,11 +188,13 @@ namespace FurchaAdminApi.Services
                 var locker = new Locker
                 {
                     number = i,
-                    LockerType = locker_type.Personal.ToString(),
+                    LockerType = request.LockerType.ToString(),
                     PasswordHash = "default",
-                    BranchId = request.BranchId
+                    BranchId = request.BranchId,
+#warning change the groupId
+                    groupid = 4
                 };
-              
+
                 _lockerRepository.CreateLocker(locker);
             }
 

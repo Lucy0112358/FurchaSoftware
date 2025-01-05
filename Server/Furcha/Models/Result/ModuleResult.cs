@@ -12,6 +12,13 @@ namespace FurchaAdminApi.Models.Result
     public class ModuleInfo
     {
         public string GroupName { get; set; }
-        public List<BrainModule> GroupModules { get; set; }
+        public List<ModuleLockers> GroupModules { get; set; }
+    }
+
+    public class ModuleLockers
+    {
+        public int FirstNumber { get; set; }
+        public int LastNumber { get; set; }
+
     }
 }

@@ -219,6 +219,26 @@ namespace FurchaAdminApi.Repos
             return lockers;
         }
 
+        /// <summary>
+        /// Retrieves lockers associated with a specific BrainId.
+        /// </summary>
+        /// <param name="brainId">The ID of the brain module.</param>
+        /// <returns>A list of lockers associated with the specified BrainId.</returns>
+        public List<Locker> GetLockersByBrainId(int brainId)
+        {
+            var sql = @"
+        SELECT l.*
+        FROM furcha.""Locker"" l       
+        WHERE l.""BrainId"" = @BrainId";
+
+            var lockers = Query<Locker>(
+                sql: sql,
+                param: new { BrainId = brainId }
+            ).ToList();
+
+            return lockers;
+        }
+
 
         /// <summary>
         /// Create a locker group and connect it with a branch,
