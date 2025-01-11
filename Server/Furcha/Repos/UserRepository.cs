@@ -436,8 +436,8 @@ namespace FurchaAdminApi.Repos
                     }
 
                     AddCardsByNumbers(newUser.Cards, insertedUser.Id);
-
-                    AddUserGroupsForNewUser(newUser.UserGroups, insertedUser.Id);
+                    AssignLockersToUser(newUser.LockerIds, insertedUser.Id);
+                    AssignUserGroupsToUser(newUser.UserGroups, insertedUser.Id);
 
                     transactionScope.Complete();
 
@@ -462,7 +462,7 @@ namespace FurchaAdminApi.Repos
             }
         }
 
-        public void AddUserGroupsForNewUser(List<int> groupIds, int userId)
+        public void AssignUserGroupsToUser(List<int> groupIds, int userId)
         {
             try
             {
@@ -475,6 +475,29 @@ namespace FurchaAdminApi.Repos
                     };
 
                     Insert(userUserGroup);
+                });
+            }
+            catch (Exception ex)
+            {
+#warning add a more specific error message here
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
+            }
+
+        }
+
+        public void AssignLockersToUser(List<int> lockerIds, int userId)
+        {
+            try
+            {
+                lockerIds.ForEach(id =>
+                {
+                    var userLocker = new UserLocker
+                    {
+                        UserId = userId,
+                        LockerId = id
+                    };
+
+                    Insert(userLocker);
                 });
             }
             catch (Exception ex)
