@@ -133,10 +133,10 @@ namespace FurchaAdminApi.Controllers
         {
             var groupsWithLockers = _lockerService.GetGroupsWithLockers(branchId);
 
-            if (groupsWithLockers == null || !groupsWithLockers.Any())
+          /*  if (!groupsWithLockers.Any())
             {
                 return NotFound(ApiResult<List<LockerGroupResult>>.ErrorResult("No groups with lockers found."));
-            }
+            }*/
 
             return Ok(ApiResult<List<LockersResult>>.Success(groupsWithLockers));
         }

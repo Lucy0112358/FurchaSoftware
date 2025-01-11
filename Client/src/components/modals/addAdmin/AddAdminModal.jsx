@@ -23,30 +23,24 @@ import NoData from "../../no-data/NoData";
 import Select from 'react-select';
 import instance from "../../../config/axios/axiosConfig";
 import AsyncSelect from 'react-select/async';
+import { setAddAdminInfo } from "../../../redux/slice/adminSlice";
 
 
 
 const AddAdminModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
   const dispatch = useDispatch();
-
   const [pinChecked, setPinChecked] = useState(false);
   const [qrChecked, setQrChecked] = useState(false);
   const userInfo = useSelector(getAddUserInfo);
-  const [userRight, setUserRight] = useState({});
+  const [adminRight, setAdminRight] = useState({});
   const cardRef = useRef(null);
   const [cards, setCards] = useState([]);
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
-
-
   const branches = useSelector(getBranchesData);
   const filteredBranchGroups = useSelector(getFilteredLockerGroups)
-
-
-  console.log(filteredBranchGroups, "filteredBranchGroupsfilteredBranchGroups");
   const [inputValue, setInputValue] = useState('');
-
 
   // TODO:  User Group
   const [sentGeneralInfo, setSentGeneralInfo] = useState({
@@ -54,7 +48,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
   });
 
   const sendGroupInfo = (part, key, value) => {
-    addAllInfoForUser(part, key, value);
+    addAllInfoForAdmin(part, key, value);
     setSentGeneralInfo((prev) => ({
       ...prev,
       [key]: value,
@@ -69,32 +63,31 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
     setSelectedGroups(selectedOption);
 
     // TODO:
-    // addAllInfoForUserGroup('Group', 'name', selectedBranch) 
+    // addAllInfoForAdminGroup('Group', 'name', selectedBranch) 
     let id = selectedOption.value
     console.log(selectedOption, 6666)
     let ids = selectedOption.map(item => item.value);
     console.log(ids, 7777)
     setSentGeneralInfo((prev) => ({
       ...prev,
-      'userGroups': ids,
+      'adminType': ids, 
     }))
-
     dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
   };
 
 
-  const addAllInfoForUser = (part, key, value) => {
-    const updatedUserInfo = {
+  const addAllInfoForAdmin = (part, key, value) => {
+    const updatedAdminInfo = {
       [part]: {
-        ...userInfo[part],
+        ...adminInfo[part],
         [key]: value,
       },
     };
-    dispatch(setAddUserInfo(updatedUserInfo));
+    dispatch(setAddAdminInfo(updatedAdminInfo));
 
-    setUserRight((prev) => ({
+    setAdminRight((prev) => ({
       ...prev,
-      ...updatedUserInfo,
+      ...updatedAdminInfo,
     }));
   };
 
@@ -114,7 +107,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
   };
 
   const formatUserRightText = () => {
-    const userRightsEntries = Object.entries(userRight);
+    const userRightsEntries = Object.entries(adminRight);
     return userRightsEntries
       .map(([part, values]) => {
         const valuesEntries = Object.entries(values).map(
@@ -223,9 +216,9 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
             &times;
           </button>
         </div>
-        <div>
+        <div className="flex">
           {/* User Info */}
-          <div className="add__modal__content__part">
+          <div className="add__modal__content__part w-[70%] mr-1">
             <span>User</span>
             <div className="add__modal__content__part__group mb-4 flex">
               <AsyncSelect
@@ -233,7 +226,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
                 cacheOptions
                 loadOptions={loadUserOptions}
                 isSearchable={true}
-                inputValue={inputValue} 
+                inputValue={inputValue}
                 onInputChange={handleUserInputChange}
                 onChange={handleUserChange}
                 closeMenuOnSelect={false}
@@ -250,13 +243,25 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
             </div>
           </div>
 
-          <div className="add__modal__content__part">
-            <span>Choose Admin Type</span>
+          <div className="add__modal__content__part w-[30%]">
+            <span>Admin Type</span>
             <div className="add__modal__content__part__group mb-4 flex">
-              <div className="add__modal__group__select">
+              <div className="add__modal__group__select mr-0 w-full">
                 <CustomSelect options={userGroups} onChange={handleGroupsSelectChange} multiChoose={true} />
               </div>
             </div>
+          </div>
+        </div>
+        <div className="add__modal__content__part">
+          <span>Admin rights</span>
+          <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
+            <label className="block text-gray-300">Admin rights details</label>
+            <textarea
+              className="w-full p-1 border rounded h-24"
+              // value={adminRight}
+              readOnly
+              defaultValue={formatUserRightText()}
+            ></textarea>
           </div>
         </div>
         {/* Buttons */}

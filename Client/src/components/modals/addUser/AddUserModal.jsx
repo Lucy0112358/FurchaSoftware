@@ -422,9 +422,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                           <GroupName name={lockerGroup.groupName} />
                           <div className='flex flex-wrap mb-4'>
                           {lockerGroup.groupLockers.map((item, itemIndex) => (
-                            <dvi className="mr-2 mb-2">
+                            <div className="mr-2 mb-2">
                               <GenerateLocker item={item} index={itemIndex} />
-                            </dvi>
+                            </div>
                           ))}
                         </div>
                       </React.Fragment>

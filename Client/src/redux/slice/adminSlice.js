@@ -8,6 +8,7 @@ import { getAllAdmins } from "../api/adminApi";
 const initialState = {
   loading: false,
   allAdmins: [],
+  adminInfo: {},
 };
 
 export const adminSlice = createSlice({
@@ -17,15 +18,15 @@ export const adminSlice = createSlice({
     setLoading: (state, action) => {
       state.loading = action.payload.loading;
     },
-    // setAddUserInfo: (state, action) => {
-    //   state.userInfo = {
-    //     ...state.userInfo,
-    //     ...action.payload,
-    //   };
-    // },
-    // setAdmin: (state, action) => {
-    //   state.allAdmins = action.payload.data;
-    // },
+    setAddAdminInfo: (state, action) => {
+      state.adminInfo = {
+        ...state.adminInfo,
+        ...action.payload,
+      };
+    },
+    setAdmin: (state, action) => {
+      state.allAdmins = action.payload.data;
+    },
   },
 
   extraReducers: (builder) => {
@@ -65,13 +66,13 @@ export const adminSlice = createSlice({
 
 export const {
   setLoading,
-  // setAddUserInfo,
+  setAddAdminInfo,
 } = adminSlice.actions;
 
 export const getLoadingNow = (state) => state.user.loading;
 
 export const getAllAdminsData = (state) => state.user.allAdmins;
 
-// export const getAddUserInfo = (state) => state.user.userInfo;
+export const getAddAdminInfo = (state) => state.user.adminInfo;
 
 export default adminSlice.reducer;
