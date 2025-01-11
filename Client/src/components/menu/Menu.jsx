@@ -17,6 +17,7 @@ import LockerTypes from './locker/components/lockerTypes/LockerTypes';
 import UserMenu from './user/UserMenu';
 import LockerMenu from './locker/LockerMenu';
 import ModulesMenu from './modules/ModulesMenu';
+import AdminMenu from './admin/AdminMenu';
 
 
 function Menu() {
@@ -27,8 +28,6 @@ function Menu() {
   const userGroupEnabled = useSelector(getSelectGroupSelect);
   const [filters, setFilters] = useState({});
   const [path, setPath] = useState('/');
-
-  // console.log(filters, "filtersfilters")
 
   //input search by nane
   const [inputValue, setInputValue] = useState('');
@@ -43,8 +42,6 @@ function Menu() {
     addFilters(selectedOption, 'groupId')
 
     // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
-
-    // console.log("Выбранная groups:", selectedOption);
   };
 
   const addFilters = (selectedOption, key) => {
@@ -82,9 +79,11 @@ function Menu() {
           <UserMenu />
           : path == '/lockers' ?
             <LockerMenu />
-            : path == '/modules' ?
-            <ModulesMenu />
-            : null
+            : path == '/admins' ?
+              <AdminMenu />
+              : path == '/modules' ?
+                <ModulesMenu />
+                : null
       }
     </div >
   );

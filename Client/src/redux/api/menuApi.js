@@ -38,7 +38,6 @@ export const getUserGroups = createAsyncThunk(
 export const userFilter = createAsyncThunk(
   'menu/userFilter',
   async (params, thunkAPI) => {
-    console.log(params, 7444444444)
       try {
         const config = {
           method: "get",
@@ -58,7 +57,6 @@ export const userFilter = createAsyncThunk(
 export const setUserGroup = createAsyncThunk(
   'menu/setUserGroup',
   async (data, thunkAPI) => {
-    console.log(data, 7444444444)
     data.adminId=8
       try {
         const config = {

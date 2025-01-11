@@ -11,7 +11,7 @@ function GenerateLocker({ item, index }) {
     // const name = item.user ? getInitials(item.user) : '';
     const incrementedIndex = index + 1;
     const name = 'JB';
-    switch(item.type) {
+    switch(item.lockerType.toLowerCase()) {
       case 'personal':
         return <Personal label={name} lockernumber={incrementedIndex} />;
       case 'temporary':

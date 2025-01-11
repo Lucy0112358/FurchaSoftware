@@ -22,12 +22,7 @@ function UserMenu() {
     const [selectedGroups, setSelectedGroups] = useState(null);
     const userGroupEnabled = useSelector(getSelectGroupSelect);
     const [filters, setFilters] = useState({});
-
     const branches = useSelector(getBranchesData);
-
-    console.log(branches, 78888888);
-
-    // console.log(filters, "filtersfilters")
 
     //input search by nane
     const [inputValue, setInputValue] = useState('');
@@ -40,10 +35,8 @@ function UserMenu() {
     const handleGroupsSelectChange = (selectedOption) => {
         setSelectedGroups(selectedOption);
         addFilters(selectedOption, 'groupId')
-
         // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
 
-        // console.log("Выбранная groups:", selectedOption);
     };
 
     const addFilters = (selectedOption, key) => {

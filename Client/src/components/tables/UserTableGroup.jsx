@@ -7,9 +7,6 @@ import NoData from '../no-data/NoData';
 function UserTableGroup() {
   const allUserGroups = useSelector(getAllGroupsData);
 
-  console.log(allUserGroups, "allUserGroups");
-
-
   return (
     <>
       {

@@ -42,14 +42,10 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
     dispatch(getLockerGroupsData());
   }, []);
 
-  console.log(sentGeneralInfo, 8889);
-
-
 
   const addModules = () => {
     dispatch(addModuleFunc(sentGeneralInfo))
       .then((response) => {
-        console.log(response);
         if (response && response.payload.isSuccess) {
           toast.success("Modules created successfully");
           onClose();
@@ -70,8 +66,6 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
   const handleBranchChange = (selectedOption) => {
     sendGroupInfo('branchId', selectedOption.value);
     dispatch(filterGroupByBranch(selectedOption.value));
-
-    console.log("Выбранная опция:", selectedOption);
   };
 
   const handleLockerNmbers = (value) => {

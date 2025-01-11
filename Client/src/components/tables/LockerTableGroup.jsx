@@ -17,7 +17,7 @@ function LockerTableGroup() {
       const type = lockerTypes[Math.floor(Math.random() * lockerTypes.length)];
       groupLockers.push({
         id: i,
-        type: type,
+        lockerType: type,
         user: i % 2 === 0 ? "User " + i : "-", // alternate between occupied and free lockers
         status: i % 2 === 0 ? "occupied" : "free", // alternating statuses
         state: i % 2 === 0 ? "active" : "suspended", // alternating states

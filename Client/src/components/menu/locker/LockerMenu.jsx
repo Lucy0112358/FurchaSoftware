@@ -29,14 +29,9 @@ function LockerMenu() {
     //     dispatch(getLockerGroupsData());
     // }, []);
 
-
-    console.log(lockerFilters, "lockerFilterslockerFilters");
-
-
     const handleSelectChange = (selectedOption) => {
         setSelectedBranch(selectedOption);
         addFilters(selectedOption, 'branchId')
-        console.log("Выбранная опция:", selectedOption);
     };
 
     const [selectedBranch, setSelectedBranch] = useState(null);
@@ -57,11 +52,9 @@ function LockerMenu() {
 
         // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
 
-        // console.log("Выбранная groups:", selectedOption);
     };
 
     const addFilters = (selectedOption, key) => {
-        console.log(selectedOption, key, "qqqqqqqqqqqqqqqqqqq")
         let filters = {...lockerFilters, [key]: selectedOption}
         dispatch(getLockers(filters))
         dispatch(setLockerFilter(filters))

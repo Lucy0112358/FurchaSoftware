@@ -21,7 +21,6 @@ const LockerModal = ({ isOpen, onClose, children }) => {
   const addLockerGroup = () => {
     dispatch(setLockerGroup(sentGeneralInfo))
     .then((response) => {
-      console.log(response);
       if (response && response.payload.isSuccess) {
         toast.success("Locker Group created successfully");
         onClose();

@@ -4,7 +4,7 @@ import { RiAddBoxLine } from "react-icons/ri";
 import { assets } from '../../../assets/assets';
 import CustomSelect from '../../select/CustomSelect';
 import { useDispatch, useSelector } from 'react-redux';
-import { filterUserByName, getBranches, getUserGroups, userFilter } from '../../../redux/api/menuApi';
+import { filterUserByName, getBranches, getLockerGroupsData, getUserGroups, userFilter } from '../../../redux/api/menuApi';
 import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter, setUserGroupSelect } from '../../../redux/slice/menuSlice';
 import AddUserModal from '../../modals/addUser/AddUserModal';
 import { getAllUsers } from '../../../redux/api/userApi';
@@ -14,16 +14,17 @@ import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive'
 import LockerTypes from '../locker/components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
-import ModulesModal from '../../modals/modules/ModulesModal';
+import AddAdminModal from '../../modals/addAdmin/AddAdminModal';
 
 
-function ModulesMenu() {
+function AdminMenu() {
     const dispatch = useDispatch();
     const [selectedBranch, setSelectedBranch] = useState(null);
     const [selectedGroups, setSelectedGroups] = useState(null);
     const userGroupEnabled = useSelector(getSelectGroupSelect);
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [filters, setFilters] = useState({});
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const branches = useSelector(getBranchesData);
 
     //input search by nane
     const [inputValue, setInputValue] = useState('');
@@ -38,6 +39,7 @@ function ModulesMenu() {
         addFilters(selectedOption, 'groupId')
 
         // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
+
     };
 
     const addFilters = (selectedOption, key) => {
@@ -55,12 +57,13 @@ function ModulesMenu() {
     //Add USER modal part 
     // const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const userBranches = useSelector(getBranchesData);
+    // const userBranches = useSelector(getBranchesData);
     const userGroups = useSelector(getUserGroupsData);
     const [manageEnabled, setManageEnabled] = useState(true);
 
     useEffect(() => {
         dispatch(getBranches());
+        dispatch(getLockerGroupsData());
     }, []);
 
     const handleFileChange = (event) => {
@@ -92,38 +95,30 @@ function ModulesMenu() {
         );
     };
 
-    const handleUserGroupSelect = () => {
-        dispatch(setUserGroupSelect(!userGroupEnabled));
-        if (userGroupEnabled) {
-            dispatch(getAllUsers())
-        } else {
-            dispatch(getAllGroups())
-        }
-    };
-
     return (
         <>
             <div className="menu flex justify-around">
                 <div className='menu__add'>
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="menu__add__button text-white">
-                            <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-                            <span className="">
-                                {"Add Modules"}
-                            </span>
-                        </button>
-                    </div>
-                    <ModulesModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="menu__add__button text-white">
+                        <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
+                        <span className="">
+                            {"Add Admin"}
+                        </span>
+                    </button>
+                </div>
+                <AddAdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
                 <div className="menu__filter flex space-x-4">
                     <div className='flex flex-col'>
                         <div className='menu__filter__select'>
-                            <CustomSelect options={userBranches} onChange={handleSelectChange} />
-                            <label className="text-white block">Branch</label>
+                            <CustomSelect options={branches} onChange={handleSelectChange} />
+                            <label className="text-white block">Site</label>
                         </div>
                         <div className='menu__filter__select'>
                             <CustomSelect options={userGroups} onChange={handleGroupsSelectChange} />
-                            <label className="text-white block">Locker Group</label>
+                            <label className="text-white block">User Group</label>
                         </div>
                     </div>
                     <div className='menu__filter__search'>
@@ -133,7 +128,7 @@ function ModulesMenu() {
                             onChange={handleFilterName}
                             className="w-full rounded"
                         />
-                        <label className="text-white block">Search</label>
+                        <label className="text-white block">Search User</label>
                     </div>
                 </div>
 
@@ -176,11 +171,11 @@ function ModulesMenu() {
             <div className="menu__filter__mobile hidden">
                 <div className='flex justify-between'>
                     <div className='menu__filter__select'>
-                        <CustomSelect />
+                        <CustomSelect options={branches} onChange={handleSelectChange} />
                         <label className="text-white block">Site</label>
                     </div>
                     <div className='menu__filter__select'>
-                        <CustomSelect />
+                        <CustomSelect options={userGroups} onChange={handleGroupsSelectChange} />
                         <label className="text-white block">User Group</label>
                     </div>
                     <div className='menu__filter__search'>
@@ -197,4 +192,4 @@ function ModulesMenu() {
     );
 }
 
-export default ModulesMenu
+export default AdminMenu
