@@ -25,8 +25,6 @@ function ModulesMenu() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filters, setFilters] = useState({});
 
-    console.log(filters, "filtersfilters")
-
     //input search by nane
     const [inputValue, setInputValue] = useState('');
     const [debounceTimeout, setDebounceTimeout] = useState(null);
@@ -40,8 +38,6 @@ function ModulesMenu() {
         addFilters(selectedOption, 'groupId')
 
         // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
-
-        // console.log("Выбранная groups:", selectedOption);
     };
 
     const addFilters = (selectedOption, key) => {

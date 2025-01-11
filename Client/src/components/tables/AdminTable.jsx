@@ -7,7 +7,6 @@ import { getAllAdminsData } from '../../redux/slice/adminSlice';
 
 function AdminTable() {
   const allAdmins = useSelector(getAllAdminsData);
-  // console.log(allUsers, "sdada");
 
   return (
     <>

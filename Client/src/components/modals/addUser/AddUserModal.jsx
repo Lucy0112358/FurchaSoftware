@@ -20,6 +20,7 @@ import OfficeName from "../../headers/OfficeName";
 import GroupName from "../../headers/GroupName";
 import GenerateLocker from "../../lockers/GenerateLocker";
 import NoData from "../../no-data/NoData";
+import { toast } from "react-toastify";
 
 
 const AddUserModal = ({ isOpen, onClose, children }) => {
@@ -33,13 +34,8 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const cardRef = useRef(null);
   const [cards, setCards] = useState([]);
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
-
   const branches = useSelector(getBranchesData);
   const filteredBranchGroups = useSelector(getFilteredLockerGroups)
-
-  console.log(filteredBranchGroups, "filteredBranchGroupsfilteredBranchGroups");
-
-
 
   // TODO:  User Group
   const [sentGeneralInfo, setSentGeneralInfo] = useState({
@@ -64,9 +60,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     // TODO:
     // addAllInfoForUserGroup('Group', 'name', selectedBranch) 
     let id = selectedOption.value
-    console.log(selectedOption, 6666)
     let ids = selectedOption.map(item => item.value);
-    console.log(ids, 7777)
     setSentGeneralInfo((prev) => ({
       ...prev,
       'userGroups': ids,
@@ -107,15 +101,12 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const addUser = () => {
     dispatch(setUserInfo(sentGeneralInfo))
       .then((response) => {
-        console.log(response);
         if (response && response.payload.isSuccess) {
           onClose();
         }
       })
       .catch((error) => console.error('Error updating user info:', error));
   }
-  console.log(sentGeneralInfo, 888)
-
 
   // Card part
   const setCardNumbers = () => {
@@ -145,9 +136,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   }
 
   const handleSelectBranch = (selectedOption) => {
-    console.log(selectedOption.value, 999);
     dispatch(getLockerGroupsByBranchId(selectedOption.value));
-
   }
 
   //End Card part
@@ -159,7 +148,6 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       'isPinRequired': value,
     }))
     sendGroupInfo('Pin', 'pin', value)
-    console.log(value)
   }
 
   //End PIN part
@@ -175,9 +163,33 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   // const [selectedBranch, setSelectedBranch] = useState(null);
   // const handleSelectChange = (selectedOption) => {
   //   setSelectedBranch(selectedOption);
-  //   console.log("Выбранная опция:", selectedOption);
   // };
-  // console.log(addGroupModalSwitch, 888)
+
+  const [selectedBranchId, setSelectedBranchId] = useState([]);
+
+  const handleBranchSelect = (itemId) => {
+    setSelectedBranchId((prevSelected) => {
+      if (!prevSelected.includes(itemId)) {
+        return [...prevSelected, itemId];
+      }
+      return prevSelected;
+    });
+  }
+
+  const handleClickBranchSelect = (itemId) => {
+    setSelectedBranchId((prevSelected) => {
+      if (prevSelected.includes(itemId)) {
+        return prevSelected.filter((id) => id !== itemId);
+      } else {
+        return [...prevSelected, itemId];
+      }
+    });
+  };
+
+  const sendBranchId = () => {
+    sendGroupInfo('Locker', 'lockerIds', selectedBranchId)
+    toast.success("Lockers added successfully");
+  }
 
   return (
     <div
@@ -418,11 +430,24 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                 {filteredBranchGroups?.length ? (
                   <div className='pl-5'>
                     {filteredBranchGroups.map((lockerGroup, groupIndex) => (
-                        <React.Fragment key={groupIndex}>
-                          <GroupName name={lockerGroup.groupName} />
-                          <div className='flex flex-wrap mb-4'>
+                      <React.Fragment key={groupIndex}>
+                        <GroupName name={lockerGroup.groupName} />
+                        <div className='flex flex-wrap mb-4'
+                        >
                           {lockerGroup.groupLockers.map((item, itemIndex) => (
-                            <div className="mr-2 mb-2">
+                            <div className={`mr-2 mb-2 select-none ${selectedBranchId.includes(item.id) ? 'selected__branch__id' : ''
+                              }`} isDisabled={true} key={itemIndex}
+                              onMouseOver={(event) => {
+                                if (event.buttons === 1) {
+                                  handleBranchSelect(item.id)
+                                }
+                              }}
+                              onClick={() => handleClickBranchSelect(item.id)}
+                              style={{
+                                backgroundColor: selectedBranchId.includes(item.id) ?
+                                  '#aaf' : 'inherit'
+                              }}
+                            >
                               <GenerateLocker item={item} index={itemIndex} />
                             </div>
                           ))}
@@ -433,6 +458,13 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                 ) : (
                   <NoData text="No Selected Lockers" />
                 )}
+              </div>
+              <div className="section__add">
+                <button
+                  onClick={sendBranchId}
+                  className="text-white font-bold rounded p-2">
+                  Add locker
+                </button>
               </div>
             </div>
           </TabPanel>

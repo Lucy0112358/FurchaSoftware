@@ -1,3 +1,8 @@
 .add__modal__content  {
     background-color: #5a686a;
 }
+
+.selected__branch__id {
+    border-radius: 8px;
+    border: 3.5px solid #62cb62;
+}

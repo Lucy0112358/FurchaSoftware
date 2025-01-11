@@ -65,9 +65,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
     // TODO:
     // addAllInfoForAdminGroup('Group', 'name', selectedBranch) 
     let id = selectedOption.value
-    console.log(selectedOption, 6666)
     let ids = selectedOption.map(item => item.value);
-    console.log(ids, 7777)
     setSentGeneralInfo((prev) => ({
       ...prev,
       'adminType': ids, 
@@ -122,14 +120,12 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
   const addUser = () => {
     dispatch(setUserInfo(sentGeneralInfo))
       .then((response) => {
-        console.log(response);
         if (response && response.payload.isSuccess) {
           onClose();
         }
       })
       .catch((error) => console.error('Error updating user info:', error));
   }
-  console.log(sentGeneralInfo, 888)
 
 
   // Card part
@@ -160,7 +156,6 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
   }
 
   const handleSelectBranch = (selectedOption) => {
-    console.log(selectedOption.value, 999);
     dispatch(getLockerGroupsByBranchId(selectedOption.value));
 
   }
@@ -188,13 +183,10 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
   };
 
   const loadUserOptions = (inputValue) => {
-    console.log(inputValue, 9999999);
 
     return instance
       .get(`/User/search-user/?adminId=8&name=${inputValue}`)
       .then((response) => {
-        console.log(response.data.data, 888);
-
         return response.data.data.map((item) => ({
           value: item.id,
           label: item.name,

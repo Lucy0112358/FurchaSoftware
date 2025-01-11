@@ -29,8 +29,6 @@ function Menu() {
   const [filters, setFilters] = useState({});
   const [path, setPath] = useState('/');
 
-  // console.log(filters, "filtersfilters")
-
   //input search by nane
   const [inputValue, setInputValue] = useState('');
   const [debounceTimeout, setDebounceTimeout] = useState(null);
@@ -44,8 +42,6 @@ function Menu() {
     addFilters(selectedOption, 'groupId')
 
     // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
-
-    // console.log("Выбранная groups:", selectedOption);
   };
 
   const addFilters = (selectedOption, key) => {

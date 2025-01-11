@@ -47,7 +47,6 @@ export const userSlice = createSlice({
       .addCase(setUserInfo.fulfilled, (state, action) => {
         state.loading = false;
         state.allUsers.push(action.payload.data);
-        console.log(action.payload.data);
         // userSlice.caseReducers.setUser(state, action);
       })
       .addCase(setUserInfo.rejected, (state, action) => {

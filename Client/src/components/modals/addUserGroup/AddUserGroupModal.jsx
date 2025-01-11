@@ -19,8 +19,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
     name: '',
   });
 
-  console.log(sentGeneralInfo, 111111111111)
-
   const userInfo = useSelector(getAddUserInfo);
   const [groupRight, setGroupRight] = useState({});
 
@@ -44,7 +42,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
     return userRightsEntries
       .map(([part, values]) => {
         const valuesEntries = Object.entries(values).map(([key, value]) => {
-          console.log(values, key, "valuevaluevalue")
           if (Array.isArray(value)) {
             return `${key}: ${value.join(', ')}`;
           } else if (typeof value === 'object') {
@@ -53,7 +50,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
           }
           return `${key}: ${value}`;
         });
-        console.log(valuesEntries, part, values, "valuesEntries")
         return `${part}:\n${valuesEntries.join('\n')}`;
       })
       .join('\n\n');
@@ -61,8 +57,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
 
   const handleSelectChange = (selectedOption) => {
     setSelectedBranch(selectedOption);
-
-    console.log("Выбранная опция:", selectedOption);
   };
 
   const addBranchHandle = () => {
@@ -77,7 +71,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
   const addUserGroup = () => {
     dispatch(setUserGroup(sentGeneralInfo))
       .then((response) => {
-        console.log(response);
         if (response && response.payload.isSuccess) {
           onClose()
         }
