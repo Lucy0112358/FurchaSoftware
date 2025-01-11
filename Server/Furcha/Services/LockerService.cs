@@ -107,8 +107,6 @@ namespace FurchaAdminApi.Services
             return results;
         }
 
-
-
         /// <summary>
         /// Retrieves lockers based on specified filtering criteria.
         /// </summary>

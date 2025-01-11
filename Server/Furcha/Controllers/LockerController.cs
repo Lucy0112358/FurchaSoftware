@@ -21,7 +21,6 @@ namespace FurchaAdminApi.Controllers
             _lockerService = lockerService;
         }
 
-        [Authorize]
         // GET: api/<LockerController>
         [HttpGet]
         public ActionResult<IEnumerable<OfficeResult>> Get(
