@@ -41,9 +41,9 @@ namespace FurchaAdminApi.Services
         /// <param name="isActive">Indicates if the locker is active.</param>
         /// <param name="lockerStatus">The current status of the locker.</param>
         /// <returns>A list of lockers that match the specified criteria.</returns>
-        public List<OfficeResult> GetLockersByFilters(int? lockerType, int? lockerGroupId, int? branchId, string? status, bool? isActive, string? lockerStatus)
+        public List<OfficeResult> GetLockersByFilters(string? lockerType, int? lockerGroupId, int? branchId, string? status, bool? isActive)
         {
-            var lockers = _lockerRepository.GetLockersByCriteria(lockerType, lockerGroupId, branchId, status, isActive, lockerStatus);
+            var lockers = _lockerRepository.GetLockersByCriteria(lockerType, lockerGroupId, branchId, status, isActive);
 
             var adminBranches = _branchRepository.GetBranchesByAdminId(8);
 

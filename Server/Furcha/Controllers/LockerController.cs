@@ -2,10 +2,8 @@
 using Domain.Entities;
 using FurchaAdminApi.Services;
 using Domain.Configuration;
-using Domain.Extensions;
 using FurchaAdminApi.Models.Result;
 using MqttService.Application.Models.MqttRequest;
-using Microsoft.AspNetCore.Authorization;
 
 namespace FurchaAdminApi.Controllers
 {
@@ -24,7 +22,7 @@ namespace FurchaAdminApi.Controllers
         // GET: api/<LockerController>
         [HttpGet]
         public ActionResult<IEnumerable<OfficeResult>> Get(
-            int? lockerType = null,
+            string? lockerType = null,
             int? lockerGroupId = null,
             int? branchId = null,
             string status = null,
@@ -36,8 +34,8 @@ namespace FurchaAdminApi.Controllers
                 lockerGroupId,
                 branchId,
                 status,
-                isActive,
-                lockerStatus
+                isActive
+              
             );
 
             if (lockers == null || !lockers.Any())

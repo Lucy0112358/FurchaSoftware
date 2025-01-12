@@ -166,21 +166,16 @@ namespace FurchaAdminApi.Repos
         /// <param name="isActive">Indicates if the locker is active (optional).</param>
         /// <param name="lockerStatus">The specific locker status (optional).</param>
         /// <returns>A list of lockers that match the specified criteria, with full details.</returns>
-        internal List<Locker> GetLockersByCriteria(int? lockerType = null, int? lockerGroupId = null, int? branchId = null, string? status = null, bool? isActive = null, string? lockerStatus = null)
+        internal List<Locker> GetLockersByCriteria(string? lockerType = null, int? lockerGroupId = null, int? branchId = null, string? status = null, bool? isActive = null)
         {
             var sql = @"
-        SELECT l.*, 
-               lg.""Id"" AS LockerGroupId, lg.""Name"" AS LockerGroupName,
-               b.""Id"" AS BranchId, b.""Name"" AS BranchName
-        FROM furcha.""Locker"" l
-        LEFT JOIN furcha.""LockerGroup"" lg ON l.""LockerGroupId"" = lg.""Id""
-        LEFT JOIN furcha.""Branch"" b ON l.""BranchId"" = b.""Id""
-        WHERE (l.""LockerTypeId"" = @LockerType OR @LockerType IS NULL)
-          AND (l.""LockerGroupId"" = @LockerGroupId OR @LockerGroupId IS NULL)
+        SELECT l.*             
+        FROM furcha.""Locker"" l       
+        WHERE (l.""LockerType"" = @LockerType OR @LockerType IS NULL)
+          AND (l.""groupid"" = @LockerGroupId OR @LockerGroupId IS NULL)
           AND (l.""BranchId"" = @BranchId OR @BranchId IS NULL)
-          AND (l.""Status"" = @Status OR @Status IS NULL)
-          AND (l.""IsActive"" = @IsActive OR @IsActive IS NULL)
-          AND (l.""LockerStatus"" = @LockerStatus OR @LockerStatus IS NULL)";
+          AND (l.""IsOpen"" = @IsActive OR @IsActive IS NULL)
+          AND (l.""IsActive"" = @IsActive OR @IsActive IS NULL)";
 
             var lockers = Query<Locker>(
                 sql: sql,
@@ -189,9 +184,8 @@ namespace FurchaAdminApi.Repos
                     LockerType = lockerType,
                     LockerGroupId = lockerGroupId,
                     BranchId = branchId,
-                    Status = status,
-                    IsActive = isActive,
-                    LockerStatus = lockerStatus
+                    IsOpen = isActive == true ? 1 : 0,
+                    IsActive = isActive == true ? 1 : 0
                 }
             ).ToList();
 
