@@ -9,6 +9,7 @@ import { ToastContainer } from 'react-toastify';
 import Modules from './pages/modules/Modules';
 import Lockers from './pages/lockers/Lockers';
 import Admins from './pages/admins/Admins';
+import Branch from './pages/branch/Branch';
 
 
 
@@ -20,9 +21,10 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-          <Route index  path="/" element={<PrivateRoute><Users /></PrivateRoute>} />
-          <Route index  path="/users" element={<PrivateRoute><Users /></PrivateRoute>} />
+          <Route index path="/" element={<PrivateRoute><Users /></PrivateRoute>} />
+          <Route index path="/users" element={<PrivateRoute><Users /></PrivateRoute>} />
           <Route path="/admins" element={<PrivateRoute><Admins /></PrivateRoute>} />
+          <Route path="/branches" element={<PrivateRoute><Branch /></PrivateRoute>} />
           <Route path="/lockers" element={<PrivateRoute><Lockers /></PrivateRoute>} />
           <Route path="modules" element={<PrivateRoute><Modules /></PrivateRoute>} />
         </Route>

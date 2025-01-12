@@ -5,6 +5,7 @@ import NoData from '../no-data/NoData';
 import OfficeName from '../headers/OfficeName';
 import GroupName from '../headers/GroupName';
 import GenerateLocker from '../lockers/GenerateLocker';
+import { getAllLockersData } from '../../redux/slice/lockerSlice';
 
 function LockerTableGroup() {
 
@@ -25,36 +26,38 @@ function LockerTableGroup() {
     }
     return groupLockers;
   };
+    const allLockers = useSelector(getAllLockersData);
+  
 
-  const allLockers = {
-    data: [
-      {
-        officeName: "Tallin office",
-        lockers: [
-          {
-            groupName: "LG1 - 1st floor Lockers",
-            groupLockers: generateGroupLockers(12), // 12 lockers in this group
-          },
-          {
-            groupName: "LG1 - 2nd floor Lockers",
-            groupLockers: generateGroupLockers(14), // 14 lockers in this group
-          },
-          {
-            groupName: "LG2 - 1st floor Lockers",
-            groupLockers: generateGroupLockers(10), // 10 lockers in this group
-          },
-          {
-            groupName: "LG2 - 2nd floor Lockers",
-            groupLockers: generateGroupLockers(15), // 15 lockers in this group
-          },
-          {
-            groupName: "LG3 - 1st floor Lockers",
-            groupLockers: generateGroupLockers(13), // 13 lockers in this group
-          },
-        ],
-      }
-    ]
-  }
+  // const allLockers = {
+  //   data: [
+  //     {
+  //       officeName: "Tallin office",
+  //       lockers: [
+  //         {
+  //           groupName: "LG1 - 1st floor Lockers",
+  //           groupLockers: generateGroupLockers(12), // 12 lockers in this group
+  //         },
+  //         {
+  //           groupName: "LG1 - 2nd floor Lockers",
+  //           groupLockers: generateGroupLockers(14), // 14 lockers in this group
+  //         },
+  //         {
+  //           groupName: "LG2 - 1st floor Lockers",
+  //           groupLockers: generateGroupLockers(10), // 10 lockers in this group
+  //         },
+  //         {
+  //           groupName: "LG2 - 2nd floor Lockers",
+  //           groupLockers: generateGroupLockers(15), // 15 lockers in this group
+  //         },
+  //         {
+  //           groupName: "LG3 - 1st floor Lockers",
+  //           groupLockers: generateGroupLockers(13), // 13 lockers in this group
+  //         },
+  //       ],
+  //     }
+  //   ]
+  // }
 
   //end generation
 
@@ -129,8 +132,8 @@ function LockerTableGroup() {
 
   return (
     <div>
-      {allLockers.data.length ? (
-        allLockers.data.map((locker, index) => (
+      {allLockers.length ? (
+        allLockers.map((locker, index) => (
           <React.Fragment key={index}>
             <OfficeName name={locker.officeName} />
             <div className='pl-5'>
