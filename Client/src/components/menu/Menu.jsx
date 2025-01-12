@@ -18,6 +18,7 @@ import UserMenu from './user/UserMenu';
 import LockerMenu from './locker/LockerMenu';
 import ModulesMenu from './modules/ModulesMenu';
 import AdminMenu from './admin/AdminMenu';
+import BranchMenu from './branch/BranchMenu';
 
 
 function Menu() {
@@ -83,7 +84,9 @@ function Menu() {
               <AdminMenu />
               : path == '/modules' ?
                 <ModulesMenu />
-                : null
+                : path == '/branches' ?
+                  <BranchMenu />
+                  : null
       }
     </div >
   );

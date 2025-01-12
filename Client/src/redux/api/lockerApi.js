@@ -7,7 +7,7 @@ export const getLockers = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'Locker/index/?adminId=8',
+          url: 'Locker',
           params: {...params}
         };
        

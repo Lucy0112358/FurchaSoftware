@@ -4,9 +4,10 @@ import { useSelector } from 'react-redux';
 import NoData from '../no-data/NoData';
 import OfficeName from '../headers/OfficeName';
 import GroupName from '../headers/GroupName';
+import { getAllLockersData } from '../../redux/slice/lockerSlice';
 
 function LockerTable() {
-  // const allLockers = useSelector(getAllUsersData);
+  const allLockers = useSelector(getAllLockersData);
   //Generate locker data part
 
   const lockerTypes = ["common", "hand", "personal", "temporary", "parcel", "unspecified"];
@@ -17,7 +18,7 @@ function LockerTable() {
       const type = lockerTypes[Math.floor(Math.random() * lockerTypes.length)];
       groupLockers.push({
         id: i,
-        type: type,
+        lockerType: type,
         user: i % 2 === 0 ? "User " + i : "-", // alternate between occupied and free lockers
         status: i % 2 === 0 ? "occupied" : "free", // alternating statuses
         state: i % 2 === 0 ? "active" : "suspended", // alternating states
@@ -26,35 +27,35 @@ function LockerTable() {
     return groupLockers;
   };
 
-  const allLockers = {
-    data: [
-      {
-        officeName: "Tallin office",
-        lockers: [
-          {
-            groupName: "LG1 - 1st floor Lockers",
-            groupLockers: generateGroupLockers(7), // 12 lockers in this group
-          },
-          {
-            groupName: "LG1 - 2nd floor Lockers",
-            groupLockers: generateGroupLockers(2), // 14 lockers in this group
-          },
-          {
-            groupName: "LG2 - 1st floor Lockers",
-            groupLockers: generateGroupLockers(10), // 10 lockers in this group
-          },
-          {
-            groupName: "LG2 - 2nd floor Lockers",
-            groupLockers: generateGroupLockers(6), // 15 lockers in this group
-          },
-          {
-            groupName: "LG3 - 1st floor Lockers",
-            groupLockers: generateGroupLockers(13), // 13 lockers in this group
-          },
-        ],
-      }
-    ]
-  }
+  // const allLockers = {
+  //   data: [
+  //     {
+  //       officeName: "Tallin office",
+  //       lockers: [
+  //         {
+  //           groupName: "LG1 - 1st floor Lockers",
+  //           groupLockers: generateGroupLockers(7), // 12 lockers in this group
+  //         },
+  //         {
+  //           groupName: "LG1 - 2nd floor Lockers",
+  //           groupLockers: generateGroupLockers(2), // 14 lockers in this group
+  //         },
+  //         {
+  //           groupName: "LG2 - 1st floor Lockers",
+  //           groupLockers: generateGroupLockers(10), // 10 lockers in this group
+  //         },
+  //         {
+  //           groupName: "LG2 - 2nd floor Lockers",
+  //           groupLockers: generateGroupLockers(6), // 15 lockers in this group
+  //         },
+  //         {
+  //           groupName: "LG3 - 1st floor Lockers",
+  //           groupLockers: generateGroupLockers(13), // 13 lockers in this group
+  //         },
+  //       ],
+  //     }
+  //   ]
+  // }
   // const handleRightClick = (event) => {
   //   event.preventDefault();
   //   console.log('Правое касание мыши!');
@@ -149,8 +150,8 @@ function LockerTable() {
   return (
     <div>
 
-      {allLockers.data.length ? (
-        allLockers.data.map((locker, index) => (
+      {allLockers.length ? (
+        allLockers.map((locker, index) => (
           <React.Fragment key={index}>
             <OfficeName name={locker.officeName} />
             {locker.lockers.map((lockerGroup, groupIndex) => (
@@ -180,9 +181,9 @@ function LockerTable() {
                           <td>
                             <input type="checkbox" className="mr-2" /> {item.id}
                           </td>
-                          <td>{item.type}</td>
+                          <td>{item.lockerType}</td>
                           <td>{item.user}</td>
-                          <td>{item.status}</td>
+                          <td>{item.isOpen ? 'open' : 'closed'}</td>
                           <td className={` ${item.state === 'suspended' ? 'text-red-500 capitalize' : 'capitalize'}`}>
                             {item.state}
                           </td>

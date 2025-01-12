@@ -8,15 +8,16 @@ import './locker.css';
 import UserTableGroup from "../../components/tables/UserTableGroup";
 import LockerTable from "../../components/tables/LockerTable";
 import LockerTableGroup from "../../components/tables/LockerTableGroup";
+import { getLockers } from "../../redux/api/lockerApi";
 
 const Lockers = () => {
   const lockerStatusSelect = useSelector(getLockerStatusSelect)
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
   // const userGroupSelected = useSelector(getSelectGroupSelect);
 
-  // useEffect(() => {
-  //   dispatch(getAllUsers());
-  // }, []);
+  useEffect(() => {
+    dispatch(getLockers());
+  }, []);
 
   // const allUsers = useSelector(getAllUsersData);
 
