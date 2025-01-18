@@ -370,7 +370,7 @@ namespace FurchaAdminApi.Repos
         /// </summary>
         /// <param name="adminId">The ID of the administrator</param>
         /// <returns>The company ID associated with the administrator, or null if not found</returns>
-        public int? GetCompanyIdByAdminId(int adminId)
+        public int GetCompanyIdByAdminId(int adminId)
         {
             var sql = $@"
                     SELECT a.""CompanyId""
@@ -378,9 +378,9 @@ namespace FurchaAdminApi.Repos
                     WHERE a.""id"" = @adminId
                     LIMIT 1";
 
-            var companyId = QuerySingleOrDefault<int?>(sql, new { adminId });
+            var companyId = QuerySingle<int?>(sql, new { adminId });
 
-            return companyId;
+            return companyId ?? 0;
         }
 
         /// <summary>

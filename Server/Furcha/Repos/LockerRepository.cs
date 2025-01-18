@@ -1,7 +1,6 @@
 ﻿using Domain.Configuration;
 using Domain.Entities;
 using Domain.Repositories;
-using FurchaAdminApi.Models.Result;
 using Npgsql;
 
 namespace FurchaAdminApi.Repos

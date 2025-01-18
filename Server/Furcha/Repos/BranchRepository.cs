@@ -2,12 +2,14 @@
 using Domain.Entities;
 using Domain.Repositories;
 using Npgsql;
+using System.Diagnostics.Metrics;
 
 namespace FurchaAdminApi.Repos
 {
     public class BranchRepository : BaseRepository
     {
         private readonly NpgsqlConnection _dbConnection;
+        private readonly UserRepository _userRepository;
 
         public BranchRepository(NpgsqlConnection dbConnection, ISanitizer sanitizer) : base(dbConnection, sanitizer)
         {
@@ -54,6 +56,19 @@ namespace FurchaAdminApi.Repos
             return branches;
         }
 
+        internal Branch CreateBranch(Branch branch)
+        {
+            var result = Insert(branch);
+
+            return result;
+        }
+
+        internal BranchAddress CreateBranchAddress(BranchAddress address)
+        {
+            var result = Insert(address);
+
+            return result;
+        }
 
         public List<Branch> GetBranchesOfUserGroup(int userGroupId)
         {
@@ -71,6 +86,30 @@ namespace FurchaAdminApi.Repos
             return branches;
         }
 
+#warning access only those linked to admin
+        public List<Branch> GetAllBranches(int companyId)
+        {
+           return GetAll<Branch>(where: $"CompanyId = {companyId}").ToList();
+        }
+
+#warning add auth adminId
+        public List<Branch> SearchBranchByAdminId(string name, int adminId)
+        {
+            var sql = $@"
+                    SELECT b.* 
+                    FROM furcha.""Branch"" b
+                    WHERE (u.""Name"" ILIKE @name)";
+
+            var branches = Query<Branch>(
+                sql: sql,
+                param: new
+                {
+                    name = $"%{name}%",
+                }
+            ).ToList();
+
+            return branches;
+        }
 
     }
 }
