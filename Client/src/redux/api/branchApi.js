@@ -17,3 +17,19 @@ export const getLockerGroupsByBranchId = createAsyncThunk(
       }
     }
 )
+
+export const getAllBranches = createAsyncThunk(
+  'admin/getAllBranches',
+  async (_, thunkAPI) => {
+      try {
+        const config = {
+          method: "get",
+          url: 'Branch/branches?adminId=8',
+        };
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)

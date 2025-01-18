@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getLockerGroupsByBranchId } from "../api/branchApi";
+import { getLockers } from "../api/lockerApi";
 // import { getAllGroups } from "../api/groupApi";
 
 const initialState = {
@@ -24,12 +25,25 @@ export const lockerSlice = createSlice({
       //   ...action.payload,}
       state.lockerFilters = action.payload
     },
+    setLocker: (state, action) => {
+      state.allLockers = action.payload;
+    },
   },
 
   extraReducers: (builder) => {
     builder
       .addCase(getLockerGroupsByBranchId.fulfilled, (state, action) => {
         state.filteredLockerGroups = action.payload.data;
+      })
+      .addCase(getLockers.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getLockers.fulfilled, (state, action) => {
+        state.loading = false;
+        lockerSlice.caseReducers.setLocker(state, action);
+      })
+      .addCase(getLockers.rejected, (state, action) => {
+
       })
     // .addCase(getAllGroups.pending, (state) => {
     //   state.loading = true;

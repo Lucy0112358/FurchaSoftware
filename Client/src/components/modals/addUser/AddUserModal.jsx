@@ -36,6 +36,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
   const branches = useSelector(getBranchesData);
   const filteredBranchGroups = useSelector(getFilteredLockerGroups)
+  const [selectedBranches, setSelectedBranches] = useState([]);
 
   // TODO:  User Group
   const [sentGeneralInfo, setSentGeneralInfo] = useState({
@@ -101,8 +102,13 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const addUser = () => {
     dispatch(setUserInfo(sentGeneralInfo))
       .then((response) => {
-        if (response && response.payload.isSuccess) {
+        
+        if (response && response.payload?.isSuccess) {
           onClose();
+        }else {
+        console.log(response, "response");
+
+          toast.error(response.error?.message);
         }
       })
       .catch((error) => console.error('Error updating user info:', error));
@@ -136,7 +142,17 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   }
 
   const handleSelectBranch = (selectedOption) => {
-    dispatch(getLockerGroupsByBranchId(selectedOption.value));
+    console.log(selectedOption, "selectedOption");
+    setSelectedBranches((prevSelected) => {
+      const added = selectedOption.filter((item) => !prevSelected.includes(item));
+      // const removed = prevSelected.filter((item) => !selectedOption.includes(item));
+      if (added.length > 0) {
+        dispatch(getLockerGroupsByBranchId(added[0].value));
+      }
+      return selectedOption;
+    });
+
+    // sendGroupInfo('Branches', 'branchIds', e.target.value)
   }
 
   //End Card part
@@ -164,11 +180,13 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   // const handleSelectChange = (selectedOption) => {
   //   setSelectedBranch(selectedOption);
   // };
+  console.log(selectedBranches, "selectedBranches");
+  
 
-  const [selectedBranchId, setSelectedBranchId] = useState([]);
+  const [selectedLockerId, setSelectedLockerId] = useState([]);
 
   const handleBranchSelect = (itemId) => {
-    setSelectedBranchId((prevSelected) => {
+    setSelectedLockerId((prevSelected) => {
       if (!prevSelected.includes(itemId)) {
         return [...prevSelected, itemId];
       }
@@ -177,7 +195,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   }
 
   const handleClickBranchSelect = (itemId) => {
-    setSelectedBranchId((prevSelected) => {
+    setSelectedLockerId((prevSelected) => {
       if (prevSelected.includes(itemId)) {
         return prevSelected.filter((id) => id !== itemId);
       } else {
@@ -186,10 +204,18 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     });
   };
 
-  const sendBranchId = () => {
-    sendGroupInfo('Locker', 'lockerIds', selectedBranchId)
+  const sendLockerIds = () => {
+    sendGroupInfo('Locker', 'lockerIds', selectedLockerId)
+    const branchIds = selectedBranches.map((branch) => branch.value);
+    setSentGeneralInfo((prev) => ({
+      ...prev,
+      branchIds: branchIds,
+    }));
     toast.success("Lockers added successfully");
   }
+
+  console.log(filteredBranchGroups, "filteredBranchGroups");
+
 
   return (
     <div
@@ -316,14 +342,6 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                   </div>
                 </div>
               </div>
-              {/* <div className="add__modal__content__part__select">
-                  <span>Lockers</span>
-                  <div className="add__modal__content__part__group grid gap-4 mb-4 mr-2">
-                    <div>
-                      <CustomSelectTest />
-                    </div>
-                  </div>
-                </div> */}
               {/* Credentials */}
               <div className="flex">
                 <div className="add__modal__content__part w-full">
@@ -422,7 +440,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                 <span>Branch</span>
                 <div className="add__modal__content__part__group grid gap-4 mb-4 mr-2">
                   <div>
-                    <CustomSelect options={branches} onChange={handleSelectBranch} />
+                    <CustomSelect options={branches} onChange={handleSelectBranch} multiChoose={true} />
                   </div>
                 </div>
               </div>
@@ -435,7 +453,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                         <div className='flex flex-wrap mb-4'
                         >
                           {lockerGroup.groupLockers.map((item, itemIndex) => (
-                            <div className={`mr-2 mb-2 select-none ${selectedBranchId.includes(item.id) ? 'selected__branch__id' : ''
+                            <div className={`mr-2 mb-2 select-none ${selectedLockerId.includes(item.id) ? 'selected__branch__id' : ''
                               }`} isDisabled={true} key={itemIndex}
                               onMouseOver={(event) => {
                                 if (event.buttons === 1) {
@@ -443,10 +461,6 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                                 }
                               }}
                               onClick={() => handleClickBranchSelect(item.id)}
-                              style={{
-                                backgroundColor: selectedBranchId.includes(item.id) ?
-                                  '#aaf' : 'inherit'
-                              }}
                             >
                               <GenerateLocker item={item} index={itemIndex} />
                             </div>
@@ -461,7 +475,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
               </div>
               <div className="section__add">
                 <button
-                  onClick={sendBranchId}
+                  onClick={sendLockerIds}
                   className="text-white font-bold rounded p-2">
                   Add locker
                 </button>
