@@ -31,8 +31,7 @@ namespace FurchaAdminApi.Services
 
         public bool CreateBranch(CreateBranchRequest newBranch, int adminId)
         {
-            using (var transactionScope = new TransactionScope())
-            {
+          
                 var address = _branchRepository.CreateBranchAddress(new BranchAddress
                 {
                     Street = newBranch.Address,
@@ -48,7 +47,7 @@ namespace FurchaAdminApi.Services
                 });
                 return true;
 
-            }
+            
 
         }
     }
