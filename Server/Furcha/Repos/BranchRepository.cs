@@ -2,6 +2,7 @@
 using Domain.Entities;
 using Domain.Repositories;
 using Npgsql;
+using System.ComponentModel.Design;
 using System.Diagnostics.Metrics;
 
 namespace FurchaAdminApi.Repos
@@ -89,7 +90,7 @@ namespace FurchaAdminApi.Repos
 #warning access only those linked to admin
         public List<Branch> GetAllBranches(int companyId)
         {
-           return GetAll<Branch>(where: $"CompanyId = {companyId}").ToList();
+            return GetAll<Branch>(where: $"\"CompanyId\" = {companyId}").ToList();
         }
 
 #warning add auth adminId
@@ -98,7 +99,7 @@ namespace FurchaAdminApi.Repos
             var sql = $@"
                     SELECT b.* 
                     FROM furcha.""Branch"" b
-                    WHERE (u.""Name"" ILIKE @name)";
+                    WHERE (b.""Name"" ILIKE @name)";
 
             var branches = Query<Branch>(
                 sql: sql,
@@ -110,6 +111,31 @@ namespace FurchaAdminApi.Repos
 
             return branches;
         }
+
+        public BranchAddress GetBranchAddressById(int id)
+        {
+            var res = GetSingle<BranchAddress>(where: $"\"Id\" = @id", whereParam: new { id });
+
+            return res;
+        }
+        public List<string> GetLockerTypesByBranch(int branchId)
+        {
+            var sql = @"
+    SELECT 
+        ARRAY_AGG(DISTINCT ""LockerType"") AS ""LockerTypes""
+    FROM 
+        furcha.""Locker""
+    WHERE 
+        ""BranchId"" = @BranchId";
+
+            var result = Query<string[]>(
+                sql: sql,
+                param: new { BranchId = branchId }
+            ).FirstOrDefault();
+
+            return result?.ToList() ?? new List<string>();
+        }
+
 
     }
 }

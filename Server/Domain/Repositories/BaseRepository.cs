@@ -191,20 +191,21 @@ namespace Domain.Repositories
         {
             var schema = GetSchema(typeof(T));
             var sql = $@"SELECT * 
-             FROM ""{schema}"".""{typeof(T).Name}""
-             LIMIT 1";
+    FROM ""{schema}"".""{typeof(T).Name}""";
 
-
-            if (where.IsNotNullOrEmpty())
+            if (!string.IsNullOrWhiteSpace(where))
             {
                 sql += $" WHERE {where}";
             }
+
+            sql += " LIMIT 1";
 
             using (var sqlConnection = new PostgreSqlConnection(furchaContext.ConnectionString))
             {
                 return sqlConnection.Query<T>(sql: sql, param: whereParam).Single();
             }
         }
+
 
         /// <summary>
         /// Executes a SELECT TOP 1 * statement against the schema defined by the T TableAttribute.Schema.
@@ -511,7 +512,7 @@ namespace Domain.Repositories
         protected T Insert<T>(T objectToInsert, PostgreSqlConnection sqlConnection)
         {
             var entityType = typeof(T);
-            var schema = GetSchema(entityType); 
+            var schema = GetSchema(entityType);
             var entityName = entityType.Name;
 
             // Prepare insert parameters

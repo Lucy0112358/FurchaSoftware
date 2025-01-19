@@ -42,21 +42,21 @@ namespace FurchaAdminApi.Controllers
         }
 
         [HttpGet("branches")]
-        public ActionResult<ApiResult<List<Branch>>> GetAllBranchesOfCompanyByAdminId([FromQuery] int adminId, [FromQuery] string? name)
+        public ActionResult<ApiResult<List<AllBranchResult>>> GetAllBranchesOfCompanyByAdminId([FromQuery] int adminId, [FromQuery] string? name)
         {
 
             if (name == null )
             {
                 var branches = _branchService.GetAllBranches(adminId);
 
-                return Ok(ApiResult<List<Branch>>.Success(branches));
+                return Ok(ApiResult<List<AllBranchResult>>.Success(branches));
 
             }
             else
             {
                 var branches = _branchService.GetSearchedBranches(name, adminId);
 
-                return Ok(ApiResult<List<Branch>>.Success(branches));
+                return Ok(ApiResult<List<AllBranchResult>>.Success(branches));
             }
 
         }
