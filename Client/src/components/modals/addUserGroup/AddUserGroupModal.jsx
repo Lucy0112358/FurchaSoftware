@@ -28,9 +28,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
   const [selectedBranches, setSelectedBranches] = useState([]);
   const filteredBranchGroups = useSelector(getFilteredLockerGroups)
   const [selectedLockerId, setSelectedLockerId] = useState([]);
-
-
-
   const userInfo = useSelector(getAddUserInfo);
   const [groupRight, setGroupRight] = useState({});
 
@@ -66,10 +63,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
       })
       .join('\n\n');
   };
-
-  // const handleSelectBranch = (selectedOption) => {
-  //   setSelectedBranch(selectedOption);
-  // };
   const handleSelectBranch = (selectedOption) => {
     setSelectedBranches((prevSelected) => {
       const added = selectedOption.filter((item) => !prevSelected.includes(item));
@@ -166,22 +159,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
           </div>
 
           <div className="add__modal__content__part">
-            {/* <span>Choose branches</span> */}
-            {/* <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-              <div>
-                <CustomSelect options={userBranches} onChange={handleSelectChange} />
-              </div>
-              <div className="section__add">
-                <button
-                  className="text-white font-bold rounded"
-                  onClick={() => addBranchHandle()}
-                >
-                  Add
-                </button>
-              </div>
-            </div> */}
-
-            {/* ////////////////////Start */}
             <div className="flex justify-between flex-col">
               <div>
                 <span>Choose Branch</span>

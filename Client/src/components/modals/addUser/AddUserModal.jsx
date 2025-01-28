@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import './addUser.css';
 import '../modal.css';
-import CustomSelectTest from "../../select/CustomSelectTest";
 import CustomCheckbox from "../../checkbox/CustomCheckbox";
 import { useDispatch, useSelector } from 'react-redux';
 import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
@@ -16,7 +15,6 @@ import { MdDelete } from "react-icons/md";
 import AddUserGroupModal from "../addUserGroup/AddUserGroupModal";
 import { getLockerGroupsByBranchId } from "../../../redux/api/branchApi";
 import { getFilteredLockerGroups } from "../../../redux/slice/lockerSlice";
-import OfficeName from "../../headers/OfficeName";
 import GroupName from "../../headers/GroupName";
 import GenerateLocker from "../../lockers/GenerateLocker";
 import NoData from "../../no-data/NoData";
@@ -26,45 +24,22 @@ import CloseButton from "../attributes/CloseButton";
 const AddUserModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
   const dispatch = useDispatch();
-
-  const [pinChecked, setPinChecked] = useState(false);
-  const [qrChecked, setQrChecked] = useState(false);
   const userInfo = useSelector(getAddUserInfo);
-
-  // Здесь храним локальные ошибки по каждому из полей
   const [formErrors, setFormErrors] = useState({});
-
   const cardRef = useRef(null);
   const [cards, setCards] = useState([]);
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
-
   const branches = useSelector(getBranchesData);
   const filteredBranchGroups = useSelector(getFilteredLockerGroups);
   const userGroups = useSelector(getUserGroupsData);
-
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [selectedGroups, setSelectedGroups] = useState(null);
   const [selectedLockerId, setSelectedLockerId] = useState([]);
-
   const [userRight, setUserRight] = useState({});
-
-  // Все данные, которые будем отправлять на сервер
   const [sentGeneralInfo, setSentGeneralInfo] = useState({
     isPinRequired: true,
-    // При желании можно сразу проинициализировать поля:
-    // name: '',
-    // surname: '',
-    // email: '',
-    // phone: '',
-    // activeFrom: '',
-    // activeTo: '',
-    // userGroups: [],
-    // cards: []
   });
-
-  // Универсальная функция для записи значений в наше состояние и userInfo
   const sendGroupInfo = (part, key, value) => {
-    // Обновляем Redux (не обязательно, если не планируется использование userInfo)
     dispatch(
       setAddUserInfo({
         [part]: {
@@ -74,13 +49,11 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       })
     );
 
-    // Обновляем локальный state, который будем потом отправлять
     setSentGeneralInfo((prev) => ({
       ...prev,
       [key]: value,
     }));
 
-    // Дополнительно формируем текстовое описание полей (userRight) – если нужно
     setUserRight((prev) => ({
       ...prev,
       [part]: {
@@ -90,7 +63,6 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     }));
   };
 
-  // Формируем строковое представление текущих прав пользователя
   const formatUserRightText = () => {
     const userRightsEntries = Object.entries(userRight);
     return userRightsEntries
@@ -103,39 +75,27 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       .join('\n');
   };
 
-  // ======================================
-  // Валидация формы
-  // ======================================
   const validateForm = () => {
     const errors = {};
-
-    // Проверяем имя
     if (!sentGeneralInfo.name || !sentGeneralInfo.name.trim()) {
       errors.name = 'Name is required';
     }
-
-    // Проверяем фамилию
     if (!sentGeneralInfo.surname || !sentGeneralInfo.surname.trim()) {
       errors.surname = 'Surname is required';
     }
-
-    // Проверяем email
     if (!sentGeneralInfo.email || !sentGeneralInfo.email.trim()) {
       errors.email = 'Email is required';
     } else {
-      // Простейшая проверка формата email
       const emailRegex = /\S+@\S+\.\S+/;
       if (!emailRegex.test(sentGeneralInfo.email)) {
         errors.email = 'Invalid email format';
       }
     }
 
-    // Проверяем телефон
     if (!sentGeneralInfo.phone || !sentGeneralInfo.phone.trim()) {
       errors.phone = 'Phone is required';
     }
 
-    // Проверяем период активности
     if (!sentGeneralInfo.activeFrom) {
       errors.activeFrom = 'Active From date is required';
     }
@@ -143,13 +103,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       errors.activeTo = 'Active To date is required';
     }
 
-    // Проверяем, выбраны ли группы
     if (!sentGeneralInfo.userGroups || !sentGeneralInfo.userGroups.length) {
       errors.userGroups = 'At least one User Group must be selected';
     }
-
-    // Если нужно, можно проверять наличие карт или других полей
-
     return errors;
   };
 
@@ -173,17 +129,13 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       .catch((error) => console.error('Error updating user info:', error));
   };
 
-  // Работа с картами
   const setCardNumbers = () => {
     const newCard = cardRef.current.value.trim();
 
     if (newCard) {
-      // Добавляем карту в список
       const addNewCardToCards = [...cards, newCard];
       setCards(addNewCardToCards);
       cardRef.current.value = null;
-
-      // Запоминаем их в общем объекте
       setSentGeneralInfo((prev) => ({
         ...prev,
         cards: addNewCardToCards,
@@ -203,10 +155,8 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     sendGroupInfo('Card No', 'cards', withoutDeletedCards);
   };
 
-  // Выбор групп
   const handleGroupsSelectChange = (selectedOption) => {
     setSelectedGroups(selectedOption);
-    // Отправляем в общий объект ID выбранных групп
     const ids = selectedOption.map((item) => item.value);
 
     setSentGeneralInfo((prev) => ({
@@ -214,12 +164,9 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       userGroups: ids,
     }));
     sendGroupInfo('User Groups', 'userGroups', ids);
-
-    // Дополнительно можно вызвать userFilter
     dispatch(userFilter({ filterByGroupId: selectedOption.value }));
   };
 
-  // Выбор филиалов
   const handleSelectBranch = (selectedOption) => {
     setSelectedBranches((prevSelected) => {
       const added = selectedOption.filter((item) => !prevSelected.includes(item));
@@ -230,7 +177,6 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     });
   };
 
-  // PIN
   const handePin = (value) => {
     setSentGeneralInfo((prev) => ({
       ...prev,
@@ -239,7 +185,6 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     sendGroupInfo('Pin', 'pin', value);
   };
 
-  // Локеры
   const handleBranchSelect = (itemId) => {
     setSelectedLockerId((prevSelected) => {
       if (!prevSelected.includes(itemId)) {
@@ -260,9 +205,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   };
 
   const sendLockerIds = () => {
-    // Отправляем lockerIds
     sendGroupInfo('Locker', 'lockerIds', selectedLockerId);
-    // Заодно запоминаем branchIds
     const branchIds = selectedBranches.map((branch) => branch.value);
     setSentGeneralInfo((prev) => ({
       ...prev,
@@ -271,7 +214,6 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     toast.success("Lockers added successfully");
   };
 
-  // Вывод ошибки под конкретным инпутом
   const renderError = (fieldName) => {
     if (formErrors[fieldName]) {
       return (
@@ -299,7 +241,6 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
             <Tab>Lockers</Tab>
           </TabList>
 
-          {/* ====================== ПЕРВАЯ ВКЛАДКА ====================== */}
           <TabPanel>
             <div>
               {/* User Info */}
@@ -535,11 +476,10 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                           {lockerGroup.groupLockers.map((item, itemIndex) => (
                             <div
                               key={itemIndex}
-                              className={`mr-2 mb-2 select-none ${
-                                selectedLockerId.includes(item.id)
-                                  ? 'selected__branch__id'
-                                  : ''
-                              }`}
+                              className={`mr-2 mb-2 select-none ${selectedLockerId.includes(item.id)
+                                ? 'selected__branch__id'
+                                : ''
+                                }`}
                               onMouseOver={(event) => {
                                 if (event.buttons === 1) {
                                   handleBranchSelect(item.id);

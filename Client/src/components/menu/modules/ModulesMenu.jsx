@@ -1,18 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import '../menu.css';
-import { RiAddBoxLine } from "react-icons/ri";
 import { assets } from '../../../assets/assets';
 import CustomSelect from '../../select/CustomSelect';
 import { useDispatch, useSelector } from 'react-redux';
-import { filterUserByName, getBranches, getUserGroups, userFilter } from '../../../redux/api/menuApi';
-import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter, setUserGroupSelect } from '../../../redux/slice/menuSlice';
-import AddUserModal from '../../modals/addUser/AddUserModal';
+import { filterUserByName, getBranches, userFilter } from '../../../redux/api/menuApi';
+import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setUserGroupSelect } from '../../../redux/slice/menuSlice';
 import { getAllUsers } from '../../../redux/api/userApi';
 import { getAllGroups } from '../../../redux/api/groupApi';
-import GeneralAddModal from '../../modals/GeneralAddModal';
 import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive'
-import LockerTypes from '../locker/components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
 import ModulesModal from '../../modals/modules/ModulesModal';
 
@@ -24,10 +20,12 @@ function ModulesMenu() {
     const userGroupEnabled = useSelector(getSelectGroupSelect);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filters, setFilters] = useState({});
-
-    //input search by nane
     const [inputValue, setInputValue] = useState('');
     const [debounceTimeout, setDebounceTimeout] = useState(null);
+    const userBranches = useSelector(getBranchesData);
+    const userGroups = useSelector(getUserGroupsData);
+    const [manageEnabled, setManageEnabled] = useState(true);
+    const fileInputRef = useRef(null);
 
     const handleSelectChange = (selectedOption) => {
         setSelectedBranch(selectedOption);
@@ -36,7 +34,6 @@ function ModulesMenu() {
     const handleGroupsSelectChange = (selectedOption) => {
         setSelectedGroups(selectedOption);
         addFilters(selectedOption, 'groupId')
-
         // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
     };
 
@@ -52,29 +49,9 @@ function ModulesMenu() {
         });
     }
 
-    //Add USER modal part 
-    // const [isModalOpen, setIsModalOpen] = useState(false);
-
-    const userBranches = useSelector(getBranchesData);
-    const userGroups = useSelector(getUserGroupsData);
-    const [manageEnabled, setManageEnabled] = useState(true);
-
     useEffect(() => {
         dispatch(getBranches());
     }, []);
-
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            console.log('Выбран файл:', file.name);
-        }
-    };
-
-    const fileInputRef = useRef(null);
-
-    const handleFileClick = () => {
-        fileInputRef.current.click();
-    };
 
     const handleFilterName = (e) => {
         let name = e.target.value;
@@ -92,29 +69,20 @@ function ModulesMenu() {
         );
     };
 
-    const handleUserGroupSelect = () => {
-        dispatch(setUserGroupSelect(!userGroupEnabled));
-        if (userGroupEnabled) {
-            dispatch(getAllUsers())
-        } else {
-            dispatch(getAllGroups())
-        }
-    };
-
     return (
         <>
             <div className="menu flex justify-around">
                 <div className='menu__add'>
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="menu__add__button text-white">
-                            <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-                            <span className="">
-                                {"Add Modules"}
-                            </span>
-                        </button>
-                    </div>
-                    <ModulesModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="menu__add__button text-white">
+                        <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
+                        <span className="">
+                            {"Add Modules"}
+                        </span>
+                    </button>
+                </div>
+                <ModulesModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
                 <div className="menu__filter flex space-x-4">
                     <div className='flex flex-col'>
                         <div className='menu__filter__select'>
