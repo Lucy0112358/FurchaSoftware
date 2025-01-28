@@ -13,6 +13,7 @@ import { getLockerGroupsByBranchId } from "../../../redux/api/branchApi";
 import GroupName from "../../headers/GroupName";
 import GenerateLocker from "../../lockers/GenerateLocker";
 import { toast } from "react-toastify";
+import CloseButton from "../attributes/CloseButton";
 
 
 const AddUserGroupModal = ({ isOpen, onClose, children }) => {
@@ -144,12 +145,9 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
       <div className="add__modal__content add__modal__content__addUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto h-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">Add User Group</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-xl"
-          >
+          <CloseButton onClick={onClose}>
             &times;
-          </button>
+          </CloseButton>
         </div>
         <div>
           {/* User Group Info */}

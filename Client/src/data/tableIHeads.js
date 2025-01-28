@@ -18,7 +18,8 @@ export const userTableGroups = [
 ];
 
 export const lockerTable = [
-    'Locker ID',
+    'ID',
+    'Name',
     'Type',
     'User',
     'Status',
@@ -33,4 +34,14 @@ export const adminTable = [
     'Card No.',
     'Branch',
     'State',
+];
+
+export const branchTable = [
+    'ID',
+    'Name',
+    'Address',
+    'Comment',
+    'Locker Type',
+    'Lockers',
+    'Mode',
 ];

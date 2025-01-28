@@ -10,22 +10,22 @@ function LockerTable() {
   const allLockers = useSelector(getAllLockersData);
   //Generate locker data part
 
-  const lockerTypes = ["common", "hand", "personal", "temporary", "parcel", "unspecified"];
+  // const lockerTypes = ["common", "hand", "personal", "temporary", "parcel", "unspecified"];
   
-  const generateGroupLockers = (groupSize) => {
-    const groupLockers = [];
-    for (let i = 1; i <= groupSize; i++) {
-      const type = lockerTypes[Math.floor(Math.random() * lockerTypes.length)];
-      groupLockers.push({
-        id: i,
-        lockerType: type,
-        user: i % 2 === 0 ? "User " + i : "-", // alternate between occupied and free lockers
-        status: i % 2 === 0 ? "occupied" : "free", // alternating statuses
-        state: i % 2 === 0 ? "active" : "suspended", // alternating states
-      });
-    }
-    return groupLockers;
-  };
+  // const generateGroupLockers = (groupSize) => {
+  //   const groupLockers = [];
+  //   for (let i = 1; i <= groupSize; i++) {
+  //     const type = lockerTypes[Math.floor(Math.random() * lockerTypes.length)];
+  //     groupLockers.push({
+  //       id: i,
+  //       lockerType: type,
+  //       user: i % 2 === 0 ? "User " + i : "-",
+  //       status: i % 2 === 0 ? "occupied" : "free",
+  //       state: i % 2 === 0 ? "active" : "suspended",
+  //     });
+  //   }
+  //   return groupLockers;
+  // };
 
   // const allLockers = {
   //   data: [
@@ -181,6 +181,7 @@ function LockerTable() {
                           <td>
                             <input type="checkbox" className="mr-2" /> {item.id}
                           </td>
+                          <td>{'Locker name'}</td>
                           <td>{item.lockerType}</td>
                           <td>{item.user}</td>
                           <td>{item.isOpen ? 'open' : 'closed'}</td>

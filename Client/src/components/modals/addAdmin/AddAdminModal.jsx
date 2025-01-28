@@ -24,6 +24,7 @@ import Select from 'react-select';
 import instance from "../../../config/axios/axiosConfig";
 import AsyncSelect from 'react-select/async';
 import { setAddAdminInfo } from "../../../redux/slice/adminSlice";
+import CloseButton from "../attributes/CloseButton";
 
 
 
@@ -201,12 +202,9 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
       <div className="add__modal__content add__modal__content__addUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto h-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">Assign Administrators Rights To The User</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-xl"
-          >
+          <CloseButton onClick={onClose}>
             &times;
-          </button>
+          </CloseButton>
         </div>
         <div className="flex">
           {/* User Info */}
@@ -227,7 +225,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
               <div className="flex w-1/6">
                 <button
                   // onClick={() => setAddBranchModalSwitch(!addBranchModalSwitch)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center"
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                 >
                   <IoMdAdd className="fill-current" style={{ fontSize: 'xx-large' }} />
                 </button>
