@@ -9,7 +9,7 @@ function Parcel({ label, lockernumber, size, orderNum }) {
         <div className="right-label">{label}</div>
       </div>
       <div className="number">{lockernumber}</div>
-      <div className="order-num">{orderNum}</div>
+      {/* <div className="order-num">{orderNum}</div> */}
     </div>
   )
 }

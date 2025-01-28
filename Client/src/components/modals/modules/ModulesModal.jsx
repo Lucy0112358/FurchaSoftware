@@ -12,6 +12,8 @@ import CustomCheckbox from "../../checkbox/CustomCheckbox";
 import { filterGroupByBranch, getModuleModalBranches, getModuleModalGroupes } from "../../../redux/slice/moduleSlice";
 import { addModuleFunc } from "../../../redux/api/moduleApi";
 import { getLockerOptions } from "../../../enums/LockerTypes";
+import CloseButton from "../attributes/CloseButton";
+import BranchModal from "../branch/BranchModal";
 
 
 const ModulesModal = ({ isOpen, onClose, children }) => {
@@ -84,12 +86,9 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
       <div className="add__modal__content add__modal__content__addModules rounded-lg shadow-lg w-full max-w-4xl overflow-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">Add brain modules</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-xl"
-          >
+          <CloseButton onClick={onClose}>
             &times;
-          </button>
+          </CloseButton>
         </div>
         <div>
           <div className="add__modal__content__part">
@@ -111,10 +110,15 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
                 <div className="flex w-1/6">
                   <button
                     onClick={() => setAddBranchModalSwitch(!addBranchModalSwitch)}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center"
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                   >
                     <IoMdAdd className="fill-current" style={{ fontSize: 'xx-large' }} />
-                    {/* <AddUserGroupModal isOpen={addGroupModalSwitch} onClose={() => setAddGroupModalSwitch(false)} /> */}
+                    <BranchModal isOpen={addBranchModalSwitch}
+                    onClose={(e) => {
+                      if (e?.stopPropagation) e.stopPropagation();
+                      setAddBranchModalSwitch(false);
+                    }}
+                  />
 
                   </button>
                 </div>
@@ -140,7 +144,7 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
                 <div className="flex w-1/6">
                   <button
                     onClick={() => setAddBranchModalSwitch(!addBranchModalSwitch)}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center"
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                   >
                     <IoMdAdd className="fill-current" style={{ fontSize: 'xx-large' }} />
                     {/* <AddUserGroupModal isOpen={addGroupModalSwitch} onClose={() => setAddGroupModalSwitch(false)} /> */}

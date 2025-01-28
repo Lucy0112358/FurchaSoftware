@@ -1,5 +1,5 @@
 import React from 'react'
-import { adminTable, userTable } from '../../data/tableIHeads'
+import { adminTable, branchTable, userTable } from '../../data/tableIHeads'
 import { useSelector } from 'react-redux';
 import { getAllUsersData } from '../../redux/slice/userSlice';
 import NoData from '../no-data/NoData';
@@ -9,6 +9,7 @@ import { getAllBranches } from '../../redux/api/branchApi';
 
 function BranchTable() {
   const allBranches = useSelector(getAllBranchesData);
+  console.log(allBranches, "allBranches");
 
   return (
     <>
@@ -18,41 +19,31 @@ function BranchTable() {
           <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA', minWidth: '1110px' }}>
             <thead>
               <tr className="outlet__table__header">
-                {adminTable.map((header, index) => (
+                {branchTable.map((header, index) => (
                   <th key={index} className="text-left" >{header}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-
-              {/* {allAdmins.map((user, index) => (
-                <tr key={user.id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+              {allBranches.map((branch, index) => (
+                <tr key={branch.id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
                   <td>
-                    <input type="checkbox" className="mr-2" /> {user.id}
+                    <input type="checkbox" className="mr-2" /> {branch.id}
                   </td>
-                  <td>{user.name}</td>
-                  <td>{user.surname}</td>
-                  <td>{user.role}</td>
+                  <td>{branch.name}</td>
+                  <td>{branch.address}</td>
+                  <td>{branch.comment}</td>
                   <td>
-                    {user.cards?.map((card, idx) => (
-                      <div key={idx}>{card.cardNumber}</div>
-                    ))}
+                    {branch.lockerTypes?.toString()}
                   </td>
                   <td>
-                    {user.branches?.map((branch, idx) => (
-                      <div key={idx}>{branch.name}</div>
-                    ))}
+                    <td>{branch.lockersCount}</td>
                   </td>
-                  <td>
-                    {user.userGroups?.map((group, idx) => (
-                      <div key={idx}>{group.groupName}</div>
-                    ))}
-                  </td>
-                  <td className={` ${user.state === 'Suspended' ? 'text-red-500' : ''}`}>
-                    {user.state}
+                  <td className={` ${branch.mode === 0 ? 'text-red-500' : 'text-green-500'}`}>
+                    {branch.mode === 0 ? 'Inactive' : 'Active'}
                   </td>
                 </tr>
-              ))} */}
+              ))}
             </tbody>
           </table>
         </div> : <NoData text="No Branches" />

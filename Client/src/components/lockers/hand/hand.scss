@@ -1,7 +1,7 @@
 .hand__locker {
   .design-box {
-    width: 85px;
-    height: 85px;
+    width: 45px;
+    height: 45px;
     background-color: #97d381;
     border-radius: 10px;
     position: relative;
@@ -12,7 +12,8 @@
   }
 
   .number {
-    font-size: 25px;
+    padding-top: 8px;
+    font-size: 15px;
     color: #333;
   }
 
