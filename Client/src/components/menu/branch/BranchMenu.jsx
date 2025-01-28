@@ -21,19 +21,10 @@ import { getAllBranches } from '../../../redux/api/branchApi';
 
 function BranchMenu() {
     const dispatch = useDispatch();
-    const [selectedBranch, setSelectedBranch] = useState(null);
-    const [selectedGroups, setSelectedGroups] = useState(null);
-    const userGroupEnabled = useSelector(getSelectGroupSelect);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [filters, setFilters] = useState({});
-    //input search by nane
     const [inputValue, setInputValue] = useState('');
     const [debounceTimeout, setDebounceTimeout] = useState(null);
-   
-    //Add USER modal part 
-    // const [isModalOpen, setIsModalOpen] = useState(false);
     const [manageEnabled, setManageEnabled] = useState(true);
-
 
     const handleFilterName = (e) => {
         let name = e.target.value;

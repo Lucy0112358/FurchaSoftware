@@ -1,11 +1,8 @@
 import React from 'react'
-import { adminTable, branchTable, userTable } from '../../data/tableIHeads'
+import { branchTable } from '../../data/tableIHeads'
 import { useSelector } from 'react-redux';
-import { getAllUsersData } from '../../redux/slice/userSlice';
 import NoData from '../no-data/NoData';
-import { getAllAdminsData } from '../../redux/slice/adminSlice';
 import { getAllBranchesData } from '../../redux/slice/branchSlice';
-import { getAllBranches } from '../../redux/api/branchApi';
 
 function BranchTable() {
   const allBranches = useSelector(getAllBranchesData);
