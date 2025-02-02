@@ -39,6 +39,11 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const [sentGeneralInfo, setSentGeneralInfo] = useState({
     isPinRequired: true,
   });
+  //Start change for SelectBranch
+  const [selectedBranch, setSelectedBranch] = useState('');
+  const [selectedBranchesForShow, setSelectedBranchesForShow] = useState({});
+  //END change for SelectBranch
+
   const sendGroupInfo = (part, key, value) => {
     dispatch(
       setAddUserInfo({
@@ -167,15 +172,20 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     dispatch(userFilter({ filterByGroupId: selectedOption.value }));
   };
 
-  const handleSelectBranch = (selectedOption) => {
-    setSelectedBranches((prevSelected) => {
-      const added = selectedOption.filter((item) => !prevSelected.includes(item));
-      if (added.length > 0) {
-        dispatch(getLockerGroupsByBranchId(added[0].value));
-      }
-      return selectedOption;
-    });
+  // const handleSelectBranch = (selectedOption) => {
+  //   setSelectedBranches((prevSelected) => {
+  //     const added = selectedOption.filter((item) => !prevSelected.includes(item));
+  //     if (added.length > 0) {
+  //       dispatch(getLockerGroupsByBranchId(added[0].value));
+  //     }
+  //     return selectedOption;
+  //   });
+  // };
+  const handleSelectBranch = (branch) => {
+    setSelectedBranch(branch.name);
+    dispatch(getLockerGroupsByBranchId(branch.id));
   };
+console.log('sentGeneralInfo.isPinRequired', sentGeneralInfo.isPinRequired);
 
   const handePin = (value) => {
     setSentGeneralInfo((prev) => ({
@@ -211,6 +221,13 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       ...prev,
       branchIds: branchIds,
     }));
+    console.log(selectedLockerId, "selectedLockerId");
+    
+    setSelectedBranchesForShow({
+      ...selectedBranchesForShow,
+      [selectedBranch]: selectedLockerId.toString(),
+    });
+    setSelectedLockerId([]);
     toast.success("Lockers added successfully");
   };
 
@@ -224,6 +241,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     }
     return null;
   };
+console.log(selectedBranchesForShow, "selectedBranchesForShow");
 
   return (
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
@@ -251,6 +269,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Name"
                       type="text"
+                      value={userInfo.user_info?.name}
                       onChange={(e) =>
                         sendGroupInfo('user_info', 'name', e.target.value)
                       }
@@ -262,6 +281,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Last name"
                       type="text"
+                      value={userInfo.user_info?.surname}
                       onChange={(e) =>
                         sendGroupInfo('user_info', 'surname', e.target.value)
                       }
@@ -273,6 +293,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Email"
                       type="email"
+                      value={userInfo.user_info?.email}
                       onChange={(e) =>
                         sendGroupInfo('user_info', 'email', e.target.value)
                       }
@@ -284,6 +305,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Phone"
                       type="text"
+                      value={userInfo.user_info?.phone}
                       onChange={(e) =>
                         sendGroupInfo('user_info', 'phone', e.target.value)
                       }
@@ -302,6 +324,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <label className="block text-gray-300">From</label>
                     <input
                       type="date"
+                      value={userInfo.active_period?.activeFrom}
                       onChange={(e) =>
                         sendGroupInfo('active_period', 'activeFrom', e.target.value)
                       }
@@ -313,6 +336,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <label className="block text-gray-300">To</label>
                     <input
                       type="date"
+                      value={userInfo.active_period?.activeTo}
                       onChange={(e) =>
                         sendGroupInfo('active_period', 'activeTo', e.target.value)
                       }
@@ -451,24 +475,53 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
 
           <TabPanel>
             <div className="flex justify-between flex-col">
-              <div className="add__modal__content__part__select">
-                <span>Branch</span>
-                <div className="add__modal__content__part__group grid gap-4 mb-4 mr-2">
-                  <div>
-                    <CustomSelect
+              <div className="add__modal__content__part__select w-full">
+                <span>Branches</span>
+                <div className="add__modal__content__part__group mb-4">
+                  <div className="flex mr-2">
+                    {
+                      branches.length > 0 && (
+                        branches.map((branch, index) => {
+                          return (
+                          branch.name !== 'All' &&
+                          <>
+                            <div 
+                              key={index}
+                              onClick={() => handleSelectBranch(branch)}
+                              className={`
+                                flex 
+                                mr-2 
+                                bg-[#475456] 
+                                p-3 
+                                rounded-xl 
+                                text-white 
+                                cursor-pointer 
+                                ${
+                                  branch.name === selectedBranch 
+                                    ? "border-2 border-cyan-500"
+                                    : ""
+                                }
+                              `}>
+                                {branch.name}
+                            </div>
+                          </>
+                          )
+                        }
+                        ))
+                    }
+                    {/* <CustomSelect
                       options={branches}
                       onChange={handleSelectBranch}
                       multiChoose={true}
-                    />
-                    {/* NEW (branch required) */}
+                    /> */}
                     {renderError('branch')}
                   </div>
                 </div>
               </div>
 
               <div>
-                {filteredBranchGroups?.length ? (
-                  <div className="pl-5">
+                {selectedBranch && filteredBranchGroups?.length ? (
+                  <div className="pl-5 select-none">
                     {filteredBranchGroups.map((lockerGroup, groupIndex) => (
                       <React.Fragment key={groupIndex}>
                         <GroupName name={lockerGroup.groupName} />
@@ -476,7 +529,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                           {lockerGroup.groupLockers.map((item, itemIndex) => (
                             <div
                               key={itemIndex}
-                              className={`mr-2 mb-2 select-none ${selectedLockerId.includes(item.id)
+                              className={`mr-2 mb-2 ${selectedLockerId.includes(item.id)
                                 ? 'selected__branch__id'
                                 : ''
                                 }`}
@@ -497,6 +550,13 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                 ) : (
                   <NoData text="No Selected Lockers" />
                 )}
+              </div>
+              <div>
+                {/* {selectedBranchesForShow.length > 0 && (
+                  <div className="pl-5 select-none">
+                    {selectedBranchesForShow.map((group) => (
+                     
+                    )))} */}
               </div>
 
               <div className="section__add">
