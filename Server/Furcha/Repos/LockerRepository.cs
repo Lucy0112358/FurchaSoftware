@@ -26,7 +26,7 @@ namespace FurchaAdminApi.Repos
             LEFT JOIN furcha.""User"" u ON ul.""UserId"" = u.Id
             WHERE l.""BranchId"" = @BranchId";
 
-            var connectionString = "Host=localhost;Port=5432;Database=furcha;Username=postgres;Password=7887;";
+            var connectionString = "Host=localhost;Port=5432;Database=furcha;Username=postgres;Password=postgres;";
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
@@ -222,7 +222,7 @@ namespace FurchaAdminApi.Repos
       AND (l.""IsOpen"" = @IsActive OR @IsActive IS NULL)
       AND (l.""IsActive"" = @IsActive OR @IsActive IS NULL)";
 
-            var connectionString = "Host=localhost;Port=5432;Database=furcha;Username=postgres;Password=7887;";
+            var connectionString = "Host=localhost;Port=5432;Database=furcha;Username=postgres;Password=postgres;";
 
             using (var connection = new NpgsqlConnection(connectionString))
             {
