@@ -13,7 +13,7 @@ namespace FurchaAdminApi.Infrustructures
             services.AddScoped(typeof(BranchRepository));
             services.AddScoped(typeof(AdminRepository));
             services.AddScoped(typeof(LockerRepository));
-
+            services.AddScoped(typeof(BranchService));            
 
             /* SERVICES */
             services.AddScoped(typeof(UserService));

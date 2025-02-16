@@ -12,7 +12,7 @@
 
         public string Country { get; set; } 
 
-        public Branch Branch { get; set; } 
+    
     }
 
 }

@@ -1,4 +1,5 @@
-﻿using Domain.Configuration;
+﻿using Dapper;
+using Domain.Configuration;
 using Domain.Entities;
 using Domain.Repositories;
 using FurchaAdminApi.Models.Result;
@@ -14,6 +15,39 @@ namespace FurchaAdminApi.Repos
         {
             _dbConnection = dbConnection;
         }
+
+        public IEnumerable<LockerWithUsers> GetUserLockersByBranchId(int branchId)
+        {
+            var query = @"
+            SELECT l.""Id"", l.Number, l.""LockerType"", l.""IsActive"", l.""IsOpen"", l.""BranchId"", l.""PasswordHash"", 
+                   u.""Name"" AS Name
+            FROM furcha.""Locker"" l
+            LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""LockerId""
+            LEFT JOIN furcha.""User"" u ON ul.""UserId"" = u.Id
+            WHERE l.""BranchId"" = @BranchId";
+
+            var connectionString = "Host=localhost;Port=5432;Database=furcha;Username=postgres;Password=7887;";
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+                var lockers = connection.Query<LockerWithUsers, string, LockerWithUsers>(
+                    query,
+                    (locker, userName) => {
+                        locker.Users ??= new List<string>();
+                        if (!string.IsNullOrEmpty(userName))
+                        {
+                            locker.Users.Add(userName);
+                        }
+                        return locker;
+                    },
+                    param: new { BranchId = branchId },
+                    splitOn: "Name"
+                ).Distinct().ToList();
+                return lockers;
+            }
+
+        }
+
 
         /// <summary>
         /// Retrieves the lockers that are permitted for a specific user group.
@@ -92,7 +126,7 @@ namespace FurchaAdminApi.Repos
             var sql = @"
         SELECT bm.*
         FROM furcha.""BrainModule"" bm      
-        WHERE ""groupid"" = @groupid";
+        WHERE ""GroupId"" = @groupid";
 
             var brainModules = Query<BrainModule>(
                 sql: sql,
@@ -166,37 +200,69 @@ namespace FurchaAdminApi.Repos
         /// <param name="isActive">Indicates if the locker is active (optional).</param>
         /// <param name="lockerStatus">The specific locker status (optional).</param>
         /// <returns>A list of lockers that match the specified criteria, with full details.</returns>
-        internal List<Locker> GetLockersByCriteria(int? lockerType = null, int? lockerGroupId = null, int? branchId = null, string? status = null, bool? isActive = null, string? lockerStatus = null)
+        internal List<LockerWithUsers> GetLockersByCriteria(int branchId, string? lockerType = null, int? lockerGroupId = null, string? status = null, bool? isActive = null)
         {
             var sql = @"
-        SELECT l.*, 
-               lg.""Id"" AS LockerGroupId, lg.""Name"" AS LockerGroupName,
-               b.""Id"" AS BranchId, b.""Name"" AS BranchName
-        FROM furcha.""Locker"" l
-        LEFT JOIN furcha.""LockerGroup"" lg ON l.""LockerGroupId"" = lg.""Id""
-        LEFT JOIN furcha.""Branch"" b ON l.""BranchId"" = b.""Id""
-        WHERE (l.""LockerTypeId"" = @LockerType OR @LockerType IS NULL)
-          AND (l.""LockerGroupId"" = @LockerGroupId OR @LockerGroupId IS NULL)
-          AND (l.""BranchId"" = @BranchId OR @BranchId IS NULL)
-          AND (l.""Status"" = @Status OR @Status IS NULL)
-          AND (l.""IsActive"" = @IsActive OR @IsActive IS NULL)
-          AND (l.""LockerStatus"" = @LockerStatus OR @LockerStatus IS NULL)";
+    SELECT 
+        l.""Id"",
+        l.Number,
+        l.""groupid"",
+        l.""LockerType"",
+        l.""IsActive"",
+        l.""IsOpen"",
+        l.""BranchId"",
+        l.""PasswordHash"",
+        u.""Name""
+    FROM furcha.""Locker"" l
+    LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""LockerId""
+    LEFT JOIN furcha.""User"" u ON ul.""UserId"" = u.Id
+    WHERE (l.""LockerType"" = @LockerType OR @LockerType IS NULL)
+      AND (l.""groupid"" = @LockerGroupId OR @LockerGroupId IS NULL)
+      AND (l.""BranchId"" = @BranchId OR @BranchId IS NULL)
+      AND (l.""IsOpen"" = @IsActive OR @IsActive IS NULL)
+      AND (l.""IsActive"" = @IsActive OR @IsActive IS NULL)";
 
-            var lockers = Query<Locker>(
-                sql: sql,
-                param: new
-                {
-                    LockerType = lockerType,
-                    LockerGroupId = lockerGroupId,
-                    BranchId = branchId,
-                    Status = status,
-                    IsActive = isActive,
-                    LockerStatus = lockerStatus
-                }
-            ).ToList();
+            var connectionString = "Host=localhost;Port=5432;Database=furcha;Username=postgres;Password=7887;";
 
-            return lockers;
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+
+                var lockersDictionary = new Dictionary<int, LockerWithUsers>();
+
+                var lockers = connection.Query<LockerWithUsers, string, LockerWithUsers>(
+                    sql,
+                    (locker, userName) =>
+                    {
+                        if (!lockersDictionary.TryGetValue(locker.Id, out var lockerWithUsers))
+                        {
+                            lockerWithUsers = locker;
+                            lockerWithUsers.Users = new List<string>();
+                            lockersDictionary[locker.Id] = lockerWithUsers;
+                        }
+
+                        if (!string.IsNullOrEmpty(userName))
+                        {
+                            lockerWithUsers.Users.Add(userName);
+                        }
+
+                        return lockerWithUsers;
+                    },
+                    param: new
+                    {
+                        LockerType = lockerType,
+                        LockerGroupId = lockerGroupId,
+                        BranchId = branchId,
+                        IsOpen = isActive == true ? 1 : (int?)null,
+                        IsActive = isActive == true ? 1 : (int?)null
+                    },
+                    splitOn: "Name"
+                ).Distinct().ToList();
+
+                return lockers;
+            }
         }
+
 
         /// <summary>
         /// Retrieves all lockers associated with a specific branch.
@@ -214,6 +280,26 @@ namespace FurchaAdminApi.Repos
             var lockers = Query<Locker>(
                 sql: sql,
                 param: new { BranchId = branchId }
+            ).ToList();
+
+            return lockers;
+        }
+
+        /// <summary>
+        /// Retrieves lockers associated with a specific BrainId.
+        /// </summary>
+        /// <param name="brainId">The ID of the brain module.</param>
+        /// <returns>A list of lockers associated with the specified BrainId.</returns>
+        public List<Locker> GetLockersByBrainId(int brainId)
+        {
+            var sql = @"
+        SELECT l.*
+        FROM furcha.""Locker"" l       
+        WHERE l.""BrainId"" = @BrainId";
+
+            var lockers = Query<Locker>(
+                sql: sql,
+                param: new { BrainId = brainId }
             ).ToList();
 
             return lockers;

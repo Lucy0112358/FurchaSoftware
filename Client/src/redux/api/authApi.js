@@ -5,7 +5,6 @@ export const signin = createAsyncThunk(
   "auth/signin",
   async (data, thunkAPI) => {
     try {
-        console.log(data, "Dataaaaaaaaaaaaaaaa");
       const signInData = {
         email: data.email,
         password: data.password,
@@ -18,7 +17,6 @@ export const signin = createAsyncThunk(
       };
 
       const response = await instance(config);
-      console.log(response, "responsewwwwwwwwwwwwwwwwwww")
       // localStorage.setItem("token", response.data.access_token);
     //   window.location.href = `/users`;
       return true;

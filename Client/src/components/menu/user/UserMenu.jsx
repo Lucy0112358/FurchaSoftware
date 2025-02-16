@@ -22,16 +22,12 @@ function UserMenu() {
     const [selectedGroups, setSelectedGroups] = useState(null);
     const userGroupEnabled = useSelector(getSelectGroupSelect);
     const [filters, setFilters] = useState({});
-
     const branches = useSelector(getBranchesData);
-
-    console.log(branches, 78888888);
-
-    // console.log(filters, "filtersfilters")
-
-    //input search by nane
+    const userGroups = useSelector(getUserGroupsData);
+    const [manageEnabled, setManageEnabled] = useState(true);
     const [inputValue, setInputValue] = useState('');
     const [debounceTimeout, setDebounceTimeout] = useState(null);
+    const fileInputRef = useRef(null);
 
     const handleSelectChange = (selectedOption) => {
         setSelectedBranch(selectedOption);
@@ -40,10 +36,7 @@ function UserMenu() {
     const handleGroupsSelectChange = (selectedOption) => {
         setSelectedGroups(selectedOption);
         addFilters(selectedOption, 'groupId')
-
         // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
-
-        // console.log("Выбранная groups:", selectedOption);
     };
 
     const addFilters = (selectedOption, key) => {
@@ -58,12 +51,6 @@ function UserMenu() {
         });
     }
 
-    //Add USER modal part 
-    // const [isModalOpen, setIsModalOpen] = useState(false);
-
-    // const userBranches = useSelector(getBranchesData);
-    const userGroups = useSelector(getUserGroupsData);
-    const [manageEnabled, setManageEnabled] = useState(true);
 
     useEffect(() => {
         dispatch(getBranches());
@@ -77,8 +64,6 @@ function UserMenu() {
         }
     };
 
-    const fileInputRef = useRef(null);
-
     const handleFileClick = () => {
         fileInputRef.current.click();
     };
@@ -87,7 +72,6 @@ function UserMenu() {
         let name = e.target.value;
         setFilters({})
         setInputValue(name);
-
         if (debounceTimeout) {
             clearTimeout(debounceTimeout);
         }

@@ -6,6 +6,7 @@ import groupReducer from '../slice/groupSlice';
 import lockerReducer from '../slice/lockerSlice';
 import moduleReducer from '../slice/moduleSlice';
 import branchReducer from '../slice/branchSlice';
+import adminReducer from '../slice/adminSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,5 +17,6 @@ export const store = configureStore({
     locker: lockerReducer,
     modules: moduleReducer,
     branch: branchReducer,
+    admin: adminReducer,
   },
 });

@@ -16,10 +16,10 @@ namespace Domain.Entities
         [Required]
         public int UserId { get; set; }
 
-        [ForeignKey("LockerId")]
+/*        [ForeignKey("LockerId")]
         public virtual Locker Locker { get; set; }
 
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
+        public virtual User User { get; set; }*/
     }
 }

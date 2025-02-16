@@ -340,3 +340,6 @@ CREATE TABLE "RolePermissions" (
     CONSTRAINT FK_RolePermissions_Roles FOREIGN KEY (RoleId) REFERENCES furcha."Roles"("Id"),
     CONSTRAINT FK_RolePermissions_Permissions FOREIGN KEY (PermissionId) REFERENCES furcha."Permissions"("Id")
 );
+
+ALTER TABLE furcha."Locker"ADD COLUMN "BrainId" INT,
+ADD CONSTRAINT "FK_Locker_BrainModule"FOREIGN KEY ("BrainId") REFERENCES furcha."BrainModule" ("Id");.

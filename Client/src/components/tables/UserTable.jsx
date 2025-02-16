@@ -23,7 +23,6 @@ function UserTable() {
     <Parcel label="SJ" lockernumber="7" size="L" orderNum="44623598"/>
     <Unspecified lockernumber="7" /> */}
 
-
       {allUsers?.length ?
         <div className="outlet__table__wrapper overflow-x-auto mt-2"
           style={{ height: allUsers?.length >= 10 ? '480px' : 'auto' }}>

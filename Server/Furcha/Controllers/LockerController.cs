@@ -2,13 +2,13 @@
 using Domain.Entities;
 using FurchaAdminApi.Services;
 using Domain.Configuration;
-using Domain.Extensions;
 using FurchaAdminApi.Models.Result;
-using MqttService.Application.Models.MqttRequest;
 using Microsoft.AspNetCore.Authorization;
+using System.Reflection;
 
 namespace FurchaAdminApi.Controllers
 {
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class LockerController : ControllerBase
@@ -21,32 +21,32 @@ namespace FurchaAdminApi.Controllers
             _lockerService = lockerService;
         }
 
-        [Authorize]
+      
         // GET: api/<LockerController>
         [HttpGet]
-        public ActionResult<IEnumerable<OfficeResult>> Get(
-            int? lockerType = null,
+        public ActionResult<ApiResult<List<OfficeResult>>> Get(
+            int branchId,
+            string? lockerType = null,
             int? lockerGroupId = null,
-            int? branchId = null,
-            string status = null,
-            bool? isActive = null,
-            string lockerStatus = null)
+            string? status = null,
+            bool? isActive = null
+          )
         {
             var lockers = _lockerService.GetLockersByFilters(
+                branchId,
                 lockerType,
                 lockerGroupId,
-                branchId,
                 status,
-                isActive,
-                lockerStatus
+                isActive
             );
 
-            if (lockers == null || !lockers.Any())
+           /* if (lockers == null || !lockers.Any())
             {
                 return NotFound();
-            }
+            }*/
 
-            return Ok(lockers);
+            return Ok(ApiResult<List<OfficeResult>>.Success(lockers));
+
         }
 
         // GET api/<LockerController>/5
@@ -82,23 +82,24 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<string>.Success("LockerGroup created successfully."));
         }
 
-        [HttpPost("CreateModule")]
-        public ActionResult<ApiResult<bool>> CreateModule([FromBody] CreateModuleRequest request)
-        {
-            if (request == null || request.BranchId == 0)
-            {
-                return BadRequest(ApiResult<bool>.ErrorResult("Invalid request data."));
-            }
+        /*
+                [HttpPost("CreateModule")]
+                public ActionResult<ApiResult<bool>> CreateModule([FromBody] CreateModuleRequest request)
+                {
+                    if (request == null || request.BranchId == 0)
+                    {
+                        return BadRequest(ApiResult<bool>.ErrorResult("Invalid request data."));
+                    }
 
-            bool isCreated = _lockerService.CreateModule(request);
+                    bool isCreated = _lockerService.CreateModule(request);
 
-            if (!isCreated)
-            {
-                return StatusCode(500, ApiResult<bool>.ErrorResult("Failed to create module."));
-            }
+                    if (!isCreated)
+                    {
+                        return StatusCode(500, ApiResult<bool>.ErrorResult("Failed to create module."));
+                    }
 
-            return Ok(ApiResult<bool>.Success(true));
-        }
+                    return Ok(ApiResult<bool>.Success(true));
+                }*/
 
 #warning When auth is done, this methode must return only modules accessible for the logged in admin
         [HttpGet("GetModules")]
@@ -133,10 +134,10 @@ namespace FurchaAdminApi.Controllers
         {
             var groupsWithLockers = _lockerService.GetGroupsWithLockers(branchId);
 
-            if (groupsWithLockers == null || !groupsWithLockers.Any())
-            {
-                return NotFound(ApiResult<List<LockerGroupResult>>.ErrorResult("No groups with lockers found."));
-            }
+            /*  if (!groupsWithLockers.Any())
+              {
+                  return NotFound(ApiResult<List<LockerGroupResult>>.ErrorResult("No groups with lockers found."));
+              }*/
 
             return Ok(ApiResult<List<LockersResult>>.Success(groupsWithLockers));
         }
