@@ -1,18 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import '../menu.css';
-import { RiAddBoxLine } from "react-icons/ri";
 import { assets } from '../../../assets/assets';
 import CustomSelect from '../../select/CustomSelect';
 import { useDispatch, useSelector } from 'react-redux';
-import { filterUserByName, getBranches, getLockerGroupsData, getUserGroups, userFilter } from '../../../redux/api/menuApi';
-import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter, setUserGroupSelect } from '../../../redux/slice/menuSlice';
-import AddUserModal from '../../modals/addUser/AddUserModal';
-import { getAllUsers } from '../../../redux/api/userApi';
-import { getAllGroups } from '../../../redux/api/groupApi';
-import GeneralAddModal from '../../modals/GeneralAddModal';
+import { filterUserByName, getBranches, getLockerGroupsData, userFilter } from '../../../redux/api/menuApi';
+import { getSelectGroupSelect, getBranchesData, getUserGroupsData } from '../../../redux/slice/menuSlice';
 import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive'
-import LockerTypes from '../locker/components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
 import AddAdminModal from '../../modals/addAdmin/AddAdminModal';
 
@@ -21,10 +15,11 @@ function AdminMenu() {
     const dispatch = useDispatch();
     const [selectedBranch, setSelectedBranch] = useState(null);
     const [selectedGroups, setSelectedGroups] = useState(null);
-    const userGroupEnabled = useSelector(getSelectGroupSelect);
     const [filters, setFilters] = useState({});
     const [isModalOpen, setIsModalOpen] = useState(false);
     const branches = useSelector(getBranchesData);
+    const userGroups = useSelector(getUserGroupsData);
+    const [manageEnabled, setManageEnabled] = useState(true);
 
     //input search by nane
     const [inputValue, setInputValue] = useState('');
@@ -37,9 +32,7 @@ function AdminMenu() {
     const handleGroupsSelectChange = (selectedOption) => {
         setSelectedGroups(selectedOption);
         addFilters(selectedOption, 'groupId')
-
         // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
-
     };
 
     const addFilters = (selectedOption, key) => {
@@ -54,30 +47,10 @@ function AdminMenu() {
         });
     }
 
-    //Add USER modal part 
-    // const [isModalOpen, setIsModalOpen] = useState(false);
-
-    // const userBranches = useSelector(getBranchesData);
-    const userGroups = useSelector(getUserGroupsData);
-    const [manageEnabled, setManageEnabled] = useState(true);
-
     useEffect(() => {
         dispatch(getBranches());
         dispatch(getLockerGroupsData());
     }, []);
-
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            console.log('Выбран файл:', file.name);
-        }
-    };
-
-    const fileInputRef = useRef(null);
-
-    const handleFileClick = () => {
-        fileInputRef.current.click();
-    };
 
     const handleFilterName = (e) => {
         let name = e.target.value;
@@ -166,7 +139,6 @@ function AdminMenu() {
                 </div>
                 {/* </div> */}
                 {/* <LockerTypes /> */}
-
             </div>
             <div className="menu__filter__mobile hidden">
                 <div className='flex justify-between'>

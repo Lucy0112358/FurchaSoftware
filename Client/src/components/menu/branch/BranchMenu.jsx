@@ -16,54 +16,18 @@ import LockerTypes from '../locker/components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
 import ModulesModal from '../../modals/modules/ModulesModal';
 import BranchModal from '../../modals/branch/BranchModal';
+import { getAllBranches } from '../../../redux/api/branchApi';
 
 
 function BranchMenu() {
     const dispatch = useDispatch();
-    const [selectedBranch, setSelectedBranch] = useState(null);
-    const [selectedGroups, setSelectedGroups] = useState(null);
-    const userGroupEnabled = useSelector(getSelectGroupSelect);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [filters, setFilters] = useState({});
-
-    //input search by nane
     const [inputValue, setInputValue] = useState('');
     const [debounceTimeout, setDebounceTimeout] = useState(null);
-
-    const handleSelectChange = (selectedOption) => {
-        setSelectedBranch(selectedOption);
-        addFilters(selectedOption, 'branchId')
-    }
-    const handleGroupsSelectChange = (selectedOption) => {
-        setSelectedGroups(selectedOption);
-        addFilters(selectedOption, 'groupId')
-
-        // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
-    };
-
-    const addFilters = (selectedOption, key) => {
-        setFilters((prevFilters) => {
-            const updatedFilters = {
-                ...prevFilters,
-                [key]: selectedOption.value,
-            };
-
-            dispatch(userFilter(updatedFilters));
-            return updatedFilters;
-        });
-    }
-
-    //Add USER modal part 
-    // const [isModalOpen, setIsModalOpen] = useState(false);
     const [manageEnabled, setManageEnabled] = useState(true);
-
-    useEffect(() => {
-        dispatch(getBranches());
-    }, []);
 
     const handleFilterName = (e) => {
         let name = e.target.value;
-        setFilters({})
         setInputValue(name);
 
         if (debounceTimeout) {
@@ -72,7 +36,7 @@ function BranchMenu() {
 
         setDebounceTimeout(
             setTimeout(() => {
-                dispatch(filterUserByName({ 'name': name }));
+                dispatch(getAllBranches({ 'name': name }));
             }, 1000)
         );
     };
@@ -135,9 +99,6 @@ function BranchMenu() {
                         <span>Manage</span>
                     </div>
                 </div>
-                {/* </div> */}
-                {/* <LockerTypes /> */}
-
             </div>
             <div className="menu__filter__mobile hidden">
                 <div className='flex justify-between'>

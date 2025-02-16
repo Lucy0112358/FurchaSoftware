@@ -8,145 +8,7 @@ import { getAllLockersData } from '../../redux/slice/lockerSlice';
 
 function LockerTable() {
   const allLockers = useSelector(getAllLockersData);
-  //Generate locker data part
 
-  const lockerTypes = ["common", "hand", "personal", "temporary", "parcel", "unspecified"];
-  
-  const generateGroupLockers = (groupSize) => {
-    const groupLockers = [];
-    for (let i = 1; i <= groupSize; i++) {
-      const type = lockerTypes[Math.floor(Math.random() * lockerTypes.length)];
-      groupLockers.push({
-        id: i,
-        lockerType: type,
-        user: i % 2 === 0 ? "User " + i : "-", // alternate between occupied and free lockers
-        status: i % 2 === 0 ? "occupied" : "free", // alternating statuses
-        state: i % 2 === 0 ? "active" : "suspended", // alternating states
-      });
-    }
-    return groupLockers;
-  };
-
-  // const allLockers = {
-  //   data: [
-  //     {
-  //       officeName: "Tallin office",
-  //       lockers: [
-  //         {
-  //           groupName: "LG1 - 1st floor Lockers",
-  //           groupLockers: generateGroupLockers(7), // 12 lockers in this group
-  //         },
-  //         {
-  //           groupName: "LG1 - 2nd floor Lockers",
-  //           groupLockers: generateGroupLockers(2), // 14 lockers in this group
-  //         },
-  //         {
-  //           groupName: "LG2 - 1st floor Lockers",
-  //           groupLockers: generateGroupLockers(10), // 10 lockers in this group
-  //         },
-  //         {
-  //           groupName: "LG2 - 2nd floor Lockers",
-  //           groupLockers: generateGroupLockers(6), // 15 lockers in this group
-  //         },
-  //         {
-  //           groupName: "LG3 - 1st floor Lockers",
-  //           groupLockers: generateGroupLockers(13), // 13 lockers in this group
-  //         },
-  //       ],
-  //     }
-  //   ]
-  // }
-  // const handleRightClick = (event) => {
-  //   event.preventDefault();
-  //   console.log('Правое касание мыши!');
-  // };
-
-
-  //End Generate Locker data part
-  // const allLockers = {
-  //   data: [
-  //     {
-  //       officeName: "Tallin office",
-  //       lockers: [
-  //         {
-  //           groupName: "LG1 - 1st floor Lockers",
-  //           groupLockers: [
-  //             {
-  //               id: 1,
-  //               type: "common",
-  //               user: "Jeck Dwwsoe",
-  //               status: "occupied",
-  //               state: 'active',
-  //             },
-  //             {
-  //               id: 2,
-  //               type: "hand",
-  //               user: "John Doe",
-  //               status: "occupied",
-  //               state: 'active',
-  //             }
-  //           ]
-  //         },
-  //         {
-  //           groupName: "LG1 - 2st floor Lockers",
-  //           groupLockers: [
-  //             {
-  //               id: 3,
-  //               type: "common",
-  //               user: "-",
-  //               status: "free",
-  //               state: 'suspended',
-  //             }
-  //           ]
-  //         }
-  //       ]
-  //     }
-  //   ]
-  // };
-
-  // const allLockersGrid = {
-  //   data: [
-  //     {
-  //       officeName: "Tallin office",
-  //       lockers: [
-  //         {
-  //           groupName: "LG1 - 1st floor Lockers",
-  //           groupLockers: [
-  //             {
-  //               id: 1,
-  //               lockerType: "common",
-  //               isActive: true,
-  //               isOpen: true,
-  //               lockerStatus: "open",
-  //               groupId: 6
-  //             },
-  //             {
-  //               id: 2,
-  //               lockerType: "hand",
-  //               isActive: true,
-  //               isOpen: true,
-  //               lockerStatus: "open",
-  //               groupId: 6
-  //             }
-  //           ]
-  //         },
-  //         {
-  //           groupName: "LG1 - 2st floor Lockers",
-  //           groupLockers: [
-  //             {
-  //               id: 3,
-  //               lockerType: "common",
-  //               isActive: true,
-  //               isOpen: true,
-  //               lockerStatus: "open",
-  //               groupId: 6
-  //             }
-  //           ]
-  //         }
-  //       ]
-  //     }
-  //   ]
-  // };
   return (
     <div>
 
@@ -181,6 +43,7 @@ function LockerTable() {
                           <td>
                             <input type="checkbox" className="mr-2" /> {item.id}
                           </td>
+                          <td>{'Locker name'}</td>
                           <td>{item.lockerType}</td>
                           <td>{item.user}</td>
                           <td>{item.isOpen ? 'open' : 'closed'}</td>

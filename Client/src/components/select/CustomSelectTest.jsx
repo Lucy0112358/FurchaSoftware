@@ -22,7 +22,7 @@ export default function CustomSelectTest() {
         value: option.id,
         label: option.name
       }))}
-      value={selectedOption} 
+      value={selectedOption}
       onChange={handleChange}
     />
   );

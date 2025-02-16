@@ -13,6 +13,7 @@ import { getLockerGroupsByBranchId } from "../../../redux/api/branchApi";
 import GroupName from "../../headers/GroupName";
 import GenerateLocker from "../../lockers/GenerateLocker";
 import { toast } from "react-toastify";
+import CloseButton from "../attributes/CloseButton";
 
 
 const AddUserGroupModal = ({ isOpen, onClose, children }) => {
@@ -27,9 +28,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
   const [selectedBranches, setSelectedBranches] = useState([]);
   const filteredBranchGroups = useSelector(getFilteredLockerGroups)
   const [selectedLockerId, setSelectedLockerId] = useState([]);
-
-
-
   const userInfo = useSelector(getAddUserInfo);
   const [groupRight, setGroupRight] = useState({});
 
@@ -65,10 +63,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
       })
       .join('\n\n');
   };
-
-  // const handleSelectBranch = (selectedOption) => {
-  //   setSelectedBranch(selectedOption);
-  // };
   const handleSelectBranch = (selectedOption) => {
     setSelectedBranches((prevSelected) => {
       const added = selectedOption.filter((item) => !prevSelected.includes(item));
@@ -144,12 +138,9 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
       <div className="add__modal__content add__modal__content__addUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto h-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">Add User Group</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-xl"
-          >
+          <CloseButton onClick={onClose}>
             &times;
-          </button>
+          </CloseButton>
         </div>
         <div>
           {/* User Group Info */}
@@ -168,22 +159,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
           </div>
 
           <div className="add__modal__content__part">
-            {/* <span>Choose branches</span> */}
-            {/* <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-              <div>
-                <CustomSelect options={userBranches} onChange={handleSelectChange} />
-              </div>
-              <div className="section__add">
-                <button
-                  className="text-white font-bold rounded"
-                  onClick={() => addBranchHandle()}
-                >
-                  Add
-                </button>
-              </div>
-            </div> */}
-
-            {/* ////////////////////Start */}
             <div className="flex justify-between flex-col">
               <div>
                 <span>Choose Branch</span>
