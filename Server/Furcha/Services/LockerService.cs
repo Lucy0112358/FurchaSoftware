@@ -1,10 +1,6 @@
 ﻿using Domain.Entities;
-using Domain.Enums;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
-using MqttService.Application.Models.MqttRequest;
-using System.Net.Mail;
-using System.Transactions;
 
 namespace FurchaAdminApi.Services
 {
@@ -41,9 +37,9 @@ namespace FurchaAdminApi.Services
         /// <param name="isActive">Indicates if the locker is active.</param>
         /// <param name="lockerStatus">The current status of the locker.</param>
         /// <returns>A list of lockers that match the specified criteria.</returns>
-        public List<OfficeResult> GetLockersByFilters(string? lockerType, int? lockerGroupId, int? branchId, string? status, bool? isActive)
+        public List<OfficeResult> GetLockersByFilters(int branchId, string? lockerType, int? lockerGroupId, string? status, bool? isActive)
         {
-            var lockers = _lockerRepository.GetLockersByCriteria(lockerType, lockerGroupId, branchId, status, isActive);
+            var lockers = _lockerRepository.GetLockersByCriteria(branchId, lockerType, lockerGroupId, status, isActive);
 
             var adminBranches = _branchRepository.GetBranchesByAdminId(8);
 
@@ -51,49 +47,50 @@ namespace FurchaAdminApi.Services
 
             foreach (var branch in adminBranches)
             {
-                var branchLockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branch.Id);
+                var branchLockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branch.Id)
+                    .OrderByDescending(group => group.Id) // Sort locker groups by descending ID
+                    .ToList();
 
                 var lockerResults = new List<LockersResult>();
 
                 foreach (var group in branchLockerGroups)
                 {
-                    var groupLockers = lockers.Where(locker => locker.groupid == group.Id).ToList();
+                    var groupLockers = lockers
+                        .Where(locker => locker.groupid == group.Id)
+                        .ToList(); // Keep original order of lockers
 
-                    if (groupLockers.Any())
+                    lockerResults.Add(new LockersResult
                     {
-                        lockerResults.Add(new LockersResult
+                        GroupName = group.Name,
+                        GroupLockers = groupLockers.Select(locker => new LockerWithUsers
                         {
-                            GroupName = group.Name,
-                            GroupLockers = groupLockers.Select(locker => new Locker
-                            {
-                                Id = locker.Id,
-                                LockerType = locker.LockerType,
-                                IsActive = locker.IsActive,
-                                IsOpen = locker.IsOpen,
-                                //    Status = locker.Status,
-                                groupid = locker.groupid
-                            }).ToList()
-                        });
-                    }
-                }
-
-                if (lockerResults.Any())
-                {
-                    results.Add(new OfficeResult
-                    {
-                        OfficeName = branch.Name,
-                        Lockers = lockerResults
+                            Id = locker.Id,
+                            LockerType = locker.LockerType,
+                            IsActive = locker.IsActive,
+                            IsOpen = locker.IsOpen,
+                            groupid = locker.groupid,
+                            Users = locker.Users
+                        }).ToList()
                     });
                 }
+
+               
+                    results.Add(new OfficeResult
+                    {
+                        OfficeName = "Poghos",
+                        Lockers = lockerResults
+                    });
+                
             }
 
             return results;
         }
 
+
         public List<LockersResult> GetGroupsWithLockers(int branchId)
         {
             var lockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branchId);
-            var lockers = _lockerRepository.GetLockersByBranchId(branchId);
+            var lockers = _lockerRepository.GetUserLockersByBranchId(branchId);
 
             var results = lockerGroups
                 .Select(group => new LockersResult
@@ -168,38 +165,38 @@ namespace FurchaAdminApi.Services
 
 
 #warning needs to be changed to MQTT
-        internal bool CreateModule(CreateModuleRequest request)
-        {
-            //using (var transaction = new TransactionScope())
-            //{
-            var module = new BrainModule
-            {
-                BranchId = request.BranchId,
-                GroupId = request.LockerGroupId,
-                MacAddress = request.MacAddress,
-            };
+        /*  internal bool CreateModule(CreateModuleRequest request)
+          {
+              //using (var transaction = new TransactionScope())
+              //{
+              var module = new BrainModule
+              {
+                  BranchId = request.BranchId,
+                  GroupId = request.LockerGroupId,
+                  MacAddress = request.MacAddress,
+              };
 
-            _lockerRepository.CreateModule(module);
+              _lockerRepository.CreateModule(module);
 
-            for (int i = request.FirstLocker; i < request.LastLocker; i++)
-            {
-                var locker = new Locker
-                {
-                    number = i,
-                    LockerType = request.LockerType.ToString(),
-                    PasswordHash = "default",
-                    BranchId = request.BranchId,
-                    groupid = request.LockerGroupId
-                };
+              for (int i = request.FirstLocker; i < request.LastLocker; i++)
+              {
+                  var locker = new Locker
+                  {
+                      number = i,
+                      LockerType = request.LockerType.ToString(),
+                      PasswordHash = "default",
+                      BranchId = request.BranchId,
+                      groupid = request.LockerGroupId
+                  };
 
-                _lockerRepository.CreateLocker(locker);
-            }
+                  _lockerRepository.CreateLocker(locker);
+              }
 
-            //}
+              //}
 
 
-            return true;
-        }
+              return true;
+          }*/
         internal bool CreateLockerGroup(int branchId, string name)
         {
             var result = new LockerGroup()

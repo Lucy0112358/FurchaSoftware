@@ -12,6 +12,11 @@ namespace Domain.Repositories
 
         public PostgreSqlConnection(string connectionString)
         {
+            if (!connectionString.Contains("Password"))
+            {
+                throw new Exception("Password is missing in connection string!");
+            }
+
             _connectionString = connectionString;
             _connection = new NpgsqlConnection(_connectionString);
             _connection.Open();

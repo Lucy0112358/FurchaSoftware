@@ -19,7 +19,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Domain\Domain.csproj" />
-		<ProjectReference Include="..\MqttService\MqttService.csproj" />
 	</ItemGroup>
 
 </Project>
