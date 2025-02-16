@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FurchaAdminApi.Controllers
 {
-    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -22,8 +21,8 @@ namespace FurchaAdminApi.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
+        [Authorize]
         [HttpGet("company-users")]
-        [AllowAnonymous]
         public ActionResult<ApiResult<List<UserResult>>> GetAdminUsers([FromQuery] int adminId)
         {
             var httpContext = _httpContextAccessor.HttpContext;

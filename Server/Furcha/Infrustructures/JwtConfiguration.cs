@@ -26,7 +26,8 @@ namespace FurchaAdminApi.Infrustructures
                     ValidAudience = audience,
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
+                    ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 }
                 };
             });
         }

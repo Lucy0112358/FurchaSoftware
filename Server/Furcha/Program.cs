@@ -1,4 +1,6 @@
-﻿using FurchaAdminApi.Infrustructures;
+﻿using Domain.Configuration;
+using FurchaAdminApi.Infrustructures;
+using Microsoft.OpenApi.Models;
 using Npgsql;
 
 namespace FurchaAdminApi
@@ -36,9 +38,46 @@ namespace FurchaAdminApi
                 return new NpgsqlConnection(connectionString);
             });
 
+            var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
+            EncryptionSettings.EncryptionKey = encryptionSettings["EncryptionKey"];
+            EncryptionSettings.Issuer = encryptionSettings["Issuer"];
+            EncryptionSettings.Audience = encryptionSettings["Audience"];
+
+
+            // Setup JWT Authentication
+            JwtConfiguration.SetupJwtAuthentication(builder, EncryptionSettings.EncryptionKey, EncryptionSettings.Issuer, EncryptionSettings.Audience);
             builder.Services.GenerateInjectionAdmin();
             builder.Services.AddHttpContextAccessor();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
 
+                // Add JWT Authentication to Swagger
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter your JWT token in the format: Bearer <token>"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
+            });
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -50,8 +89,8 @@ namespace FurchaAdminApi
             app.UseCors("AllowAll");
 
             app.UseHttpsRedirection(); 
-            app.UseAuthentication(); 
-            app.UseAuthorization();
+            //app.UseAuthentication(); 
+            //app.UseAuthorization();
             app.MapControllers();
             app.Run();
         }

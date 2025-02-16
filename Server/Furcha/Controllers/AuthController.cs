@@ -8,12 +8,26 @@ namespace FurchaAdminApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthenticationController : ControllerBase
+    public class AuthController : BaseController
     {
         private readonly AuthenticationService authenticationService;
-        public AuthenticationController(AuthenticationService authenticationService)
+        public AuthController(AuthenticationService authenticationService)
         {
             this.authenticationService = authenticationService;
+        }
+
+        [HttpGet("profile")]
+        public IActionResult GetProfile()
+        {
+            var userId = GetClaimValue("AdminId"); 
+            var email = GetClaimValue("email");
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID claim is missing");
+            }
+
+            return Ok(new { UserId = userId, Email = email });
         }
 
         [HttpPost("login")]

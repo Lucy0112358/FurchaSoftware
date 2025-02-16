@@ -310,10 +310,36 @@ CREATE TABLE furcha."UserGroup_Branch" (
     FOREIGN KEY ("BranchId") REFERENCES furcha."Branch"("Id")
 );
 
+CREATE TABLE IF NOT EXISTS furcha."Permissions"
+(
+    "Id" SERIAL PRIMARY KEY,
+    "Name" VARCHAR(100) NOT NULL UNIQUE,
+    "Description" TEXT
+);
+
+CREATE TABLE IF NOT EXISTS furcha."AdminPermissions"
+(
+    "Id" SERIAL PRIMARY KEY,
+    "AdministratorId" INTEGER NOT NULL,
+    "PermissionId" INTEGER NOT NULL,
+    CONSTRAINT "fk_Administrator_Id" FOREIGN KEY ("AdministratorId") REFERENCES furcha."Administrators" ("id") ON DELETE CASCADE,
+    CONSTRAINT "fk_Permission_Id" FOREIGN KEY ("PermissionId") REFERENCES furcha."Permissions" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "AdminPermission_unique" UNIQUE ("AdministratorId", "PermissionId")
+);
+
+
 ALTER TABLE furcha."Locker"
 ADD COLUMN "BranchId" INTEGER,
 ADD CONSTRAINT fk_branch
 FOREIGN KEY ("BranchId") REFERENCES furcha."Branch"("Id") ON DELETE SET NULL;
+
+CREATE TABLE "RolePermissions" (
+    RoleId INT NOT NULL,
+    PermissionId INT NOT NULL,
+    PRIMARY KEY (RoleId, PermissionId),
+    CONSTRAINT FK_RolePermissions_Roles FOREIGN KEY (RoleId) REFERENCES furcha."Roles"("Id"),
+    CONSTRAINT FK_RolePermissions_Permissions FOREIGN KEY (PermissionId) REFERENCES furcha."Permissions"("Id")
+);
 
 ALTER TABLE furcha."Locker"ADD COLUMN "BrainId" INT,
 ADD CONSTRAINT "FK_Locker_BrainModule"FOREIGN KEY ("BrainId") REFERENCES furcha."BrainModule" ("Id");.
