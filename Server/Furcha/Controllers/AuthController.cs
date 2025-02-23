@@ -16,7 +16,7 @@ namespace FurchaAdminApi.Controllers
             this.authenticationService = authenticationService;
         }
 
-        [HttpGet("profile")]
+        [HttpGet("getAuthUser")]
         public IActionResult GetProfile()
         {
             var userId = GetClaimValue("AdminId"); 

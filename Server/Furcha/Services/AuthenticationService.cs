@@ -20,7 +20,6 @@ namespace FurchaAdminApi.Services
         public AuthenticationService(UserRepository userRepository)
         {
             _userRepository = userRepository;
-
         }
 
         private string EncodePassword(string password, string salt)
@@ -44,16 +43,14 @@ namespace FurchaAdminApi.Services
             // test authenticateRequest.email = null case with Swagger
             var adminUser = _userRepository.GetAdminByEmail(authenticateRequest.Email);
             var admin = _userRepository.GetAdminByUserId(adminUser.Id);
-            
 
             if (adminUser == null || admin?.Salt == null || admin?.PasswordHash == null || authenticateRequest?.Password == null)
             {
                 throw new BaseException(ErrorCodeEnum.WrongUsernameOrPassword);
             }
-            admin.Name = adminUser.Name;
-            admin.Role = adminUser.Role;
-            // var hashedPassword = EncodePassword(password: authenticateRequest.Password, salt: admin.Salt);
-            var hashedPassword = authenticateRequest.Password;
+
+           // var hashedPassword = EncodePassword(password: authenticateRequest.Password, salt: admin.Salt);
+           var hashedPassword = authenticateRequest.Password;
 
             if (hashedPassword != admin.PasswordHash)
             {
@@ -95,9 +92,6 @@ namespace FurchaAdminApi.Services
             new Claim(ClaimTypes.Name, admin.Name),
             new Claim(ClaimTypes.AdminId, admin.Id.ToString()),
             new Claim(ClaimTypes.Role, admin.Role.ToString()),
-            new Claim("aud", EncryptionSettings.Audience),
-            new Claim("iss", EncryptionSettings.Issuer)
-            
         };
 
             var tokenDescriptor = new SecurityTokenDescriptor
