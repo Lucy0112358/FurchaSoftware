@@ -7,7 +7,7 @@ const instance = axios.create({
 instance.interceptors.request.use((config) => {
 
     // const lang = localStorage.getItem('lang') || 'am';
-    const token = sessionStorage.getItem('token') || null;
+    const token = localStorage.getItem('token') || null;
 
     config.headers = {
         'Authorization': `Bearer ${token}`,

@@ -19,8 +19,6 @@ const Signin = () => {
     });
 
     const handleSubmit = async (values) => {
-        toast.info("Wait ...");
-        
         try {
             await dispatch(signin(values));
             navigate('/users');
