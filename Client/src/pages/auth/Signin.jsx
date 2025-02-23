@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import { signin } from '../../redux/api/authApi';
+import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import './auth.css';
@@ -8,6 +9,7 @@ import { toast } from 'react-toastify';
 
 const Signin = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const validationSchema = Yup.object({
         email: Yup.string().email('Wrong email').required('Email is required'),
@@ -21,6 +23,7 @@ const Signin = () => {
         
         try {
             await dispatch(signin(values));
+            navigate('/users');
             toast.success("Welcome to Furcha");
         } catch (error) {
             toast.error("Error: " + error.message);
@@ -32,7 +35,7 @@ const Signin = () => {
             <div className="w-96">
                 <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
                 <Formik
-                    initialValues={{ email: '', password: '' }}
+                    initialValues={{ email: 'user7@example.com', password: '$2a$12$randomSaltValue$hashedPasswordValue' }}
                     validationSchema={validationSchema}
                     onSubmit={handleSubmit} 
                 >
@@ -46,6 +49,7 @@ const Signin = () => {
                                     id="email"
                                     type="email"
                                     name="email"
+                                    value='user7@example.com'
                                     className="w-full px-3 py-2 text-gray-700 border rounded focus:outline-none focus:ring focus:border-blue-300"
                                     placeholder="Enter your email"
                                 />
@@ -59,6 +63,7 @@ const Signin = () => {
                                     id="password"
                                     type="password"
                                     name="password"
+                                    value='$2a$12$randomSaltValue$hashedPasswordValue'
                                     className="w-full px-3 py-2 text-gray-700 border rounded focus:outline-none focus:ring focus:border-blue-300"
                                     placeholder="Enter your password"
                                 />

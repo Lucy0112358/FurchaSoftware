@@ -1,32 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Navigate } from 'react-router-dom';
-// import { getCurrentUser } from '../store/slices/Auth/AuthApi';
+import React from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { getIsAuth, getLoading } from "../redux/slice/authSlice";
 
-const PrivateRoute = ({ children }) => {
-    const dispatch = useDispatch();
-    // const isAuth = useSelector(getIsAuth);
-    // const [loading, setLoading] = useState(true);x
- 
-    // useEffect(() => {
-    //   const fetchData = async () => {
-    //     // if (!isAuth) {
-    //     //   await dispatch(getCurrentUser());
-    //     // }
-    //     // setLoading(false); 
-    //   };
-    //   fetchData();
-    // }, [dispatch, isAuth]);
+const PrivateRoute = () => {
+  const isAuth = useSelector(getIsAuth)
+  console.log(isAuth);
   
-    // if (loading) {
-    //   return <div class="lds-ring">Loader</div>
-    // }
-  
-    // return isAuth ? children : <Navigate to={`/login`} />;
+  const loading = useSelector(getLoading)
+  if (loading) {
+    return <div>Загрузка...</div>;
+  }
 
 
-    return children
-  };
-  
+  if (!isAuth) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+};
 
 export default PrivateRoute;

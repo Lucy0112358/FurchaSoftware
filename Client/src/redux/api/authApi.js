@@ -17,8 +17,7 @@ export const signin = createAsyncThunk(
       };
 
       const response = await instance(config);
-      // localStorage.setItem("token", response.data.access_token);
-    //   window.location.href = `/users`;
+      localStorage.setItem("token", response.data.access_token);
       return true;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data.error.both);
@@ -26,19 +25,19 @@ export const signin = createAsyncThunk(
   }
 );
 
-// export const getCurrentUser = createAsyncThunk(
-//   'auth/getCurrentUser',
-//   async (_, thunkAPI) => {
-//       try {
-//         const config = {
-//           method: "get",
-//           url: 'auth/me',
-//         };
+export const getAuthUser = createAsyncThunk(
+  'auth/getAuthUser',
+  async (_, thunkAPI) => {
+      try {
+        const config = {
+          method: "get",
+          url: 'auth/getAuthUser',
+        };
         
-//         const response = await instance(config);
-//         return response?.data;
-//       } catch (error) {
-//         return thunkAPI.rejectWithValue(error.response.data.error.both);
-//       }
-//     }
-// )
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)

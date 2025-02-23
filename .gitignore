@@ -385,3 +385,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Client/.gitignore
+Client/.env

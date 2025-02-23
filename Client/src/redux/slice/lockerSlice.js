@@ -26,7 +26,7 @@ export const lockerSlice = createSlice({
       state.lockerFilters = action.payload
     },
     setLocker: (state, action) => {
-      state.allLockers = action.payload;
+      state.allLockers = action.payload.data;
     },
   },
 

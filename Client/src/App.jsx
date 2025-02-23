@@ -10,29 +10,40 @@ import Modules from './pages/modules/Modules';
 import Lockers from './pages/lockers/Lockers';
 import Admins from './pages/admins/Admins';
 import Branch from './pages/branch/Branch';
+import { useDispatch } from 'react-redux';
+import { useEffect } from 'react';
+import { getAuthUser } from './redux/api/authApi';
 
 
 
 function App() {
 
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getAuthUser());
+  }, [dispatch]);
+
   return (
     <>
-    <ToastContainer />
-    <Router>
-      <Routes>
-        <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-          <Route index path="/" element={<PrivateRoute><Users /></PrivateRoute>} />
-          <Route index path="/users" element={<PrivateRoute><Users /></PrivateRoute>} />
-          <Route path="/admins" element={<PrivateRoute><Admins /></PrivateRoute>} />
-          <Route path="/branches" element={<PrivateRoute><Branch /></PrivateRoute>} />
-          <Route path="/lockers" element={<PrivateRoute><Lockers /></PrivateRoute>} />
-          <Route path="modules" element={<PrivateRoute><Modules /></PrivateRoute>} />
-        </Route>
-       <Route path="login" element={<Signin />}></Route>
-      </Routes>
-    </Router>
+      <ToastContainer />
+      <Router>
+        <Routes>
+          <Route element={<PrivateRoute />}>
+            <Route path="/" element={<Layout />}>
+              <Route index path="/" element={<Users />} />
+              <Route index path="/users" element={<Users />} />
+              <Route path="/admins" element={<Admins />} />
+              <Route path="/branches" element={<Branch />} />
+              <Route path="/lockers" element={<Lockers />} />
+              <Route path="modules" element={<Modules />} />
+            </Route>
+          </Route>
+          <Route path="login" element={<Signin />}></Route>
+        </Routes>
+      </Router>
     </>
-    
+
   )
 }
 
