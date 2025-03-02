@@ -36,3 +36,20 @@ export const getModules = createAsyncThunk(
         }
       }
   )
+
+  export const getNewBrains = createAsyncThunk(
+    'modules/getNewBrains',
+    async (_, thunkAPI) => {
+        try {
+          const config = {
+            method: "get",
+            url: 'Locker/get-new-brains/?adminId=8',
+          };
+          
+          const response = await instance(config);
+          return response?.data;
+        } catch (error) {
+          return thunkAPI.rejectWithValue(error.response.data.error.both);
+        }
+      }
+  )

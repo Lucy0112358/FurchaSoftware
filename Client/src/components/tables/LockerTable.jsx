@@ -11,53 +11,97 @@ function LockerTable() {
 
   return (
     <div>
-
       {allLockers.length ? (
         allLockers.map((locker, index) => (
           <React.Fragment key={index}>
-            <OfficeName name={locker.officeName} />
-            {locker.lockers.map((lockerGroup, groupIndex) => (
-              <React.Fragment key={groupIndex}>
-                <div className='ml-2 mt-3'>
-                  <GroupName name={lockerGroup.groupName} />
-                </div>
-                <div className="outlet__table__wrapper overflow-x-auto mt-2"
-                 style={{ height: lockerGroup?.groupLockers?.length >= 10 ? '480px' : 'auto' }}
-                 >
-                  <table
-                    className="outlet__table min-w-full bg-white"
-                    style={{color: '#AAAAAA', minWidth: '1110px', borderRadius: lockerGroup?.groupLockers?.length >= 10 ? '0px' : '10px' }}
-                  >
-                    <thead>
-                      <tr className="outlet__table__header">
-                        {lockerTable.map((header, headerIndex) => (
-                          <th key={headerIndex} className="text-left">
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {lockerGroup.groupLockers.map((item, itemIndex) => (
-                        <tr key={item.id} className={`${itemIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                          <td>
-                            <input type="checkbox" className="mr-2" /> {item.id}
-                          </td>
-                          <td>{'Locker name'}</td>
-                          <td>{item.lockerType}</td>
-                          <td>{item.user}</td>
-                          <td>{item.isOpen ? 'open' : 'closed'}</td>
-                          <td className={` ${item.state === 'suspended' ? 'text-red-500 capitalize' : 'capitalize'}`}>
-                            {item.state}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            {locker.lockers.length === 0 ? (
+              null
+            ) : (
+              <>
+                <OfficeName name={locker.officeName} />
 
-                </div>
-              </React.Fragment>
-            ))}
+                {locker.lockers.map((lockerGroup, groupIndex) => (
+                  <React.Fragment key={groupIndex}>
+                    {lockerGroup.groupLockers.length !== 0 ? (
+                      <>
+                        <div className="ml-2 mt-3">
+                          <GroupName name={lockerGroup.groupName} />
+                        </div>
+
+                        <div
+                          className="outlet__table__wrapper overflow-x-auto mt-2"
+                          style={{
+                            height:
+                              lockerGroup.groupLockers.length >= 10
+                                ? '480px'
+                                : 'auto',
+                          }}
+                        >
+                          <table
+                            className="outlet__table min-w-full bg-white"
+                            style={{
+                              color: '#AAAAAA',
+                              minWidth: '1110px',
+                              borderRadius:
+                                lockerGroup.groupLockers.length >= 10
+                                  ? '0px'
+                                  : '10px',
+                            }}
+                          >
+                            <thead>
+                              <tr className="outlet__table__header">
+                                {lockerTable.map((header, headerIndex) => (
+                                  <th key={headerIndex} className="text-left">
+                                    {header}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {lockerGroup.groupLockers.map((item, itemIndex) => (
+                                <tr
+                                  key={item.id}
+                                  className={
+                                    itemIndex % 2 === 0
+                                      ? 'bg-gray-50'
+                                      : 'bg-white'
+                                  }
+                                >
+                                  <td>
+                                    <input
+                                      type="checkbox"
+                                      className="mr-2"
+                                    />{' '}
+                                    {item.id}
+                                  </td>
+                                  <td>{'Locker name'}</td>
+                                  <td>{item.lockerType}</td>
+                                  <td>
+                                    {item.users?.map((userName, i) => (
+                                      <span key={i}>{userName}</span>
+                                    ))}
+                                  </td>
+                                  <td>{item.isOpen ? 'open' : 'closed'}</td>
+                                  <td
+                                    className={
+                                      item.state === 'suspended'
+                                        ? 'text-red-500 capitalize'
+                                        : 'capitalize'
+                                    }
+                                  >
+                                    {item.state}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
+                    ) : null}
+                  </React.Fragment>
+                ))}
+              </>
+            )}
           </React.Fragment>
         ))
       ) : (

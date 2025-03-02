@@ -23,7 +23,7 @@ namespace FurchaAdminApi
                  {
                      options.AddDefaultPolicy(builder =>
                      {
-                         builder.WithOrigins("http://192.168.0.129:3033")
+                         builder.WithOrigins("http://192.168.0.101:5173")
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
                                 .AllowCredentials();

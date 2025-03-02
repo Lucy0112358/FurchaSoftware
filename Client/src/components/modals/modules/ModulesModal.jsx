@@ -9,8 +9,8 @@ import { getBranches, getLockerGroupsData, setLockerGroup } from "../../../redux
 import { toast } from "react-toastify";
 import { IoMdAdd } from "react-icons/io";
 import CustomCheckbox from "../../checkbox/CustomCheckbox";
-import { filterGroupByBranch, getModuleModalBranches, getModuleModalGroupes } from "../../../redux/slice/moduleSlice";
-import { addModuleFunc } from "../../../redux/api/moduleApi";
+import { filterGroupByBranch, getModuleModalBranches, getModuleModalGroupes,  getNewBrainsData } from "../../../redux/slice/moduleSlice";
+import { addModuleFunc, getNewBrains } from "../../../redux/api/moduleApi";
 import { getLockerOptions } from "../../../enums/LockerTypes";
 import CloseButton from "../attributes/CloseButton";
 import BranchModal from "../branch/BranchModal";
@@ -21,6 +21,7 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
   const branches = useSelector(getModuleModalBranches);
   const lockerGroups = useSelector(getModuleModalGroupes)
   const [selectedOption, setSelectedOption] = useState(null);
+  const newBrains = useSelector(getNewBrainsData);
 
   const lockerOptions = getLockerOptions().map((lockerType) => ({
     id: lockerType,
@@ -39,9 +40,15 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
   });
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
 
+  const newBrainsOptions = Object.values(newBrains)?.map(brain => ({
+    id: brain.id,
+    name: brain.macAddress + ' ' + (brain.info ? brain.info : ''),
+  }));
+
   useEffect(() => {
     dispatch(getBranches());
     dispatch(getLockerGroupsData());
+    dispatch(getNewBrains());
   }, []);
 
 
@@ -61,6 +68,7 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
   const sendGroupInfo = (key, value) => {
     setSentGeneralInfo((prev) => ({
       ...prev,
+      'macAddress':'test',
       [key]: value,
     }));
   };
@@ -68,6 +76,10 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
   const handleBranchChange = (selectedOption) => {
     sendGroupInfo('branchId', selectedOption.value);
     dispatch(filterGroupByBranch(selectedOption.value));
+  };
+
+  const handleNewBrainChange = (selectedOption) => {
+    sendGroupInfo('id', selectedOption.value);
   };
 
   const handleLockerNmbers = (value) => {
@@ -96,11 +108,15 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
             <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
               <label className="block text-gray-300">Brain Module ID</label>
               <div>
-                <input
+                {/* <input
                   type="text"
                   onChange={(e) => sendGroupInfo('macAddress', e.target.value)}
                   className="w-full p-1 border rounded"
-                />
+                /> */}
+                <div className="w-5/6 mr-2">
+                  <CustomSelect options={newBrainsOptions} onChange={handleNewBrainChange} />
+                </div>
+
               </div>
               <label className="block text-gray-300">Branch</label>
               <div className="flex ">

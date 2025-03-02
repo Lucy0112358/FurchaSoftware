@@ -1,14 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getBranches, getLockerGroupsData} from "../api/menuApi";
 import { userSlice } from "./userSlice";
-import { getModules } from "../api/moduleApi";
+import { getModules, getNewBrains} from "../api/moduleApi";
 // import { APP_BASE_URL } from "../../config";
 
 const initialState = {
   modalBranches: {},
   allModules: {},
   modalGroups: {},
-
+  newBrains: {},
 };
 
 export const moduleSlice = createSlice({
@@ -39,7 +39,9 @@ export const moduleSlice = createSlice({
       .addCase(getModules.fulfilled, (state, action) => {
         state.allModules =  action.payload.data;
       })
-
+      .addCase(getNewBrains.fulfilled, (state, action) => {
+        state.newBrains = action.payload.data;
+      });
       
   },
 });
@@ -51,6 +53,7 @@ export const {
 export const getModuleModalGroupes = (state) => state.modules.modalGroups;
 export const getModuleModalBranches = (state) => state.modules.modalBranches;
 export const getModulesData = (state) => state.modules.allModules;
+export const getNewBrainsData = (state) => state.modules.newBrains;
 
 
 export default moduleSlice.reducer;

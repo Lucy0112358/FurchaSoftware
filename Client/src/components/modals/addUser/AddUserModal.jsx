@@ -35,12 +35,13 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [selectedGroups, setSelectedGroups] = useState(null);
   const [selectedLockerId, setSelectedLockerId] = useState([]);
+  const [selectedLockerAddId, setSelectedLockerAddId] = useState({});
   const [userRight, setUserRight] = useState({});
   const [sentGeneralInfo, setSentGeneralInfo] = useState({
     isPinRequired: true,
   });
   //Start change for SelectBranch
-  const [selectedBranch, setSelectedBranch] = useState('');
+  const [selectedBranch, setSelectedBranch] = useState({});
   const [selectedBranchesForShow, setSelectedBranchesForShow] = useState({});
   //END change for SelectBranch
 
@@ -113,6 +114,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     }
     return errors;
   };
+console.log(userInfo, "userInfo");
 
   const addUser = () => {
     const errors = validateForm();
@@ -126,6 +128,14 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     dispatch(setUserInfo(sentGeneralInfo))
       .then((response) => {
         if (response && response.payload?.isSuccess) {
+          window.location.reload();
+          // dispatch(setAddUserInfo({}));
+          // setSentGeneralInfo({
+          //   user_info: {},
+          //   active_period: {},
+          //   userGroups: [],
+          //   cards: [],
+          // });
           onClose();
         } else {
           toast.error(response.error?.message || 'Error occurred');
@@ -182,10 +192,15 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   //   });
   // };
   const handleSelectBranch = (branch) => {
-    setSelectedBranch(branch.name);
+    setSelectedBranch({ [branch.id]: branch.name });
+    const existAddedBranchLockers = selectedLockerAddId[branch.id];
+    if (existAddedBranchLockers) {
+      setSelectedLockerId(existAddedBranchLockers);
+    } else {
+      setSelectedLockerId([]);
+    }
     dispatch(getLockerGroupsByBranchId(branch.id));
   };
-console.log('sentGeneralInfo.isPinRequired', sentGeneralInfo.isPinRequired);
 
   const handePin = (value) => {
     setSentGeneralInfo((prev) => ({
@@ -215,19 +230,66 @@ console.log('sentGeneralInfo.isPinRequired', sentGeneralInfo.isPinRequired);
   };
 
   const sendLockerIds = () => {
-    sendGroupInfo('Locker', 'lockerIds', selectedLockerId);
-    const branchIds = selectedBranches.map((branch) => branch.value);
-    setSentGeneralInfo((prev) => ({
+
+    setSelectedLockerAddId((prev) => ({
       ...prev,
-      branchIds: branchIds,
+      [Object.keys(selectedBranch)]: selectedLockerId,
     }));
-    console.log(selectedLockerId, "selectedLockerId");
     
-    setSelectedBranchesForShow({
-      ...selectedBranchesForShow,
-      [selectedBranch]: selectedLockerId.toString(),
-    });
-    setSelectedLockerId([]);
+    const selectedLockers = {...selectedLockerAddId, [Object.keys(selectedBranch)]: selectedLockerId};
+
+    const generalInfo = Object.entries(selectedLockers)
+    .filter(([branchIdString, lockerIds]) => lockerIds.length > 0)
+      .map(([branchIdString, lockerIds]) => {
+        const branchId = Number(branchIdString);
+        const branch = branches.find(b => b.id === branchId);
+        const branchName = branch ? branch.name : "Unknown";
+        const lockerIdsString = lockerIds.join(",");
+        return `${branchName}: ${lockerIdsString}`;
+      })
+      .join("; ");
+
+      dispatch(
+        setAddUserInfo({
+          'Locker': {
+            ...userInfo['Locker'],
+            ['lockers']: Object.values(selectedLockers).flat(),
+          },
+        })
+      );
+  
+      setSentGeneralInfo((prev) => ({
+        ...prev,
+        'lockerIds': Object.values(selectedLockers).flat(),
+      }));
+  
+      setUserRight((prev) => ({
+        ...prev,
+        'Locker': {
+          ...(prev['Locker'] || {}),
+          'lockers': generalInfo,
+        },
+      }));
+
+
+
+    // sendGroupInfo('Locker', 'lockers', generalInfo)
+
+
+
+
+
+    // const branchIds = selectedBranches.map((branch) => branch.value);
+    // setSentGeneralInfo((prev) => ({
+    //   ...prev,
+    //   branchIds: Object.values(selectedLockerAddId).flat(),
+    // }));
+    // console.log(selectedLockerId, "selectedLockerId");
+
+    // setSelectedBranchesForShow({
+    //   ...selectedBranchesForShow,
+    //   [selectedBranch]: selectedLockerId.toString(),
+    // });
     toast.success("Lockers added successfully");
   };
 
@@ -241,7 +303,6 @@ console.log('sentGeneralInfo.isPinRequired', sentGeneralInfo.isPinRequired);
     }
     return null;
   };
-console.log(selectedBranchesForShow, "selectedBranchesForShow");
 
   return (
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
@@ -483,12 +544,12 @@ console.log(selectedBranchesForShow, "selectedBranchesForShow");
                       branches.length > 0 && (
                         branches.map((branch, index) => {
                           return (
-                          branch.name !== 'All' &&
-                          <>
-                            <div 
-                              key={index}
-                              onClick={() => handleSelectBranch(branch)}
-                              className={`
+                            branch.name !== 'All' &&
+                            <>
+                              <div
+                                key={index}
+                                onClick={() => handleSelectBranch(branch)}
+                                className={`
                                 flex 
                                 mr-2 
                                 bg-[#475456] 
@@ -496,15 +557,14 @@ console.log(selectedBranchesForShow, "selectedBranchesForShow");
                                 rounded-xl 
                                 text-white 
                                 cursor-pointer 
-                                ${
-                                  branch.name === selectedBranch 
+                                ${selectedBranch.hasOwnProperty(branch.id)
                                     ? "border-2 border-cyan-500"
                                     : ""
-                                }
+                                  }
                               `}>
                                 {branch.name}
-                            </div>
-                          </>
+                              </div>
+                            </>
                           )
                         }
                         ))
