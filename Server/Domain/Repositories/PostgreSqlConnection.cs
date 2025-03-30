@@ -54,7 +54,10 @@ namespace Domain.Repositories
         {
             return GetConnection().Query<T>(sql);
         }
-
+        public IEnumerable<T> Query<T>(string sql, object param)
+        {
+            return GetConnection().Query<T>(sql, param);
+        }
         public IEnumerable<T> Query<T, T1>(string sql, Func<T, T1, T> map, object param = null, int? commandTimeout = null)
         {
             return GetConnection().Query(sql, map, param, commandTimeout: commandTimeout);

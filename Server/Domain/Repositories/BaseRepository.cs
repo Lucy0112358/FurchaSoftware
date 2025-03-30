@@ -4,6 +4,7 @@ using Domain.Configuration;
 using Domain.Enums;
 using Domain.Extensions;
 using Npgsql;
+using Npgsql.Internal;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
@@ -40,6 +41,118 @@ namespace Domain.Repositories
             }
 
             return tableAttribute.Schema;
+        }
+
+        /// <summary>
+        /// Executes an update statement against the schema defined by the T TableAttribute.Schema.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="updateObject"></param>
+        /// <returns>The updated entity</returns>
+        protected T Update<T>(Dictionary<string, object> properties) where T : class
+        {
+            var (schema, entityName, parameterString) = PrepareUpdate<T>(properties);
+
+            var sql = $@"
+    UPDATE ""{schema}"".""{entityName}"" 
+    SET {parameterString} 
+    WHERE ""Id"" = @Id 
+    RETURNING *;";
+
+            // Add current date to properties
+            //    properties.Add("currentDate", DateTime.Now);
+
+            // Sanitize string properties
+            //    properties = SanitizeStringProperties(properties);
+
+
+            using (var sqlConnection = new NpgsqlConnection(furchaContext.ConnectionString))
+            {
+                // Execute the query and return the updated entity (or null if no entity is updated)
+                return sqlConnection.Query<T>(sql, param: properties).SingleOrDefault();
+            }
+
+
+
+        }
+
+
+        /// <summary>
+        /// Removes HTML from all string parameters.
+        /// </summary>
+        private Dictionary<string, object> SanitizeStringProperties(Dictionary<string, object> properties)
+        {
+            // tolist required to avoid 'modified collection exception'
+            foreach (var key in properties.Keys.ToList())
+            {
+                properties[key] = sanitizer.SanitizeAndThrowExceptionIfHtml(properties[key]);
+            }
+
+            return properties;
+        }
+
+        protected (string schema, string entityName, string parameterString) PrepareUpdate<T>(Dictionary<string, object> properties) where T : class
+        {
+            var entityType = typeof(T);
+            var schema = GetSchema(entityType);
+
+            var entityProperties = entityType
+                .GetProperties()
+                // Skip fields without [Column] attribute (computed fields that don't exist in the database)
+                .Where(prop => prop.GetCustomAttribute<ColumnAttribute>() != null);
+
+            var entityName = entityType.Name;
+            var parameterString = "";
+
+            // Handle the modified date if it's missing from properties and exists in the entity's properties
+            if (entityProperties.Any(ep => ep.Name == _modifiedDate) && properties.None(pi => pi.Key == _modifiedDate))
+            {
+                // Has a default value with an UTC date (PostgreSQL specific modification)
+                if (schema == furchaSchema)
+                {
+                    parameterString += $"{(string.IsNullOrEmpty(parameterString) ? string.Empty : ", ")}\"{_modifiedDate}\" = @currentDate";
+                }
+            }
+            if (!properties.ContainsKey("Id"))
+            {
+                throw new InvalidOperationException("Id is missing in the properties dictionary.");
+            }
+            // Loop through all properties in the dictionary and build the parameter string
+            foreach (var prop in properties)
+            {
+                // Ensure we only manage properties that are part of the entity
+                if (entityProperties.Any(ep => ep.Name.Equals(prop.Key, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    // Handle null values or those that are convertible to a supported type
+                    if (prop.Value == null || CanUseType(prop.Value.GetType()))
+                    {
+                        var parameter = GetUpdateParameter(prop.Key);
+                        if (!string.IsNullOrEmpty(parameter))
+                        {
+                            parameterString += $"{(string.IsNullOrEmpty(parameterString) ? string.Empty : ", ")}\"{prop.Key}\" = @{prop.Key}";
+                        }
+
+                    }
+                }
+            }
+
+            return (schema, entityName, parameterString);
+        }
+
+
+        /// <summary>
+        /// Prepares the parameter value for a generated update statement.
+        /// </summary>
+        /// <param name="propertyInfo"></param>
+        /// <returns></returns>
+        private string GetUpdateParameter(string propertyName)
+        {
+            if (propertyName == _defaultPkColumnName)
+            {
+                return string.Empty;
+            }
+
+            return $"[{propertyName}]=@{propertyName}";
         }
 
         /// <summary>

@@ -4,7 +4,7 @@ using FurchaAdminApi.Services;
 using Domain.Configuration;
 using FurchaAdminApi.Models.Result;
 using Microsoft.AspNetCore.Authorization;
-using System.Reflection;
+using FurchaAdminApi.Models.Request;
 
 namespace FurchaAdminApi.Controllers
 {
@@ -21,7 +21,7 @@ namespace FurchaAdminApi.Controllers
             _lockerService = lockerService;
         }
 
-      
+
         // GET: api/<LockerController>
         [HttpGet]
         public ActionResult<ApiResult<List<OfficeResult>>> Get(
@@ -40,10 +40,10 @@ namespace FurchaAdminApi.Controllers
                 isActive
             );
 
-           /* if (lockers == null || !lockers.Any())
-            {
-                return NotFound();
-            }*/
+            /* if (lockers == null || !lockers.Any())
+             {
+                 return NotFound();
+             }*/
 
             return Ok(ApiResult<List<OfficeResult>>.Success(lockers));
 
@@ -82,24 +82,32 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<string>.Success("LockerGroup created successfully."));
         }
 
-        /*
-                [HttpPost("CreateModule")]
-                public ActionResult<ApiResult<bool>> CreateModule([FromBody] CreateModuleRequest request)
-                {
-                    if (request == null || request.BranchId == 0)
-                    {
-                        return BadRequest(ApiResult<bool>.ErrorResult("Invalid request data."));
-                    }
+        [HttpPost("CreateModule")]
+        public ApiResult<bool> CreateModule([FromBody] ModuleRequest request)
+        {
+            if (request == null || request.BranchId == 0)
+            {
+                return ApiResult<bool>.ErrorResult("Invalid request data.");
+            }
 
-                    bool isCreated = _lockerService.CreateModule(request);
+            bool isCreated = _lockerService.CreateModule(request);
 
-                    if (!isCreated)
-                    {
-                        return StatusCode(500, ApiResult<bool>.ErrorResult("Failed to create module."));
-                    }
+            if (!isCreated)
+            {
+                return ApiResult<bool>.ErrorResult("Failed to create module.");
+            }
 
-                    return Ok(ApiResult<bool>.Success(true));
-                }*/
+            return ApiResult<bool>.Success(true);
+        }
+
+        [HttpGet("lockers-range")]
+        public ActionResult<ApiResult<ModuleLockers>> GetLockersRange(int groupId)
+        {
+            // add catch
+            var modules = _lockerService.GetLockersRange(groupId);
+
+            return Ok(ApiResult<ModuleLockers>.Success(modules));
+        }
 
 #warning When auth is done, this methode must return only modules accessible for the logged in admin
         [HttpGet("GetModules")]
@@ -108,6 +116,14 @@ namespace FurchaAdminApi.Controllers
             var modules = _lockerService.GetModules();
 
             return Ok(ApiResult<List<ModuleResult>>.Success(modules));
+        }
+
+        [HttpGet("get-new-brains")]
+        public ActionResult<ApiResult<List<NewModulesResult>>> GetNewModules(int adminId)
+        {
+            var modules = _lockerService.GetNewModules(adminId);
+
+            return Ok(ApiResult<List<NewModulesResult>>.Success(modules));
         }
 
         [HttpGet("admin-lockerGroups")]

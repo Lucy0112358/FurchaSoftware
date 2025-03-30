@@ -14,6 +14,11 @@ namespace Domain.Extensions
             return !string.IsNullOrWhiteSpace(@string);
         }
 
+        public static bool None<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        {
+            return !source.Any(predicate);
+        }
+
         /// <summary>
         /// Checks if the string is null or empty.
         /// </summary>

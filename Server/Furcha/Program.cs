@@ -19,17 +19,26 @@ namespace FurchaAdminApi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-            builder.Services.AddCors(options =>
+/*            builder.Services.AddCors(options =>
                  {
                      options.AddDefaultPolicy(builder =>
                      {
-                         builder.WithOrigins("http://192.168.0.129:3033")
+                         builder.WithOrigins("http://192.168.0.129:3033/")
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
                                 .AllowCredentials();
                      });
-                 });
+                 });*/
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+            });
 
             builder.Services.AddScoped<NpgsqlConnection>(provider =>
             {
@@ -86,6 +95,7 @@ namespace FurchaAdminApi
 
 
             app.UseCors();
+            app.UseRouting();
             app.UseStaticFiles();
 
             app.UseAuthentication();
