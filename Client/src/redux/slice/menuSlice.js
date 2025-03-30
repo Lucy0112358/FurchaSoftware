@@ -22,7 +22,7 @@ export const menuSlice = createSlice({
       state.loading = action.payload.loading;
     },
     setUserBranches: (state, action) => {
-      state.branches = [{ id: 0, name: "All" }, ...action];
+      state.branches = action;
     },
     setLockerGroup: (state, action) => {
       state.lockerGroups = [{ id: 0, name: "All" }, ...action];

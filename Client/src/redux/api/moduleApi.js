@@ -53,3 +53,31 @@ export const getModules = createAsyncThunk(
         }
       }
   )
+
+  export const getLockerGroupRange = createAsyncThunk(
+    'modules/getLockerGroupRange',
+    async ({brainId, groupId}, thunkAPI) => {
+        try {
+          console.log(brainId, groupId);
+          
+          const config = {
+            method: "get",
+            url: 'Locker/lockers-range/?groupId=' + groupId + '&brainId=' + brainId,
+          };
+          
+          const response = await instance(config);
+          // const response = {
+          //   success: true,
+          //   data: {
+          //     min: 1,
+          //     max: 10
+          //   }
+          // }
+          console.log(response, 'response');
+          
+          return response?.data;
+        } catch (error) {
+          return thunkAPI.rejectWithValue(error.response.data.error.both);
+        }
+      }
+  )

@@ -102,12 +102,12 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       errors.phone = 'Phone is required';
     }
 
-    if (!sentGeneralInfo.activeFrom) {
-      errors.activeFrom = 'Active From date is required';
-    }
-    if (!sentGeneralInfo.activeTo) {
-      errors.activeTo = 'Active To date is required';
-    }
+    // if (!sentGeneralInfo.activeFrom) {
+    //   errors.activeFrom = 'Active From date is required';
+    // }
+    // if (!sentGeneralInfo.activeTo) {
+    //   errors.activeTo = 'Active To date is required';
+    // }
 
     if (!sentGeneralInfo.userGroups || !sentGeneralInfo.userGroups.length) {
       errors.userGroups = 'At least one User Group must be selected';

@@ -20,8 +20,6 @@ const LockerModal = ({ isOpen, onClose }) => {
   const [formErrors, setFormErrors] = useState({});
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
 
-
-
   const sendGroupInfo = (key, value) => {
     setSentGeneralInfo((prev) => ({
       ...prev,
@@ -124,7 +122,6 @@ const LockerModal = ({ isOpen, onClose }) => {
                 {renderError('name')}
               </div>
             </div>
-
           </div>
         </div>
 

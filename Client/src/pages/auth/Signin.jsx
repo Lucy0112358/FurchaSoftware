@@ -20,11 +20,11 @@ const Signin = () => {
 
     const handleSubmit = async (values) => {
         try {
-            await dispatch(signin(values));
+            await dispatch(signin(values)).unwrap();
             navigate('/users');
             toast.success("Welcome to Furcha");
         } catch (error) {
-            toast.error("Error: " + error.message);
+            toast.error("Error: " + (error.message || "Unknown error"));
         }
     };
 
