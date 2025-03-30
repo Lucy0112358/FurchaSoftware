@@ -4,7 +4,6 @@ import '../modal.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
 import 'react-tabs/style/react-tabs.css';
-import CustomSelect from "../../select/CustomSelect";
 import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
 import { setUserGroup } from "../../../redux/api/menuApi";
 import { getFilteredLockerGroups } from "../../../redux/slice/lockerSlice";
@@ -25,11 +24,12 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
     branches: [],
     name: '',
   });
-  const [selectedBranches, setSelectedBranches] = useState([]);
   const filteredBranchGroups = useSelector(getFilteredLockerGroups)
   const [selectedLockerId, setSelectedLockerId] = useState([]);
   const userInfo = useSelector(getAddUserInfo);
   const [groupRight, setGroupRight] = useState({});
+  const [formErrors, setFormErrors] = useState({});
+  const [selectedLockerAddId, setSelectedLockerAddId] = useState({});
 
   const addAllInfoForUserGroup = (part, key, value) => {
     const updatedUserInfo = {
@@ -45,6 +45,50 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
       ...updatedUserInfo,
     }));
   };
+
+  const sendLockerIds = () => {
+  
+      setSelectedLockerAddId((prev) => ({
+        ...prev,
+        [Object.keys(selectedBranch)]: selectedLockerId,
+      }));
+      
+      const selectedLockers = {...selectedLockerAddId, [Object.keys(selectedBranch)]: selectedLockerId};
+  
+      const generalInfo = Object.entries(selectedLockers)
+      .filter(([branchIdString, lockerIds]) => lockerIds.length > 0)
+        .map(([branchIdString, lockerIds]) => {
+          const branchId = Number(branchIdString);
+          const branch = branches.find(b => b.id === branchId);
+          const branchName = branch ? branch.name : "Unknown";
+          const lockerIdsString = lockerIds.join(",");
+          return `${branchName}: ${lockerIdsString}`;
+        })
+        .join("; ");
+  
+        dispatch(
+          setAddUserInfo({
+            'Locker': {
+              ...userInfo['Locker'],
+              ['lockers']: Object.values(selectedLockers).flat(),
+            },
+          })
+        );
+    
+        setSentGeneralInfo((prev) => ({
+          ...prev,
+          'lockerIds': Object.values(selectedLockers).flat(),
+        }));
+    
+        setGroupRight((prev) => ({
+          ...prev,
+          'Locker': {
+            ...(prev['Locker'] || {}),
+            'lockers': generalInfo,
+          },
+        }));
+      toast.success("Lockers added successfully");
+    };
 
   const formatUserRightText = () => {
     const userRightsEntries = Object.entries(groupRight);
@@ -63,23 +107,15 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
       })
       .join('\n\n');
   };
-  const handleSelectBranch = (selectedOption) => {
-    setSelectedBranches((prevSelected) => {
-      const added = selectedOption.filter((item) => !prevSelected.includes(item));
-      if (added.length > 0) {
-        dispatch(getLockerGroupsByBranchId(added[0].value));
-      }
-      return selectedOption;
-    });
-  }
-
-  const addBranchHandle = () => {
-    addAllInfoForUserGroup('Branch', 'name', selectedBranch)
-    let id = selectedBranch.value
-    setSentGeneralInfo((prev) => ({
-      ...prev,
-      'branches': [...prev.branches, id],
-    }))
+  const handleSelectBranch = (branch) => {
+    setSelectedBranch({ [branch.id]: branch.name });
+    const existAddedBranchLockers = selectedLockerAddId[branch.id];
+    if (existAddedBranchLockers) {
+      setSelectedLockerId(existAddedBranchLockers);
+    } else {
+      setSelectedLockerId([]);
+    }
+    dispatch(getLockerGroupsByBranchId(branch.id));
   };
 
   const addUserGroup = () => {
@@ -100,16 +136,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
     }));
   };
 
-  const sendLockerIds = () => {
-    sendGroupInfo('Locker', 'lockerIds', selectedLockerId)
-    const branchIds = selectedBranches.map((branch) => branch.value);
-    setSentGeneralInfo((prev) => ({
-      ...prev,
-      branchIds: branchIds,
-    }));
-    toast.success("Lockers added successfully");
-  }
-
   const handleBranchSelect = (itemId) => {
     setSelectedLockerId((prevSelected) => {
       if (!prevSelected.includes(itemId)) {
@@ -127,6 +153,17 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
         return [...prevSelected, itemId];
       }
     });
+  };
+
+  const renderError = (fieldName) => {
+    if (formErrors[fieldName]) {
+      return (
+        <div className="text-red-500 text-sm mt-1">
+          {formErrors[fieldName]}
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -157,53 +194,97 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
               </div>
             </div>
           </div>
-
-          <div className="add__modal__content__part">
-            <div className="flex justify-between flex-col">
-              <div>
-                <span>Choose Branch</span>
-                <div className="add__modal__content__part__group grid gap-4 mb-4 mr-2">
-                  <div>
-                    <CustomSelect options={branches} onChange={handleSelectBranch} multiChoose={true} />
-                  </div>
+          <div className="flex justify-between flex-col">
+            <div className="add__modal__content__part__select w-full">
+              <span>Branches</span>
+              <div className="add__modal__content__part__group mb-4">
+                <div className="flex mr-2">
+                  {
+                    branches.length > 0 && (
+                      branches.map((branch, index) => {
+                        return (
+                          branch.name !== 'All' &&
+                          <>
+                            <div
+                              key={index}
+                              onClick={() => handleSelectBranch(branch)}
+                              className={`
+                                flex 
+                                mr-2 
+                                bg-[#475456] 
+                                p-3 
+                                rounded-xl 
+                                text-white 
+                                cursor-pointer 
+                                ${selectedBranch.hasOwnProperty(branch.id)
+                                  ? "border-2 border-cyan-500"
+                                  : ""
+                                }
+                              `}>
+                              {branch.name}
+                            </div>
+                          </>
+                        )
+                      }
+                      ))
+                  }
+                  {/* <CustomSelect
+                      options={branches}
+                      onChange={handleSelectBranch}
+                      multiChoose={true}
+                    /> */}
+                  {renderError('branch')}
                 </div>
               </div>
-              <div>
-                {filteredBranchGroups?.length ? (
-                  <div className='pl-5'>
-                    {filteredBranchGroups.map((lockerGroup, groupIndex) => (
-                      <React.Fragment key={groupIndex}>
-                        <GroupName name={lockerGroup.groupName} />
-                        <div className='flex flex-wrap mb-4'
-                        >
-                          {lockerGroup.groupLockers.map((item, itemIndex) => (
-                            <div className={`mr-2 mb-2 select-none ${selectedLockerId.includes(item.id) ? 'selected__branch__id' : ''
-                              }`} isDisabled={true} key={itemIndex}
-                              onMouseOver={(event) => {
-                                if (event.buttons === 1) {
-                                  handleBranchSelect(item.id)
-                                }
-                              }}
-                              onClick={() => handleClickBranchSelect(item.id)}
-                            >
-                              <GenerateLocker item={item} index={itemIndex} />
-                            </div>
-                          ))}
-                        </div>
-                      </React.Fragment>
-                    ))}
-                  </div>
-                ) : (
-                  <NoData text="No Selected Lockers" />
-                )}
-              </div>
-              <div className="section__add">
-                <button
-                  onClick={sendLockerIds}
-                  className="text-white font-bold rounded p-2">
-                  Add locker
-                </button>
-              </div>
+            </div>
+
+            <div>
+              {Object.keys(selectedBranch).length && filteredBranchGroups?.length ? (
+                <div className="pl-5 select-none">
+                  {filteredBranchGroups.map((lockerGroup, groupIndex) => (
+                    <React.Fragment key={groupIndex}>
+                      <GroupName name={lockerGroup.groupName} />
+                      <div className="flex flex-wrap mb-4">
+                        {lockerGroup.groupLockers.map((item, itemIndex) => (
+                          <div
+                            key={itemIndex}
+                            className={`mr-2 mb-2 ${selectedLockerId.includes(item.id)
+                              ? 'selected__branch__id'
+                              : ''
+                              }`}
+                            onMouseOver={(event) => {
+                              if (event.buttons === 1) {
+                                handleBranchSelect(item.id);
+                              }
+                            }}
+                            onClick={() => handleClickBranchSelect(item.id)}
+                          >
+                            <GenerateLocker item={item} index={itemIndex} />
+                          </div>
+                        ))}
+                      </div>
+                    </React.Fragment>
+                  ))}
+                </div>
+              ) : (
+                <NoData text="No Selected Lockers" />
+              )}
+            </div>
+            <div>
+              {/* {selectedBranchesForShow.length > 0 && (
+                  <div className="pl-5 select-none">
+                    {selectedBranchesForShow.map((group) => (
+                     
+                    )))} */}
+            </div>
+
+            <div className="section__add">
+              <button
+                onClick={sendLockerIds}
+                className="text-white font-bold rounded p-2"
+              >
+                Add locker
+              </button>
             </div>
           </div>
 

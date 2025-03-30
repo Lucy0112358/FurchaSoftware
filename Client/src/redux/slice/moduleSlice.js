@@ -1,14 +1,18 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getBranches, getLockerGroupsData} from "../api/menuApi";
 import { userSlice } from "./userSlice";
-import { getModules } from "../api/moduleApi";
-// import { APP_BASE_URL } from "../../config";
+import { getLockerGroupRange, getModules, getNewBrains} from "../api/moduleApi";
 
 const initialState = {
   modalBranches: {},
   allModules: {},
   modalGroups: {},
-
+  modalGroupsCopy: {},
+  newBrains: {},
+  lockerGroupMinMax: {
+    min: 1,
+    max: 256,
+  },
 };
 
 export const moduleSlice = createSlice({
@@ -16,16 +20,17 @@ export const moduleSlice = createSlice({
   initialState,
   reducers: {
     setBranches: (state, action) => {
-      state.modalBranches = [{ id: 0, name: "All" }, ...action];
+      state.modalBranches = action;
     },
     setLockerGroup: (state, action) => {
-      state.modalGroups = [{ id: 0, name: "All" }, ...action];
+      state.modalGroups = action;
+      state.modalGroupsCopy = action;
     },
     filterGroupByBranch: (state, action) => {
-      state.modalGroups = state.modalGroups.filter((group) => {
-        return group.branchId === action.payload;
-      });
-    },
+      state.modalGroups = action.payload
+        ? state.modalGroupsCopy.filter(group => group.branchId === action.payload)
+        : [...state.modalGroupsCopy];
+    }
   },
 
   extraReducers: (builder) => {
@@ -39,8 +44,15 @@ export const moduleSlice = createSlice({
       .addCase(getModules.fulfilled, (state, action) => {
         state.allModules =  action.payload.data;
       })
-
-      
+      .addCase(getNewBrains.fulfilled, (state, action) => {
+        state.newBrains = action.payload.data;
+      })
+      .addCase(getLockerGroupRange.fulfilled, (state, action) => {
+        state.lockerGroupMinMax = {
+          min: action.payload.data?.lastLocker?? 1,
+          max: 256,
+        };
+      });
   },
 });
 
@@ -51,6 +63,8 @@ export const {
 export const getModuleModalGroupes = (state) => state.modules.modalGroups;
 export const getModuleModalBranches = (state) => state.modules.modalBranches;
 export const getModulesData = (state) => state.modules.allModules;
+export const getNewBrainsData = (state) => state.modules.newBrains;
+export const getLockerGroupMinMax = (state) => state.modules.lockerGroupMinMax;
 
 
 export default moduleSlice.reducer;
