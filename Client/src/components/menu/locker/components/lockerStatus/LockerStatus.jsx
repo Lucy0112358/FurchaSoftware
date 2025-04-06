@@ -5,6 +5,9 @@ function LockerStatus({ addFilters }) {
 
   const handleStatusChange = (selectedStatus) => {
     setStatus(selectedStatus);
+    if(selectedStatus === 'all') {
+      selectedStatus = null;
+    }
     addFilters(selectedStatus, 'lockerStatus');
   };
 

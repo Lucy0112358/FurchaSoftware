@@ -18,7 +18,7 @@ const BranchModal = ({ isOpen, onClose }) => {
       comment: ""
     },
     validationSchema: Yup.object({
-      branchName: Yup.string().required("Brain Name is required")
+      branchName: Yup.string().required("Branch Name is required")
     }),
     onSubmit: (values) => {
       dispatch(createBranch(values))
@@ -36,6 +36,11 @@ const BranchModal = ({ isOpen, onClose }) => {
     },
   });
 
+  const handleSave = (e) => {
+    e.preventDefault();
+    formik.handleSubmit();
+  };
+
   return (
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
       <div className="add__modal__content add__modal__content__addModules rounded-lg shadow-lg w-full max-w-4xl overflow-auto">
@@ -46,7 +51,7 @@ const BranchModal = ({ isOpen, onClose }) => {
           </CloseButton>
         </div>
 
-        <form onSubmit={formik.handleSubmit}>
+        <form>
           <div className="add__modal__content__part">
             <span>General</span>
             <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
@@ -113,7 +118,8 @@ const BranchModal = ({ isOpen, onClose }) => {
             </div>
             <div className="modal__button">
               <button
-                type="submit"
+                type="button"
+                onClick={handleSave}
                 className="bg-gray-600 text-white rounded"
               >
                 Save
