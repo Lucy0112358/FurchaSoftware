@@ -12,9 +12,12 @@ const LockerTypes = ({ addFilters }) => {
     { background: '#ffccbc', border: '2px solid #ff8a65', type: 'common' } // Оранжевый с серым
   ];
 
-  const handleClick = (type) => {
-    setSelectedType(type);
-    addFilters(type, 'lockerType'); // Передаем тип вместо индекса
+  const handleClick = (newType) => {
+    setSelectedType((prevType) => {
+      const updatedType = prevType === newType ? "" : newType;
+      addFilters(updatedType, 'lockerType');
+      return updatedType;
+    });
   };
 
   return (
