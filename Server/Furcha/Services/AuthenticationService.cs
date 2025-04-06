@@ -38,6 +38,7 @@ namespace FurchaAdminApi.Services
                 return builder.ToString();
             }
         }
+
         public LoginResult LoginToGetJwtToken(AuthenticateRequest authenticateRequest)
         {
             // test authenticateRequest.email = null case with Swagger

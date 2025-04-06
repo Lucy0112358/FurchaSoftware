@@ -202,85 +202,85 @@ namespace FurchaAdminApi.Services
 
         internal bool CreateModule(ModuleRequest request)
         {
-           /* using (var transaction = new TransactionScope())
-            {*/
-                if (request.LockerGroupId == null)
+            /* using (var transaction = new TransactionScope())
+             {*/
+            if (request.LockerGroupId == null)
+            {
+                var newGroup = new LockerGroup
                 {
-                    var newGroup = new LockerGroup
-                    {
-                        Name = "Unassigned 1", // index names
-                        BranchId = request.BranchId,
-                    };
-
-                    var unassignedGroup = _lockerRepository.CreateLockerGroup(newGroup);
-                    request.LockerGroupId = unassignedGroup.Id;
-                }
-
-                var module = new BrainModule
-                {
-                    Id = request.Id,
+                    Name = "Unassigned 1", // index names
                     BranchId = request.BranchId,
-                    Status = 2,
-                    GroupId = request.LockerGroupId
                 };
 
-                _lockerRepository.UpdateModule(module);
+                var unassignedGroup = _lockerRepository.CreateLockerGroup(newGroup);
+                request.LockerGroupId = unassignedGroup.Id;
+            }
 
-                int startIndex = 1;
+            var module = new BrainModule
+            {
+                Id = request.Id,
+                BranchId = request.BranchId,
+                Status = 2,
+                GroupId = request.LockerGroupId
+            };
 
-                var lockersWithNumber = _lockerRepository.GetLockersOfGroup((int)request.LockerGroupId)
-                  .OrderBy(x => x.number).ToList();
+            _lockerRepository.UpdateModule(module);
 
-                if (request.StartBegin)
+            int startIndex = 1;
+
+            var lockersWithNumber = _lockerRepository.GetLockersOfGroup((int)request.LockerGroupId)
+              .OrderBy(x => x.number).ToList();
+
+            if (request.StartBegin)
+            {
+                if (lockersWithNumber.Any())
                 {
-                    if (lockersWithNumber.Any())
+                    foreach (var locker in lockersWithNumber)
                     {
-                        foreach (var locker in lockersWithNumber)
+                        var l = new Locker
                         {
-                            var l = new Locker
-                            {
-                                Id = locker.Id,
-                                number = locker.number + request.LastLocker
-                            };
+                            Id = locker.Id,
+                            number = locker.number + request.LastLocker
+                        };
 
-                            _lockerRepository.UpdateLocker(l);
-                        }
+                        _lockerRepository.UpdateLocker(l);
                     }
+                }
+            }
+            else
+            {
+                if (lockersWithNumber.Any())
+                {
+                    startIndex = lockersWithNumber.Select(x => x.number).Max() + 1;
                 }
                 else
                 {
-                    if (lockersWithNumber.Any())
-                    {
-                        startIndex = lockersWithNumber.Select(x => x.number).Max() + 1;
-                    }
-                    else
-                    {
-                        startIndex = 1;
-                    }
+                    startIndex = 1;
                 }
+            }
 
 
-                if (startIndex >= request.LastLocker || request.FirstLocker < startIndex)
+            if (startIndex >= request.LastLocker || request.FirstLocker < startIndex)
+            {
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "locker number is wrong");
+            }
+
+            for (int i = startIndex; i < request.LastLocker; i++)
+            {
+                var locker = new Locker
                 {
-                    throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "locker number is wrong");
-                }
+                    number = i,
+                    LockerType = locker_type.Common.ToString(),
+                    PasswordHash = "default",
+                    BranchId = request.BranchId,
+                    groupid = request.LockerGroupId,
+                    BrainId = request.Id
+                };
 
-                for (int i = startIndex; i < request.LastLocker; i++)
-                {
-                    var locker = new Locker
-                    {
-                        number = i,
-                        LockerType = locker_type.Common.ToString(),
-                        PasswordHash = "default",
-                        BranchId = request.BranchId,
-                        groupid = request.LockerGroupId,
-                        BrainId = request.Id
-                    };
+                _lockerRepository.CreateLocker(locker);
+            }
 
-                    _lockerRepository.CreateLocker(locker);
-                }
-
-       /*     }*/
+            /*     }*/
             return true;
         }
         internal bool CreateLockerGroup(int branchId, string name)
@@ -305,6 +305,42 @@ namespace FurchaAdminApi.Services
         {
             var lockerGroups = _lockerRepository.GetLockerGroupsByAdminId(adminId);
             return lockerGroups;
+        }
+
+        public void EditLocker(int? groupId, List<int> lockerIds, string? type)
+        {
+            foreach (var id in lockerIds)
+            {
+                var locker = _lockerRepository.GetLockerByIdOrDefault(id);
+                if (locker != null)
+                {
+                    if (groupId != null)
+                    {
+                        locker.groupid = groupId;
+                    }
+                    if (type != null)
+                    {
+                        locker.LockerType = type;
+                    }
+                    locker = _lockerRepository.UpdateLocker(locker);
+                }
+            }
+
+        }
+
+        public void SuspendLocker(int lockerId)
+        {
+            // make isactive to 0, or 1
+        }
+
+        public void OpenLocker(int lockerId)
+        {
+            // make isactive to 0, or 1
+        }
+
+        public void SetUser(int lockerId, int userId)
+        {
+            // make isactive to 0, or 1
         }
     }
 }
