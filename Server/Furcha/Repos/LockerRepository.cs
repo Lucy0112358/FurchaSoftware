@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.Repositories;
 using FurchaAdminApi.Models.Result;
 using Npgsql;
+using System.ComponentModel.Design;
 
 namespace FurchaAdminApi.Repos
 {
@@ -351,7 +352,9 @@ namespace FurchaAdminApi.Repos
             var newLocker = new Dictionary<string, object>
             {
                 { nameof(Locker.Id), locker.Id },
-                { nameof(Locker.number), locker.number }
+                { nameof(Locker.number), locker.number },
+                { nameof(Locker.LockerType), locker.LockerType },
+                { nameof(Locker.groupid), locker.groupid }
             };
 
             return Update<Locker>(newLocker);
@@ -362,6 +365,11 @@ namespace FurchaAdminApi.Repos
             var result = Insert(module);
 
             return result;
+        }
+
+        internal Locker GetLockerByIdOrDefault(int Id)
+        {
+            return GetSingleOrDefault<Locker>(Id);
         }
 
 #warning after auth get only valid for admin

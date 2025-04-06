@@ -1,5 +1,6 @@
 ﻿using Domain.Configuration;
 using FurchaAdminApi.Infrustructures;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 
@@ -19,7 +20,7 @@ namespace FurchaAdminApi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-/*            builder.Services.AddCors(options =>
+            builder.Services.AddCors(options =>
                  {
                      options.AddDefaultPolicy(builder =>
                      {
@@ -28,18 +29,18 @@ namespace FurchaAdminApi
                                 .AllowAnyMethod()
                                 .AllowCredentials();
                      });
-                 });*/
+                 });
 
-            builder.Services.AddCors(options =>
-            {
-                options.AddDefaultPolicy(builder =>
-                {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyHeader()
-                           .AllowAnyMethod();
-                });
-            });
-
+            /*            builder.Services.AddCors(options =>
+                        {
+                            options.AddDefaultPolicy(builder =>
+                            {
+                                builder.AllowAnyOrigin()
+                                       .AllowAnyHeader()
+                                       .AllowAnyMethod();
+                            });
+                        });
+            */
             builder.Services.AddScoped<NpgsqlConnection>(provider =>
             {
                 var configuration = provider.GetRequiredService<IConfiguration>();
@@ -88,11 +89,25 @@ namespace FurchaAdminApi
     });
             });
             var app = builder.Build();
+            app.UseExceptionHandler(errorApp =>
+            {
+                errorApp.Run(async context =>
+                {
+                    context.Response.StatusCode = 500;
+                    context.Response.ContentType = "application/json";
 
+                    var exceptionFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+                    var error = exceptionFeature?.Error;
+
+                    Console.WriteLine($"🔥 ERROR: {error?.Message}");
+                    Console.WriteLine(error?.StackTrace);
+
+                    await context.Response.WriteAsync($"{{\"error\":\"{error?.Message}\"}}");
+                });
+            });
 
             app.UseSwagger();
             app.UseSwaggerUI();
-
 
             app.UseCors();
             app.UseRouting();

@@ -286,11 +286,13 @@ namespace Domain.Repositories
                  FROM ""{schema}"".""{typeof(T).Name}""
                  WHERE ""Id"" = @Id
                  LIMIT 1";
+
             using (var sqlConnection = new PostgreSqlConnection(furchaContext.ConnectionString))
             {
-                return sqlConnection.Query<T>(sql: sql).SingleOrDefault();
+                return sqlConnection.Query<T>(sql, new { Id = id }).SingleOrDefault();
             }
         }
+
 
         /// <summary>
         /// Executes a SELECT TOP 1 * statement against the schema defined by the T TableAttribute.Schema.

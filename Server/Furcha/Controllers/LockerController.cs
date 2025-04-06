@@ -148,7 +148,7 @@ namespace FurchaAdminApi.Controllers
         [HttpGet("GetGroupsWithLockers")]
         public ActionResult<ApiResult<List<LockersResult>>> GetGroupsWithLockers([FromQuery] int branchId)
         {
-            var groupsWithLockers = _lockerService.GetGroupsWithLockers(branchId);
+            var groupsWithLockers = _lockerService.GetGroupsWithLockers                               (branchId);
 
             /*  if (!groupsWithLockers.Any())
               {
@@ -156,6 +156,18 @@ namespace FurchaAdminApi.Controllers
               }*/
 
             return Ok(ApiResult<List<LockersResult>>.Success(groupsWithLockers));
+        }
+
+        [HttpPost("edit-lockers")]
+        public IActionResult EditLockers([FromBody] EditLockerRequest request)
+        {
+            if (request == null || request.LockerIds == null || !request.LockerIds.Any())
+            {
+                return BadRequest(ApiResult<string>.ErrorResult("Invalid request data."));
+            }
+
+            _lockerService.EditLocker(request.GroupId, request.LockerIds, request.Type);
+            return Ok(ApiResult<string>.Success("Lockers edited successfully."));
         }
 
         // DELETE api/<LockerController>/5
