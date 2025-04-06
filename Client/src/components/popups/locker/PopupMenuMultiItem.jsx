@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import CustomSelect from '../../select/CustomSelect';
 import { getModuleModalGroupes } from '../../../redux/slice/moduleSlice';
 import { getLockerGroupsData } from '../../../redux/api/menuApi';
-import { getLockerOptions } from '../../../enums/LockerTypes';
+import { getLockerOptions } from '../../../enums/Locker/Types';
 import { editLockers, getLockers } from '../../../redux/api/lockerApi';
 import { toast } from "react-toastify";
 import { setSelectedLockerIds } from '../../../redux/slice/lockerSlice';

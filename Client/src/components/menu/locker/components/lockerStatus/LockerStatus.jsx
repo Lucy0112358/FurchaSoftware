@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LockerStatusEnum } from '../../../../../enums/Locker/Status';
 
 function LockerStatus({ addFilters }) {
   const [status, setStatus] = useState('all');
@@ -30,22 +31,22 @@ function LockerStatus({ addFilters }) {
             type="radio"
             name="lockerStatus"
             value="free"
-            checked={status === 'free'}
-            onChange={() => handleStatusChange ('free')}
+            checked={status === LockerStatusEnum.free}
+            onChange={() => handleStatusChange (LockerStatusEnum.free)}
             className="form-radio text-black focus:ring-0 cursor-pointer"
           />
-          <span className={`${status === 'free' ? 'text-white' : 'text-gray-400'}`}>Free</span>
+          <span className={`${status === LockerStatusEnum.free ? 'text-white' : 'text-gray-400'}`}>Free</span>
         </label>
         <label className="flex flex-col ">
           <input
             type="radio"
             name="lockerStatus"
-            value="occupied"
-            checked={status === 'occupied'}
-            onChange={() => handleStatusChange ('occupied')}
+            value={LockerStatusEnum.occupied}
+            checked={status === LockerStatusEnum.occupied}
+            onChange={() => handleStatusChange (LockerStatusEnum.occupied)}
             className="form-radio text-gray-400 focus:ring-0 cursor-pointer"
           />
-          <span className={`${status === 'occupied' ? 'text-white' : 'text-gray-400'}`}>Occupied</span>
+          <span className={`${status === LockerStatusEnum.occupied ? 'text-white' : 'text-gray-400'}`}>Occupied</span>
         </label>
       </div>
       <label className="text-white block">Locker Status</label>

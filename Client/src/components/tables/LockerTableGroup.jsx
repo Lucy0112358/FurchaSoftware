@@ -25,9 +25,7 @@ function LockerTableGroup() {
 
   const handleRightClick = (e, locker = null) => {
     e.preventDefault();
-  
     let popupX, popupY;
-  
     if (locker) {
       const rect = e.currentTarget.getBoundingClientRect();
       popupX = rect.left + window.scrollX + 10;
@@ -36,11 +34,10 @@ function LockerTableGroup() {
       popupX = e.clientX + window.scrollX;
       popupY = e.clientY + window.scrollY;
     }
-  
     if (!locker && selectedLockerIds.length === 0) {
       return closePopup();
     }
-  
+
     setPopup({
       visible: true,
       x: popupX,
@@ -132,10 +129,10 @@ function LockerTableGroup() {
                               : ''
                               }`}
                             onMouseOver={(event) => {
-                              if (event.buttons === 1) {
-                                handleBranchSelectAdd(item.id);
-                              } else if (event.buttons === 2) {
+                              if (event.buttons === 1 && event.ctrlKey) {
                                 handleBranchSelectRemove(item.id);
+                              } else if (event.buttons === 1) {
+                                handleBranchSelectAdd(item.id);
                               }
                             }}
                             onClick={() => handleClickBranchSelect(item.id)}

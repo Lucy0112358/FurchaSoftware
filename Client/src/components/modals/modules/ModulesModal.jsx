@@ -11,7 +11,7 @@ import { IoMdAdd } from "react-icons/io";
 import CustomCheckbox from "../../checkbox/CustomCheckbox";
 import { filterGroupByBranch, getLockerGroupMinMax, getModuleModalBranches, getModuleModalGroupes, getNewBrainsData } from "../../../redux/slice/moduleSlice";
 import { addModuleFunc, getLockerGroupRange, getNewBrains } from "../../../redux/api/moduleApi";
-import { getLockerOptions } from "../../../enums/LockerTypes";
+import { getLockerOptions } from "../../../enums/Locker/Types";
 import CloseButton from "../attributes/CloseButton";
 import BranchModal from "../branch/BranchModal";
 import { useFormik } from 'formik';
