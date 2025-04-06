@@ -7,9 +7,11 @@ import GroupName from '../headers/GroupName';
 import GenerateLocker from '../lockers/GenerateLocker';
 import PopupMenu from '../popups/locker/PopupMenu';
 import { getAllLockersData } from '../../redux/slice/lockerSlice';
+import { FaTimesCircle } from "react-icons/fa";
 
 function LockerTableGroup() {
   const allLockers = useSelector(getAllLockersData);
+  const [selectedLockerId, setSelectedLockerId] = useState([]);
 
   const [popup, setPopup] = useState({
     visible: false,
@@ -42,24 +44,50 @@ function LockerTableGroup() {
     }
   };
 
+  const handleBranchSelectAdd = (itemId) => {
+    setSelectedLockerId((prevSelected) => {
+      if (!prevSelected.includes(itemId)) {
+        return [...prevSelected, itemId];
+      }
+      return prevSelected;
+    });
+  };
+
+  const handleClickBranchSelect = (itemId) => {
+    setSelectedLockerId((prevSelected) => {
+      if (prevSelected.includes(itemId)) {
+        return prevSelected.filter((id) => id !== itemId);
+      } else {
+        return [...prevSelected, itemId];
+      }
+    });
+  };
+
+  const handleBranchSelectRemove = (itemId) => {
+    setSelectedLockerId((prevSelected) => {
+      if (prevSelected.includes(itemId)) {
+        return prevSelected.filter((id) => id !== itemId);
+      }
+      return prevSelected;
+    });
+  };
+
   return (
-    <div>
+    <div className='select-none' onContextMenu={(e) => e.preventDefault()}>
+      <div className='flex'>
+        <button type="button" className='text-white rounded' onClick={() => setSelectedLockerId([])}>Unselect Lockers</button>
+      </div>
       {allLockers.length ? (
         allLockers.map((locker, index) => {
-          // Если у этого "офиса" нет locker.lockers или он пуст, пропускаем
           if (!locker.lockers || locker.lockers.length === 0) {
             return null;
           }
 
           return (
             <React.Fragment key={index}>
-              {/* Отображаем название офиса */}
               <OfficeName name={locker.officeName} />
-
-              {/* Контейнер, который ловит клики для закрытия popup */}
               <div className="pl-5" onClick={handleGlobalClick}>
                 {locker.lockers.map((lockerGroup, groupIndex) => {
-                  // Если нет groupLockers или она пуста, пропускаем
                   if (
                     !lockerGroup.groupLockers ||
                     lockerGroup.groupLockers.length === 0
@@ -71,16 +99,35 @@ function LockerTableGroup() {
                     <React.Fragment key={groupIndex}>
                       <GroupName name={lockerGroup.groupName} />
 
-                      <div className="flex flex-wrap mb-4">
+                      <div className="flex flex-wrap mb-4 ">
                         {lockerGroup.groupLockers.map((item, itemIndex) => (
                           <div
-                            key={itemIndex} // или item.id, если уникально
-                            className="mr-2 mb-2"
+                            key={itemIndex}
                             onContextMenu={(e) => handleRightClick(e, item)}
-                            style={{ cursor: 'context-menu' }}
+                            className={`mr-2 mb-2 ${selectedLockerId.includes(item.id)
+                              ? 'selected__branch__id'
+                              : ''
+                              }`}
+                            onMouseOver={(event) => {
+                              if (event.buttons === 1) {
+                                handleBranchSelectAdd(item.id);
+                              } else if (event.buttons === 2) {
+                                handleBranchSelectRemove(item.id);
+                              }
+                            }}
+                          onClick={() => handleClickBranchSelect(item.id)}
                           >
                             <GenerateLocker item={item} index={itemIndex} />
+
                           </div>
+                          // <div
+                          //   key={itemIndex} // или item.id, если уникально
+                          //   className="mr-2 mb-2"
+                          //   onContextMenu={(e) => handleRightClick(e, item)}
+                          //   style={{ cursor: 'context-menu' }}
+                          // >
+                          //    
+                          // </div>
                         ))}
 
                         {/* Popup-меню (одно на все локеры) */}
