@@ -1,6 +1,10 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
+using Domain.Exceptionss;
+using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
+using System.Transactions;
 
 namespace FurchaAdminApi.Services
 {
@@ -8,11 +12,12 @@ namespace FurchaAdminApi.Services
     {
         private readonly LockerRepository _lockerRepository;
         private readonly BranchRepository _branchRepository;
-
-        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository)
+        private readonly UserRepository _userRepository;
+        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository)
         {
             _lockerRepository = lockerRepository;
             _branchRepository = branchRepository;
+            _userRepository = userRepository;
         }
         /// <summary>
         /// Each user in the group should have access to same lockers in the lockerGroup. <br></br>
@@ -39,7 +44,6 @@ namespace FurchaAdminApi.Services
         /// <returns>A list of lockers that match the specified criteria.</returns>
         public List<OfficeResult> GetLockersByFilters(int branchId, string? lockerType, int? lockerGroupId, string? status, bool? isActive)
         {
-            var lockers = _lockerRepository.GetLockersByCriteria(branchId, lockerType, lockerGroupId, status, isActive);
 
             var adminBranches = _branchRepository.GetBranchesByAdminId(8);
 
@@ -47,8 +51,10 @@ namespace FurchaAdminApi.Services
 
             foreach (var branch in adminBranches)
             {
+                var lockers = _lockerRepository.GetLockersByCriteria(branch.Id, lockerType, lockerGroupId, status, isActive);
+
                 var branchLockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branch.Id)
-                    .OrderByDescending(group => group.Id) // Sort locker groups by descending ID
+                    .OrderByDescending(group => group.Id)
                     .ToList();
 
                 var lockerResults = new List<LockersResult>();
@@ -57,7 +63,7 @@ namespace FurchaAdminApi.Services
                 {
                     var groupLockers = lockers
                         .Where(locker => locker.groupid == group.Id)
-                        .ToList(); // Keep original order of lockers
+                        .ToList();
 
                     lockerResults.Add(new LockersResult
                     {
@@ -74,13 +80,13 @@ namespace FurchaAdminApi.Services
                     });
                 }
 
-               
-                    results.Add(new OfficeResult
-                    {
-                        OfficeName = "Poghos",
-                        Lockers = lockerResults
-                    });
-                
+
+                results.Add(new OfficeResult
+                {
+                    OfficeName = branch.Name,
+                    Lockers = lockerResults
+                });
+
             }
 
             return results;
@@ -89,19 +95,50 @@ namespace FurchaAdminApi.Services
 
         public List<LockersResult> GetGroupsWithLockers(int branchId)
         {
-            var lockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branchId);
+            var lockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branchId).Distinct().ToList();
             var lockers = _lockerRepository.GetUserLockersByBranchId(branchId);
 
             var results = lockerGroups
                 .Select(group => new LockersResult
                 {
                     GroupName = group.Name,
-                    GroupLockers = lockers.Where(locker => locker.groupid == group.Id).ToList()
+                    GroupLockers = lockers
+                        .Where(locker => locker.groupid == group.Id)
+                        .ToList()
                 })
                 .Where(result => result.GroupLockers.Any())
                 .ToList();
 
             return results;
+        }
+
+
+        public List<NewModulesResult> GetNewModules(int adminId)
+        {
+            var accountId = _userRepository.GetCompanyIdByAdminId(adminId);
+
+            var lockerGroups = _lockerRepository.GetBrainModulesByBranchAndStatus(4, 1);
+
+            var results = lockerGroups.Select(l => new NewModulesResult
+            {
+                Info = l.Info,
+                Id = l.Id,
+                MacAddress = l.MacAddress,
+            }).ToList();
+
+            return results;
+        }
+
+        public ModuleLockers GetLockersRange(int groupId)
+        {
+            var lockersWithNumber = _lockerRepository.GetLockersOfGroup(groupId)
+                 .OrderBy(x => x.number).Select(x => x.number).ToList();
+
+            return new ModuleLockers
+            {
+                FirstLocker = lockersWithNumber.FirstOrDefault(),
+                LastLocker = lockersWithNumber.LastOrDefault()
+            };
         }
 
         /// <summary>
@@ -113,7 +150,7 @@ namespace FurchaAdminApi.Services
             var adminBranches = _branchRepository.GetBranchesByAdminId(8);
 
             var result = new List<ModuleResult>();
-            int currentNumber = 1;
+
 
             foreach (var branch in adminBranches)
             {
@@ -131,14 +168,15 @@ namespace FurchaAdminApi.Services
 
                         foreach (var module in groupModules)
                         {
-                            var moduleCount = _lockerRepository.GetLockersByBrainId(module.BranchId).Count;
+                            var lockers = _lockerRepository.GetLockersByBrainId(module.Id);
+                            if (!lockers.Any()) continue;
                             moduleLockers.Add(new ModuleLockers
                             {
-                                FirstLocker = currentNumber,
-                                LastLocker = currentNumber + moduleCount + 1
+                                FirstLocker = lockers.First().number,
+                                LastLocker = lockers.Last().number,
                             });
 
-                            currentNumber += moduleCount;
+
                         }
 
                         moduleInfos.Add(new ModuleInfo
@@ -162,41 +200,89 @@ namespace FurchaAdminApi.Services
             return result;
         }
 
+        internal bool CreateModule(ModuleRequest request)
+        {
+           /* using (var transaction = new TransactionScope())
+            {*/
+                if (request.LockerGroupId == null)
+                {
+                    var newGroup = new LockerGroup
+                    {
+                        Name = "Unassigned 1", // index names
+                        BranchId = request.BranchId,
+                    };
+
+                    var unassignedGroup = _lockerRepository.CreateLockerGroup(newGroup);
+                    request.LockerGroupId = unassignedGroup.Id;
+                }
+
+                var module = new BrainModule
+                {
+                    Id = request.Id,
+                    BranchId = request.BranchId,
+                    Status = 2,
+                    GroupId = request.LockerGroupId
+                };
+
+                _lockerRepository.UpdateModule(module);
+
+                int startIndex = 1;
+
+                var lockersWithNumber = _lockerRepository.GetLockersOfGroup((int)request.LockerGroupId)
+                  .OrderBy(x => x.number).ToList();
+
+                if (request.StartBegin)
+                {
+                    if (lockersWithNumber.Any())
+                    {
+                        foreach (var locker in lockersWithNumber)
+                        {
+                            var l = new Locker
+                            {
+                                Id = locker.Id,
+                                number = locker.number + request.LastLocker
+                            };
+
+                            _lockerRepository.UpdateLocker(l);
+                        }
+                    }
+                }
+                else
+                {
+                    if (lockersWithNumber.Any())
+                    {
+                        startIndex = lockersWithNumber.Select(x => x.number).Max() + 1;
+                    }
+                    else
+                    {
+                        startIndex = 1;
+                    }
+                }
 
 
-#warning needs to be changed to MQTT
-        /*  internal bool CreateModule(CreateModuleRequest request)
-          {
-              //using (var transaction = new TransactionScope())
-              //{
-              var module = new BrainModule
-              {
-                  BranchId = request.BranchId,
-                  GroupId = request.LockerGroupId,
-                  MacAddress = request.MacAddress,
-              };
+                if (startIndex >= request.LastLocker || request.FirstLocker < startIndex)
+                {
+                    throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "locker number is wrong");
+                }
 
-              _lockerRepository.CreateModule(module);
+                for (int i = startIndex; i < request.LastLocker; i++)
+                {
+                    var locker = new Locker
+                    {
+                        number = i,
+                        LockerType = locker_type.Common.ToString(),
+                        PasswordHash = "default",
+                        BranchId = request.BranchId,
+                        groupid = request.LockerGroupId,
+                        BrainId = request.Id
+                    };
 
-              for (int i = request.FirstLocker; i < request.LastLocker; i++)
-              {
-                  var locker = new Locker
-                  {
-                      number = i,
-                      LockerType = request.LockerType.ToString(),
-                      PasswordHash = "default",
-                      BranchId = request.BranchId,
-                      groupid = request.LockerGroupId
-                  };
+                    _lockerRepository.CreateLocker(locker);
+                }
 
-                  _lockerRepository.CreateLocker(locker);
-              }
-
-              //}
-
-
-              return true;
-          }*/
+       /*     }*/
+            return true;
+        }
         internal bool CreateLockerGroup(int branchId, string name)
         {
             var result = new LockerGroup()

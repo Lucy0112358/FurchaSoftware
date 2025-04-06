@@ -11,7 +11,10 @@ namespace Domain.Entities
         public int Id { get; set; }
 
         [Column]
-        public long number { get; set; }
+        public int BrainId { get; set; }
+
+        [Column]
+        public int number { get; set; }
 
         [Column]
         public int? groupid { get; set; }
@@ -33,6 +36,8 @@ namespace Domain.Entities
 
         [Column]
         public string PasswordHash { get; set; }
+
+
         //[JsonIgnore]
 
         //[InverseProperty("LockerCard")]

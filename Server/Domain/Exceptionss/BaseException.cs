@@ -1,10 +1,9 @@
 ﻿using Domain.Enums;
 using Domain.Extensions;
-using System.Diagnostics.Contracts;
 
 namespace Domain.Exceptionss
 {
-    public class BaseException : ApplicationException
+    public class BaseException : Exception
     {
         public MqttErrorCodeEnum ErrorCodeEnum { get; private set; }
         public ErrorCodeEnum errorCodeEnum { get; private set; }

@@ -19,33 +19,42 @@ namespace FurchaAdminApi.Repos
         public IEnumerable<LockerWithUsers> GetUserLockersByBranchId(int branchId)
         {
             var query = @"
-            SELECT l.""Id"", l.Number, l.""LockerType"", l.""IsActive"", l.""IsOpen"", l.""BranchId"", l.""PasswordHash"", 
+            SELECT l.""Id"", l.GroupId, l.Number, l.""LockerType"", l.""IsActive"", l.""IsOpen"", l.""BranchId"", l.""PasswordHash"", 
                    u.""Name"" AS Name
             FROM furcha.""Locker"" l
             LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""LockerId""
             LEFT JOIN furcha.""User"" u ON ul.""UserId"" = u.Id
             WHERE l.""BranchId"" = @BranchId";
 
-            var connectionString = "Host=localhost;Port=5432;Database=furcha;Username=postgres;Password=postgres;";
+            var connectionString = "Host=192.168.0.129;Port=7887;Database=furcha;Username=postgres;Password=Andresuga0713.;";
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
+                var lockerDictionary = new Dictionary<int, LockerWithUsers>();
                 var lockers = connection.Query<LockerWithUsers, string, LockerWithUsers>(
-                    query,
-                    (locker, userName) => {
-                        locker.Users ??= new List<string>();
-                        if (!string.IsNullOrEmpty(userName))
-                        {
-                            locker.Users.Add(userName);
-                        }
-                        return locker;
-                    },
-                    param: new { BranchId = branchId },
-                    splitOn: "Name"
-                ).Distinct().ToList();
-                return lockers;
-            }
+            query,
+            (locker, userName) =>
+            {
+                if (!lockerDictionary.TryGetValue(locker.Id, out var existingLocker))
+                {
+                    existingLocker = locker;
+                    existingLocker.Users = new List<string>();
+                    lockerDictionary.Add(locker.Id, existingLocker);
+                }
 
+                if (!string.IsNullOrEmpty(userName) && !existingLocker.Users.Contains(userName))
+                {
+                    existingLocker.Users.Add(userName);
+                }
+
+                return existingLocker;
+            },
+            param: new { BranchId = branchId },
+            splitOn: "Name"
+        );
+
+                return lockerDictionary.Values.ToList();
+            }
         }
 
 
@@ -126,7 +135,7 @@ namespace FurchaAdminApi.Repos
             var sql = @"
         SELECT bm.*
         FROM furcha.""BrainModule"" bm      
-        WHERE ""GroupId"" = @groupid";
+        WHERE bm.""GroupId"" = @groupid AND bm.""Status"" = 2";
 
             var brainModules = Query<BrainModule>(
                 sql: sql,
@@ -170,7 +179,7 @@ namespace FurchaAdminApi.Repos
             return lockerGroups;
         }
 
-
+#warning add auth
         /// <summary>
         /// Retrieves lockers based on the specified locker group
         /// </summary>
@@ -186,7 +195,7 @@ namespace FurchaAdminApi.Repos
                 param: new { GroupId = groupId }
             ).ToList();
 
-            return lockers;
+            return lockers ?? new List<Locker>();
         }
 
 
@@ -222,7 +231,7 @@ namespace FurchaAdminApi.Repos
       AND (l.""IsOpen"" = @IsActive OR @IsActive IS NULL)
       AND (l.""IsActive"" = @IsActive OR @IsActive IS NULL)";
 
-            var connectionString = "Host=localhost;Port=5432;Database=furcha;Username=postgres;Password=postgres;";
+            var connectionString = "Host=192.168.0.129;Port=7887;Database=furcha;Username=postgres;Password=Andresuga0713.;";
 
             using (var connection = new NpgsqlConnection(connectionString))
             {
@@ -324,6 +333,30 @@ namespace FurchaAdminApi.Repos
             return result;
         }
 
+        internal BrainModule UpdateModule(BrainModule module)
+        {
+            var newModule = new Dictionary<string, object>
+            {
+                { nameof(BrainModule.Id), module.Id },
+                { nameof(BrainModule.BranchId), module.BranchId },
+                { nameof(BrainModule.GroupId), module.GroupId },
+                { nameof(BrainModule.Status), module.Status }
+            };
+
+            return Update<BrainModule>(newModule);
+        }
+
+        internal Locker UpdateLocker(Locker locker)
+        {
+            var newLocker = new Dictionary<string, object>
+            {
+                { nameof(Locker.Id), locker.Id },
+                { nameof(Locker.number), locker.number }
+            };
+
+            return Update<Locker>(newLocker);
+        }
+
         internal Locker CreateLocker(Locker module)
         {
             var result = Insert(module);
@@ -355,5 +388,29 @@ namespace FurchaAdminApi.Repos
             return lockers;
 
         }
+
+        /// <summary>
+        /// Retrieves all Brain Modules associated with a specific branch and status.
+        /// </summary>
+        /// <param name="branchId">The ID of the branch.</param>
+        /// <param name="status">The status of the Brain Module (can be used to filter modules by status).</param>
+        /// <returns>A list of Brain Modules associated with the branch and status.</returns>
+        public List<BrainModule> GetBrainModulesByBranchAndStatus(int branchId, int status)
+        {
+            var sql = @"
+        SELECT bm.*
+        FROM furcha.""BrainModule"" bm
+        WHERE bm.""BranchId"" = @BranchId
+        AND bm.""Status"" = @Status";
+
+            // Assuming Query<BrainModule> method handles the query execution and mapping to the BrainModule entity.
+            var brainModules = Query<BrainModule>(
+                sql: sql,
+                param: new { BranchId = branchId, Status = status }
+            ).ToList();
+
+            return brainModules;
+        }
+
     }
 }
