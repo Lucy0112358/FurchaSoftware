@@ -136,14 +136,24 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
     }));
   };
 
-  const handleBranchSelect = (itemId) => {
+  const handleBranchSelectAdd = (itemId) => {
     setSelectedLockerId((prevSelected) => {
       if (!prevSelected.includes(itemId)) {
         return [...prevSelected, itemId];
       }
       return prevSelected;
     });
-  }
+  };
+
+  const handleBranchSelectRemove = (itemId) => {
+    setSelectedLockerId((prevSelected) => {
+      if (prevSelected.includes(itemId)) {
+       return prevSelected.filter((id) => id !== itemId);
+      }
+      return prevSelected;
+    });
+  };
+
 
   const handleClickBranchSelect = (itemId) => {
     setSelectedLockerId((prevSelected) => {
@@ -194,7 +204,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
               </div>
             </div>
           </div>
-          <div className="flex justify-between flex-col">
+          <div className="flex justify-between flex-col" onContextMenu={(e) => e.preventDefault()}>
             <div className="add__modal__content__part__select w-full">
               <span>Branches</span>
               <div className="add__modal__content__part__group mb-4">
@@ -252,11 +262,13 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
                               ? 'selected__branch__id'
                               : ''
                               }`}
-                            onMouseOver={(event) => {
-                              if (event.buttons === 1) {
-                                handleBranchSelect(item.id);
-                              }
-                            }}
+                              onMouseOver={(event) => {
+                                if (event.buttons === 1) {
+                                  handleBranchSelectAdd(item.id);
+                                } else if (event.buttons === 2) {
+                                  handleBranchSelectRemove(item.id); 
+                                }
+                              }}
                             onClick={() => handleClickBranchSelect(item.id)}
                           >
                             <GenerateLocker item={item} index={itemIndex} />

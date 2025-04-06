@@ -6,15 +6,18 @@ const LockerTypes = ({ addFilters }) => {
 
   const lockerSettings = [
     { background: '#4dd0e1', type: 'personal' }, // Голубой
-    { background: '#f06292', type: 'temporary' }, // Розовый
+    { background: '#f06292', type: 'common' }, // Розовый
     { background: '#81c784', type: 'hand' }, // Зеленый
     { background: '#ffeb3b', type: 'parcel' }, // Желтый
-    { background: '#ffccbc', border: '2px solid #ff8a65', type: 'common' } // Оранжевый с серым
+    { background: '#ffccbc', border: '2px solid #ff8a65', type: 'unspecified' } // Оранжевый с серым
   ];
 
-  const handleClick = (type) => {
-    setSelectedType(type);
-    addFilters(type, 'lockerType'); // Передаем тип вместо индекса
+  const handleClick = (newType) => {
+    setSelectedType((prevType) => {
+      const updatedType = prevType === newType ? "" : newType;
+      addFilters(updatedType, 'lockerType');
+      return updatedType;
+    });
   };
 
   return (

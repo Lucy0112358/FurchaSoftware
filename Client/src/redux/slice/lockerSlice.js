@@ -7,7 +7,7 @@ const initialState = {
   loading: false,
   allLockers: [],
   lockerFilters: {
-    lockerStatus: 'all',
+    lockerStatus: null,
   },
   filteredLockerGroups: [],
 };

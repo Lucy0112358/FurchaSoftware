@@ -78,7 +78,10 @@ function LockerTable() {
                                   <td>{item.lockerType}</td>
                                   <td>
                                     {item.users?.map((userName, i) => (
-                                      <span key={i}>{userName}</span>
+                                      <span key={i}>
+                                        {userName}
+                                        {i < item.users.length - 1 && ', '}
+                                      </span>
                                     ))}
                                   </td>
                                   <td>{item.isOpen ? 'open' : 'closed'}</td>

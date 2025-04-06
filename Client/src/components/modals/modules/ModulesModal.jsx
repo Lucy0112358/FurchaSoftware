@@ -124,11 +124,6 @@ console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
     dispatch(getLockerGroupRange({brainId: selectedOption.value, groupId: sentGeneralInfo.lockerGroupId}));
   };
 
-  const handleLockerNmbers = (value) => {
-
-    console.log(value)
-  }
-
   const handleLockerGroupChange = (selectedOption) => {
     sendGroupInfo('lockerGroupId', selectedOption.value);
     if(sentGeneralInfo?.id){
@@ -176,7 +171,7 @@ console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
                   <div className="w-5/6 mr-2">
                     <CustomSelect
                       options={branches}
-                      value={branches.find(option => option.id === formik.values.branchId)}
+                      value={branches?.find(option => option.id === formik.values.branchId)}
                       onChange={(option) => {
                         formik.setFieldValue('branchId', option?.value);
                         handleBranchChange(option);

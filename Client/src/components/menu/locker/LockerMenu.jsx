@@ -11,8 +11,6 @@ import LockerTypes from './components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
 import { getLockerFilter, setLockerFilter } from '../../../redux/slice/lockerSlice';
 import { getLockers } from '../../../redux/api/lockerApi';
-import { getLockerGroupsData } from '../../../redux/api/menuApi';
-import { IoMdAdd } from 'react-icons/io';
 
 function LockerMenu() {
     const dispatch = useDispatch();
@@ -48,11 +46,7 @@ function LockerMenu() {
 
     const handleGroupsSelectChange = (selectedOption) => {
         setSelectedGroups(selectedOption);
-        // addFilters(selectedOption, 'groupId')
-        addFilters(selectedOption, 'groupId')
-
-        // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
-
+        addFilters(selectedOption.value, 'groupId')
     };
 
     const addFilters = (selectedOption, key) => {
