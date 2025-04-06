@@ -10,6 +10,7 @@ const initialState = {
     lockerStatus: null,
   },
   filteredLockerGroups: [],
+  selectedLockerIds: [],
 };
 
 export const lockerSlice = createSlice({
@@ -27,6 +28,9 @@ export const lockerSlice = createSlice({
     },
     setLocker: (state, action) => {
       state.allLockers = action.payload.data;
+    },
+    setSelectedLockerIds: (state, action) => {
+      state.selectedLockerIds = action.payload;
     },
   },
 
@@ -61,15 +65,14 @@ export const lockerSlice = createSlice({
 
 export const {
   setLoading,
-  setLockerFilter
+  setLockerFilter,
+  setSelectedLockerIds
 } = lockerSlice.actions;
 
 export const getLoadingNow = (state) => state.locker.loading;
-
 export const getLockerFilter = (state) => state.locker.lockerFilters
-
 export const getAllLockersData = (state) => state.locker.allLockers;
-
-export const getFilteredLockerGroups = (state) => state.locker.filteredLockerGroups
+export const getFilteredLockerGroups = (state) => state.locker.filteredLockerGroups;
+export const getSelectedLockerIds = (state) => state.locker.selectedLockerIds;
 
 export default lockerSlice.reducer;

@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { lockerTable } from '../../data/tableIHeads';
 import NoData from '../no-data/NoData';
 import OfficeName from '../headers/OfficeName';
 import GroupName from '../headers/GroupName';
 import GenerateLocker from '../lockers/GenerateLocker';
 import PopupMenu from '../popups/locker/PopupMenu';
-import { getAllLockersData } from '../../redux/slice/lockerSlice';
+import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '../../redux/slice/lockerSlice';
 import { FaTimesCircle } from "react-icons/fa";
 
 function LockerTableGroup() {
+  const dispatch = useDispatch();
+  const selectedLockerIds = useSelector(getSelectedLockerIds)
   const allLockers = useSelector(getAllLockersData);
-  const [selectedLockerId, setSelectedLockerId] = useState([]);
+  const [checkedLockers, setCheckedLockers] = useState({});
+  // const [selectedLockerId, setSelectedLockerId] = useState([]);
 
   const [popup, setPopup] = useState({
     visible: false,
@@ -20,12 +23,24 @@ function LockerTableGroup() {
     locker: null,
   });
 
-  const handleRightClick = (e, locker) => {
+  const handleRightClick = (e, locker = null) => {
     e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const popupX = rect.left + window.scrollX + 10;
-    const popupY = rect.top + window.scrollY + rect.height + 5;
-
+  
+    let popupX, popupY;
+  
+    if (locker) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      popupX = rect.left + window.scrollX + 10;
+      popupY = rect.top + window.scrollY + rect.height + 5;
+    } else {
+      popupX = e.clientX + window.scrollX;
+      popupY = e.clientY + window.scrollY;
+    }
+  
+    if (!locker && selectedLockerIds.length === 0) {
+      return closePopup();
+    }
+  
     setPopup({
       visible: true,
       x: popupX,
@@ -45,37 +60,30 @@ function LockerTableGroup() {
   };
 
   const handleBranchSelectAdd = (itemId) => {
-    setSelectedLockerId((prevSelected) => {
-      if (!prevSelected.includes(itemId)) {
-        return [...prevSelected, itemId];
-      }
-      return prevSelected;
-    });
+    const newSelected = selectedLockerIds.includes(itemId)
+      ? selectedLockerIds
+      : [...selectedLockerIds, itemId];
+    dispatch(setSelectedLockerIds(newSelected));
   };
 
   const handleClickBranchSelect = (itemId) => {
-    setSelectedLockerId((prevSelected) => {
-      if (prevSelected.includes(itemId)) {
-        return prevSelected.filter((id) => id !== itemId);
-      } else {
-        return [...prevSelected, itemId];
-      }
-    });
+    const newSelected = selectedLockerIds.includes(itemId)
+      ? selectedLockerIds.filter((id) => id !== itemId)
+      : [...selectedLockerIds, itemId];
+    dispatch(setSelectedLockerIds(newSelected));
   };
 
   const handleBranchSelectRemove = (itemId) => {
-    setSelectedLockerId((prevSelected) => {
-      if (prevSelected.includes(itemId)) {
-        return prevSelected.filter((id) => id !== itemId);
-      }
-      return prevSelected;
-    });
+    const newSelected = selectedLockerIds.includes(itemId)
+      ? selectedLockerIds.filter((id) => id !== itemId)
+      : selectedLockerIds;
+    dispatch(setSelectedLockerIds(newSelected));
   };
 
   return (
     <div className='select-none' onContextMenu={(e) => e.preventDefault()}>
       <div className='flex'>
-        <button type="button" className='text-white rounded' onClick={() => setSelectedLockerId([])}>Unselect Lockers</button>
+        <button type="button" className='text-white rounded' onClick={() => dispatch(setSelectedLockerIds([]))}>Unselect Lockers</button>
       </div>
       {allLockers.length ? (
         allLockers.map((locker, index) => {
@@ -86,7 +94,15 @@ function LockerTableGroup() {
           return (
             <React.Fragment key={index}>
               <OfficeName name={locker.officeName} />
-              <div className="pl-5" onClick={handleGlobalClick}>
+              <div className="pl-5"
+                onClick={handleGlobalClick}
+                onContextMenu={(e) => {
+                  if (selectedLockerIds.length > 0) {
+                    handleRightClick(e);
+                  } else {
+                    e.preventDefault();
+                  }
+                }}>
                 {locker.lockers.map((lockerGroup, groupIndex) => {
                   if (
                     !lockerGroup.groupLockers ||
@@ -99,12 +115,19 @@ function LockerTableGroup() {
                     <React.Fragment key={groupIndex}>
                       <GroupName name={lockerGroup.groupName} />
 
-                      <div className="flex flex-wrap mb-4 ">
+                      <div
+                        className="flex flex-wrap mb-4 ">
                         {lockerGroup.groupLockers.map((item, itemIndex) => (
                           <div
                             key={itemIndex}
-                            onContextMenu={(e) => handleRightClick(e, item)}
-                            className={`mr-2 mb-2 ${selectedLockerId.includes(item.id)
+                            onContextMenu={(e) => {
+                              if (!selectedLockerIds.length > 0) {
+                                handleRightClick(e, item);
+                              } else {
+                                e.preventDefault();
+                              }
+                            }}
+                            className={`mr-2 mb-2 ${selectedLockerIds.includes(item.id)
                               ? 'selected__branch__id'
                               : ''
                               }`}
@@ -115,22 +138,13 @@ function LockerTableGroup() {
                                 handleBranchSelectRemove(item.id);
                               }
                             }}
-                          onClick={() => handleClickBranchSelect(item.id)}
+                            onClick={() => handleClickBranchSelect(item.id)}
                           >
                             <GenerateLocker item={item} index={itemIndex} />
 
                           </div>
-                          // <div
-                          //   key={itemIndex} // или item.id, если уникально
-                          //   className="mr-2 mb-2"
-                          //   onContextMenu={(e) => handleRightClick(e, item)}
-                          //   style={{ cursor: 'context-menu' }}
-                          // >
-                          //    
-                          // </div>
                         ))}
 
-                        {/* Popup-меню (одно на все локеры) */}
                         {popup.visible && (
                           <div
                             style={{

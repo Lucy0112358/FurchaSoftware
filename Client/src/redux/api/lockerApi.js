@@ -18,3 +18,23 @@ export const getLockers = createAsyncThunk(
       }
     }
 )
+
+export const editLockers = createAsyncThunk(
+  'locker/editLockers',
+  async (data, thunkAPI) => {
+      try {
+        const config = {
+          method: "post",
+          data: data,
+          url: 'Locker/edit-lockers',
+        };
+       
+        const response = await instance(config);
+        console.log("response", response);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+

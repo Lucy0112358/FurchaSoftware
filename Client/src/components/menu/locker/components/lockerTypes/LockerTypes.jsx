@@ -7,7 +7,7 @@ const LockerTypes = ({ addFilters }) => {
   const lockerSettings = [
     { background: '#4dd0e1', type: 'personal' }, // Голубой
     { background: '#f06292', type: 'common' }, // Розовый
-    { background: '#81c784', type: 'hand' }, // Зеленый
+    { background: '#81c784', type: 'handOver' }, // Зеленый
     { background: '#ffeb3b', type: 'parcel' }, // Желтый
     { background: '#ffccbc', border: '2px solid #ff8a65', type: 'unspecified' } // Оранжевый с серым
   ];
