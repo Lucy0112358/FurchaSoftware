@@ -21,6 +21,7 @@ function LockerTableGroup() {
     x: 0,
     y: 0,
     locker: null,
+    branchId: null
   });
 
   const handleRightClick = (e, locker = null) => {
@@ -43,6 +44,7 @@ function LockerTableGroup() {
       x: popupX,
       y: popupY,
       locker: locker,
+      branchId: locker ? locker.branchId : null,
     });
   };
 
@@ -79,8 +81,12 @@ function LockerTableGroup() {
 
   return (
     <div className='select-none' onContextMenu={(e) => e.preventDefault()}>
-      <div className='flex'>
-        <button type="button" className='text-white rounded' onClick={() => dispatch(setSelectedLockerIds([]))}>Unselect Lockers</button>
+      <div className='flex justify-end'>
+        <button 
+          type="button" 
+          style={{backgroundColor:'white', padding:'5px'}} 
+          className='rounded' 
+          onClick={() => dispatch(setSelectedLockerIds([]))}>Unselect Lockers</button>
       </div>
       {allLockers.length ? (
         allLockers.map((locker, index) => {
@@ -141,29 +147,24 @@ function LockerTableGroup() {
 
                           </div>
                         ))}
-
-                        {popup.visible && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: popup.y,
-                              left: popup.x,
-                              backgroundColor: '#eee',
-                              border: '1px solid #ccc',
-                              borderRadius: '4px',
-                              padding: '5px 10px',
-                              zIndex: 999,
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <PopupMenu locker={popup.locker} onClose={closePopup} />
-                          </div>
-                        )}
                       </div>
                     </React.Fragment>
                   );
                 })}
               </div>
+              {popup.visible && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: popup.y,
+                    left: popup.x,
+                    zIndex: 999,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <PopupMenu locker={popup.locker} onClose={closePopup} branchId={popup.branchId} />
+                </div>
+              )}
             </React.Fragment>
           );
         })

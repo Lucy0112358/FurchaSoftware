@@ -7,7 +7,7 @@ const initialState = {
   loading: false,
   allLockers: [],
   lockerFilters: {
-    lockerStatus: null,
+    isOpen: null,
   },
   filteredLockerGroups: [],
   selectedLockerIds: [],

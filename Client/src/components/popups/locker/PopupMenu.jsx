@@ -1,65 +1,50 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import { getSelectedLockerIds } from '../../../redux/slice/lockerSlice';
-import CustomSelect from '../../select/CustomSelect';
-import { getModuleModalGroupes } from '../../../redux/slice/moduleSlice';
-import { getLockerGroupsData } from '../../../redux/api/menuApi';
 import PopupMenuMultiItem from './PopupMenuMultiItem';
+import Edit from '../../lockers/popupAction/Edit';
+import OpenLocker from '../../lockers/popupAction/OpenLocker';
+import SuspendLocker from '../../lockers/popupAction/SuspendLocker';
+import SetUser from '../../lockers/popupAction/SetUser';
+import HandAction from '../../lockers/popupAction/HandAction';
 
-function PopupMenu({ locker, onClose }) {
+function PopupMenu({ locker, onClose, branchId=null }) {
   const selectedLockerIds = useSelector(getSelectedLockerIds);
-  const buttonStyle = {
-    display: 'block',
-    width: '100%',
-    marginBottom: '4px',
-    textAlign: 'left',
-    backgroundColor: '#ddd',
-    border: 'none',
-    cursor: 'pointer',
-    padding: '4px 6px',
-  };
 
   return (
-    <div onClick={(e) => e.stopPropagation()}>
+    <div
+      className="bg-white shadow-xl rounded-lg p-5 w-72 border border-gray-200"
+      onClick={(e) => e.stopPropagation()}
+    >
       {selectedLockerIds?.length > 0 ? (
-        <PopupMenuMultiItem
-          selectedLockerIds={selectedLockerIds}
-          onClose={onClose} />
+        <PopupMenuMultiItem selectedLockerIds={selectedLockerIds} onClose={onClose} />
       ) : (
-        <div>
-          {
-            locker && (
-              <>
-                <h4>Locker #{locker.id} (type: {locker.lockerType})</h4>
-                <button style={buttonStyle} onClick={() => { console.log('Edit'); onClose(); }}>
-                  Edit
-                </button>
-                <button style={buttonStyle} onClick={() => { console.log('Open'); onClose(); }}>
-                  Open Locker
-                </button>
-                <button style={buttonStyle} onClick={() => { console.log('Suspend'); onClose(); }}>
-                  Suspend Locker
-                </button>
-                {locker.lockerType === 'Personal' && (
-                  <button style={buttonStyle} onClick={() => { console.log('Set'); onClose(); }}>
-                    Set User
-                  </button>
-                )}
-                {locker.lockerType === 'handOver' && (
-                  <button style={buttonStyle} onClick={() => { console.log('Hand action'); onClose(); }}>
-                    Hand action
-                  </button>
-                )}
-                {locker.lockerType === 'Parcel' && (
-                  <button style={buttonStyle} onClick={() => { console.log('Set'); onClose(); }}>
-                    Set User
-                  </button>
-                )}
-              </>
-            )
-          }
+        locker && (
+          <>
+            <div className="border-b border-gray-300 pb-2 mb-4">
+              <h3 className="text-lg font-bold text-gray-800">
+                Locker #{locker.id}
+                <span className="ml-2 inline-block text-sm text-gray-500 bg-gray-100 rounded px-2 py-1">
+                  {locker.lockerType}
+                </span>
+              </h3>
+            </div>
 
-        </div>
+            <div className="flex flex-col gap-2">
+              <Edit lockers={[locker]} onClose={onClose} />
+              <OpenLocker lockers={[locker.id]} onClose={onClose} />
+              <SuspendLocker lockers={[locker.id]} onClose={onClose} />
+
+              {locker.lockerType === 'handOver' && (
+                <HandAction lockers={[locker]} onClose={onClose} />
+              )}
+
+              {(locker.lockerType === 'parcel' || locker.lockerType === 'personal') && (
+                <SetUser lockers={[locker]} onClose={onClose} branchId={branchId} />
+              )}
+            </div>
+          </>
+        )
       )}
     </div>
   );

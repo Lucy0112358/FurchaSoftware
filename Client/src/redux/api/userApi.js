@@ -37,3 +37,21 @@ export const setUserInfo = createAsyncThunk(
       }
     }
 )
+
+export const filterUserWithOutPaginte = createAsyncThunk(
+  'user/filterUserWithOutPaginte',
+  async (params, thunkAPI) => {
+      try {
+        const config = {
+          method: "get",
+          url: 'User/filtered-users/',
+          params: { ...params },
+        };
+        
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)

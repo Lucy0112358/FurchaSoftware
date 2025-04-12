@@ -1,94 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import CustomSelect from '../../select/CustomSelect';
 import { getModuleModalGroupes } from '../../../redux/slice/moduleSlice';
-import { getLockerGroupsData } from '../../../redux/api/menuApi';
 import { getLockerOptions } from '../../../enums/Locker/Types';
-import { editLockers, getLockers } from '../../../redux/api/lockerApi';
-import { toast } from "react-toastify";
 import { setSelectedLockerIds } from '../../../redux/slice/lockerSlice';
-
+import OpenLocker from '../../lockers/popupAction/OpenLocker';
+import SuspendLocker from '../../lockers/popupAction/SuspendLocker';
+import LockerType from '../../lockers/popupAction/LockerType';
 
 function PopupMenuMultiItem({ selectedLockerIds, onClose }) {
-  const lockerGroups = useSelector(getModuleModalGroupes)
   const dispatch = useDispatch();
   const [data, setData] = useState({
-    groupId: null,
     lockerIds: selectedLockerIds,
     type: null,
   })
 
-  useEffect(() => {
-    dispatch(getLockerGroupsData());
-  }, []);
-
-  const lockerOptions = getLockerOptions().map((lockerType) => ({
-    id: lockerType,
-    name: lockerType.charAt(0).toUpperCase() + lockerType.slice(1),
-  }));
-
-  const handleSave = () => {
-    dispatch(editLockers(data))
-          .then((response) => {
-            if (response && response.payload?.isSuccess) {
-              dispatch(getLockers());
-              dispatch(setSelectedLockerIds([]));
-              onClose();
-            } else {
-              toast.error(response.error?.message || 'Error occurred');
-            }
-          })
-          .catch((error) => console.error('Error updating user info:', error));
-  }
-
-  const buttonStyle = {
-    display: 'block',
-    width: '100%',
-    marginBottom: '4px',
-    textAlign: 'left',
-    backgroundColor: '#ddd',
-    border: 'none',
-    cursor: 'pointer',
-    padding: '4px 6px',
-  };
-
   return (
-    <div>
-      <h4>Selected Lockers</h4>
-      Locker IDS:
-      {selectedLockerIds.map((id, i) => (
-        <span key={id}>
-          {id}
-          {i < selectedLockerIds.length - 1 && ', '}
-        </span>
-      ))}
-      <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-        <label className="block text-gray-300">Locker group(optional)</label>
-        <div className="flex ">
-          <div className="w-5/6 mr-2">
-            <CustomSelect
-              options={lockerGroups}
-              onChange={(e) => setData({ ...data, groupId: e.value })}
-            />
-          </div>
-        </div>
-        <label className="block text-gray-300">Locker type(optional)</label>
-        <div className="flex ">
-          <div className="w-5/6 mr-2">
-            <CustomSelect options={lockerOptions} onChange={(e) => setData({ ...data, type: e.value })} />
-          </div>
+    <div className="bg-white rounded-xl max-w-md mx-auto">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Edit Selected Lockers</h2>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Selected Locker IDs:</label>
+        <div className="text-gray-600 text-sm bg-gray-100 p-2 rounded">
+          {selectedLockerIds.map((id, i) => (
+            <span key={id}>
+              {id}{i < selectedLockerIds.length - 1 && ', '}
+            </span>
+          ))}
         </div>
       </div>
-      <button style={buttonStyle} 
-      onClick={handleSave}>
-        Save
-      </button>
-      <button style={buttonStyle} onClick={() => {
-        onClose();
-        setData({ groupId: null, lockerIds: [], type: null });
-      }}>
-        Cancel
-      </button>
+      <div className='flex flex-col gap-2'>
+        <OpenLocker lockers={selectedLockerIds} onClose={onClose} />
+        <SuspendLocker lockers={selectedLockerIds} onClose={onClose} />
+        <LockerType lockers={selectedLockerIds} onClose={onClose} />
+      </div>
+     
     </div>
   )
 }

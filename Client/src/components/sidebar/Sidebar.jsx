@@ -12,13 +12,12 @@ const Sidebar = () => {
       </div>
       <div className='sidebar__content'>
         {sitebarItems.map((item, index) => {
-          // Проверяем, содержит ли URL слово "locker" и совпадает ли с путем элемента
           const isActive = location.pathname.includes('locker') && item.path.includes('locker');
           
           return (
             <NavLink 
               key={index} 
-              to={item.path} 
+              to={item.path}
               className={'sidebar__content__link'}
             >
               <item.icon />

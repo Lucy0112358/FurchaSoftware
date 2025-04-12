@@ -41,7 +41,7 @@ export const userFilter = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'User/filtered-users/?adminId=8',
+          url: 'User/filtered-users/',
           params: { ...params },
         };
         
