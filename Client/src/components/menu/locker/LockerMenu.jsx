@@ -110,7 +110,11 @@ function LockerMenu() {
                         </div>
                     </div>
                 </div>
-
+                <MediaQuery maxWidth={1280}>
+                    <div>
+                        <LockerStatus addFilters={addFilters} />
+                    </div>
+                </MediaQuery>
                 <div className='flex flex-col items-center'>
                     <div className="menu__connection flex items-start text-white">
                         <MediaQuery minWidth={769}>

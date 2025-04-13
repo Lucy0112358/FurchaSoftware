@@ -24,8 +24,12 @@ function LockerType({ lockers, onClose }) {
                         toast.success("Lockers set successfully");
                         onClose();
                     }
+                    onClose();
                 })
-            onClose();
+                .catch((error) => {
+                    toast.error('Locker types must be the same in the group');
+                })
+      
         } else {
             onClose();
         }

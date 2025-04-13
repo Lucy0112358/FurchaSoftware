@@ -84,7 +84,7 @@ function LockerTableGroup() {
       <div className='flex justify-end'>
         <button 
           type="button" 
-          style={{backgroundColor:'white', padding:'5px'}} 
+          style={{backgroundColor:'white', padding:'5px', marginRight:'20px'}} 
           className='rounded' 
           onClick={() => dispatch(setSelectedLockerIds([]))}>Unselect Lockers</button>
       </div>
