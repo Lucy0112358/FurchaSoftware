@@ -18,11 +18,10 @@ const Admins = () => {
     dispatch(getAllAdmins());
   }, []);
 
-  // const allAdmins = useSelector(getAllAdminsData);
+
 
   return (
-    <div className="">
-      {/* <OfficeName name="Admin" /> */}
+    <div>
       <AdminTable />
     </div>
   );

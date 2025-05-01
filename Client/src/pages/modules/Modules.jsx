@@ -2,7 +2,7 @@
 import axios from 'axios';
 import React, { useEffect } from "react";
 import NoData from '../../components/no-data/NoData';
-import modules from '../../data/modules.json'
+import modules from '../../data/fake/modules.json'
 import OfficeName from '../../components/headers/OfficeName';
 import GroupName from '../../components/headers/GroupName';
 import ModulesCard from '../../components/modules/ModulesCard';

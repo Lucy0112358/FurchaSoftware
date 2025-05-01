@@ -1,14 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Select from 'react-select';
 
-export default function CustomSelect({ options, onChange, multiChoose = false }) {
-  const [selectedOption, setSelectedOption] = useState(null);
-
-  const handleChange = (selected) => {
-    setSelectedOption(selected);
-    onChange(selected);
-  };
-
+export default function CustomSelectRight({ options, onChange, value, multiChoose = false }) {
   return (
     <Select
       styles={{
@@ -24,12 +17,12 @@ export default function CustomSelect({ options, onChange, multiChoose = false })
         }),
       }}
       options={Array.isArray(options) ? options.map((option) => ({
-        value: option.name == "All" ? "" : option.id,
-        label: option.name
+        value: option.label === "All" ? "" : option.value,
+        label: option.label
       })) : []}
       isMulti={multiChoose}
-      value={selectedOption}
-      onChange={handleChange}
+      value={value}
+      onChange={onChange}
     />
   );
 }

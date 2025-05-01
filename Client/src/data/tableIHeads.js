@@ -27,8 +27,8 @@ export const lockerTable = [
 ];
 
 export const adminTable = [
-    'User ID',
-    'User Name',
+    'ID',
+    'Name',
     'Last Name',
     'Role',
     'Card No.',

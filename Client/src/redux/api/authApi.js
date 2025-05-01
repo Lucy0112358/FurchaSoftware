@@ -28,16 +28,51 @@ export const signin = createAsyncThunk(
 export const getAuthUser = createAsyncThunk(
   'auth/getAuthUser',
   async (_, thunkAPI) => {
-      try {
-        const config = {
-          method: "get",
-          url: 'auth/getAuthUser',
-        };
-        
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
+    try {
+      const config = {
+        method: "get",
+        url: 'auth/getAuthUser',
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
     }
+  }
+)
+
+export const getRoles = createAsyncThunk(
+  'auth/getRoles',
+  async (_, thunkAPI) => {
+    try {
+      const config = {
+        method: "get",
+        url: 'auth/roles',
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)
+
+export const getPermissions = createAsyncThunk(
+  'auth/getPermissions',
+  async (roleId, thunkAPI) => {
+    try {
+      const config = {
+        method: "get",
+        url: 'auth/role-permissions',
+        params: { roleId: roleId },
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
 )

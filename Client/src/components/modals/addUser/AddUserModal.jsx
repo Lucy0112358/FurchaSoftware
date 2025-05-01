@@ -280,13 +280,7 @@ console.log(userInfo, "userInfo");
         },
       }));
 
-
-
     // sendGroupInfo('Locker', 'lockers', generalInfo)
-
-
-
-
 
     // const branchIds = selectedBranches.map((branch) => branch.value);
     // setSentGeneralInfo((prev) => ({
@@ -603,10 +597,10 @@ console.log(userInfo, "userInfo");
                                 : ''
                                 }`}
                               onMouseOver={(event) => {
-                                if (event.buttons === 1) {
+                                if (event.buttons === 1 && event.ctrlKey) {
+                                  handleBranchSelectRemove(item.id);
+                                } else if (event.buttons === 1) {
                                   handleBranchSelectAdd(item.id);
-                                } else if (event.buttons === 2) {
-                                  handleBranchSelectRemove(item.id); 
                                 }
                               }}
                               onClick={() => handleClickBranchSelect(item.id)}

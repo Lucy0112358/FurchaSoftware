@@ -263,10 +263,10 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
                               : ''
                               }`}
                               onMouseOver={(event) => {
-                                if (event.buttons === 1) {
+                                if (event.buttons === 1 && event.ctrlKey) {
+                                  handleBranchSelectRemove(item.id);
+                                } else if (event.buttons === 1) {
                                   handleBranchSelectAdd(item.id);
-                                } else if (event.buttons === 2) {
-                                  handleBranchSelectRemove(item.id); 
                                 }
                               }}
                             onClick={() => handleClickBranchSelect(item.id)}

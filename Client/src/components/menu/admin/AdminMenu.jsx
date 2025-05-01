@@ -9,6 +9,7 @@ import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive'
 import Connection from '../../connection/Connection';
 import AddAdminModal from '../../modals/addAdmin/AddAdminModal';
+import { setPermissions } from '../../../redux/slice/authSlice';
 
 
 function AdminMenu() {
@@ -68,6 +69,11 @@ function AdminMenu() {
         );
     };
 
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        dispatch(setPermissions([]))
+    }
+
     return (
         <>
             <div className="menu flex justify-around">
@@ -81,7 +87,7 @@ function AdminMenu() {
                         </span>
                     </button>
                 </div>
-                <AddAdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+                <AddAdminModal isOpen={isModalOpen} onClose={() => handleCloseModal()} />
 
                 <div className="menu__filter flex space-x-4">
                     <div className='flex flex-col'>

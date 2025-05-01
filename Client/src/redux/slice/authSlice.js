@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAuthUser, signin } from "../api/authApi";
+import { getAuthUser, getPermissions, getRoles, signin } from "../api/authApi";
 // import { APP_BASE_URL } from "../../config";
 
 const initialState = {
   loading: false,
   isAuth: false,
   authUser: {},
+  roles: [],
+  permissions: [],
 };
 
 export const authSlice = createSlice({
@@ -14,6 +16,9 @@ export const authSlice = createSlice({
   reducers: {
     setLoading: (state, action) => {
       state.loading = action.payload.loading;
+    },
+    setPermissions: (state, action) => {
+      state.permissions = action.payload;
     },
   },
 
@@ -33,14 +38,23 @@ export const authSlice = createSlice({
         state.authUser = action.payload
         state.isAuth = true
       })
+      .addCase(getRoles.fulfilled, (state, action) => {
+        state.roles = action.payload
+      })
+      .addCase(getPermissions.fulfilled, (state, action) => {
+        state.permissions = action.payload
+      })
   },
 });
 
 export const {
   setLoading,
+  setPermissions
 } = authSlice.actions;
 
 export const getLoading = (state) => state.auth.loading;
 export const getIsAuth = (state) => state.auth.isAuth;
+export const getRolesData = (state) => state.auth.roles;
+export const getPermissionsData = (state) => state.auth.permissions;
 
 export default authSlice.reducer;

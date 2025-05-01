@@ -33,7 +33,7 @@ const Signin = () => {
             <div className="w-96">
                 <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
                 <Formik
-                    initialValues={{ email: 'user7@example.com', password: '$2a$12$randomSaltValue$hashedPasswordValue' }}
+                    initialValues={{ email: 'user7@example.com', password: '123456' }}
                     validationSchema={validationSchema}
                     onSubmit={handleSubmit} 
                 >
@@ -61,7 +61,7 @@ const Signin = () => {
                                     id="password"
                                     type="password"
                                     name="password"
-                                    value='$2a$12$randomSaltValue$hashedPasswordValue'
+                                    value='123456'
                                     className="w-full px-3 py-2 text-gray-700 border rounded focus:outline-none focus:ring focus:border-blue-300"
                                     placeholder="Enter your password"
                                 />
