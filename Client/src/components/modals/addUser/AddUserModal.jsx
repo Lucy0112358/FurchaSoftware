@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import CustomSelect from "../../select/CustomSelect";
 import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
 import { userFilter } from "../../../redux/api/menuApi";
 import { setUserInfo } from "../../../redux/api/userApi";
@@ -20,6 +19,7 @@ import GenerateLocker from "../../lockers/GenerateLocker";
 import NoData from "../../no-data/NoData";
 import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
+import CustomSelect from "../../select/CustomSelect";
 
 const AddUserModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -417,7 +417,11 @@ console.log(userInfo, "userInfo");
                 <div className="add__modal__content__part__group mb-4 flex items-center">
                   <div className="add__modal__group__select mr-4 w-full">
                     <CustomSelect
-                      options={userGroups}
+                      options={userGroups.map((group) => ({
+                        label: group.name,
+                        value: group.id,
+                      }))}
+                      value={selectedGroups}
                       onChange={handleGroupsSelectChange}
                       multiChoose={true}
                     />
@@ -572,11 +576,6 @@ console.log(userInfo, "userInfo");
                         }
                         ))
                     }
-                    {/* <CustomSelect
-                      options={branches}
-                      onChange={handleSelectBranch}
-                      multiChoose={true}
-                    /> */}
                     {renderError('branch')}
                   </div>
                 </div>

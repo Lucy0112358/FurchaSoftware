@@ -1,17 +1,17 @@
 import React, { useState } from 'react'
-import CustomSelect from '../../select/CustomSelect'
 import {  editLockersType, getLockers } from '../../../redux/api/lockerApi';
 import { toast } from "react-toastify";
 import { getLockerOptions } from '../../../enums/Locker/Types';
 import { setSelectedLockerIds } from '../../../redux/slice/lockerSlice';
 import { useDispatch } from 'react-redux';
+import CustomSelect from '../../select/CustomSelect';
 
 function LockerType({ lockers, onClose }) {
     const dispatch = useDispatch();
     const [selectedType, setSelectedType] = useState(null);
     const lockerOptions = getLockerOptions().map((lockerType) => ({
-        id: lockerType,
-        name: lockerType.charAt(0).toUpperCase() + lockerType.slice(1),
+        label: lockerType,
+        value: lockerType.charAt(0).toUpperCase() + lockerType.slice(1),
       }));
 
     const handle = () => {
@@ -40,6 +40,7 @@ function LockerType({ lockers, onClose }) {
             <span>Locker Type</span>
             <CustomSelect
                 options={lockerOptions}
+                value={lockerOptions.find((option) => option.value === selectedType)}
                 onChange={(e) => setSelectedType(e.value)}
             />
             {

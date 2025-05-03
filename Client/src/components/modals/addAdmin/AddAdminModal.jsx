@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAddUserInfo, getFilteredUsers, setAddUserInfo } from "../../../redux/slice/userSlice";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import CustomSelect from "../../select/CustomSelect";
 import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
 import { filterUserWithOutPaginte, setUserInfo } from "../../../redux/api/userApi";
 import { getLockerGroupsByBranchId } from "../../../redux/api/branchApi";
@@ -18,7 +17,7 @@ import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
 import { getPermissions, getRoles } from "../../../redux/api/authApi";
 import { getPermissionsData, getRolesData } from "../../../redux/slice/authSlice";
-import CustomSelectRight from "../../select/CustomSelectRight";
+import CustomSelect from "../../select/CustomSelect";
 import { setAdminInfo } from "../../../redux/api/adminApi";
 
 const AddAdminModal = ({ isOpen, onClose, children }) => {
@@ -326,7 +325,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
                   <span>User</span>
                   <div className="add__modal__content__part__group mb-4 flex justify-between">
                     <div className="w-full mr-2">
-                      <CustomSelectRight
+                      <CustomSelect
                         options={userOptions}
                         value={userOptions.find((option) => option.value === selectedUser)}
                         onChange={(e) => handleUserSelectChange(e)}
@@ -339,7 +338,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
                   <span>Choose Role</span>
                   <div className="add__modal__content__part__group mb-4 flex">
                     <div className="add__modal__group__select mr-0 w-full">
-                      <CustomSelectRight
+                      <CustomSelect
                         options={roleOptions}
                         value={roleOptions.find((option) => option.value === selectRole)}
                         onChange={handleRoleSelectChange}

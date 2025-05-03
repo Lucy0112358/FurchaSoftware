@@ -238,11 +238,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
                       }
                       ))
                   }
-                  {/* <CustomSelect
-                      options={branches}
-                      onChange={handleSelectBranch}
-                      multiChoose={true}
-                    /> */}
                   {renderError('branch')}
                 </div>
               </div>

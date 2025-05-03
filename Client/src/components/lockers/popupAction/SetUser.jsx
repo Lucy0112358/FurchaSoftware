@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
-import CustomSelect from '../../select/CustomSelect'
 import { useDispatch, useSelector } from 'react-redux';
 import { getFilteredUsers } from '../../../redux/slice/userSlice';
 import { filterUserWithOutPaginte } from '../../../redux/api/userApi';
 import { setUser } from '../../../redux/api/lockerApi';
 import { toast } from "react-toastify";
+import CustomSelect from '../../select/CustomSelect';
 
 function SetUser({ lockers, onClose, branchId = null }) {
     const dispatch = useDispatch();
@@ -24,15 +24,15 @@ function SetUser({ lockers, onClose, branchId = null }) {
         }
 
         let options = filteredUsers.map((user) => ({
-            id: user.id,
-            name: user.name,
+            value: user.id,
+            label: user.name,
         }));
         setUserOptions(options);
     }, [filteredUsers])
 
     const handle = () => {
         if (lockers.length) {
-            dispatch(setUser({LockerIds: lockers.map(user => user.id), UserId: selectedUser}))
+            dispatch(setUser({ LockerIds: lockers.map(user => user.id), UserId: selectedUser }))
                 .then((response) => {
                     if (response && response.payload.isSuccess) {
                         toast.success("Lockers set successfully");
@@ -48,7 +48,11 @@ function SetUser({ lockers, onClose, branchId = null }) {
     return (
         <>
             <span>Set User</span>
-            <CustomSelect options={userOptions} onChange={(e) => setSelectedUser(e.value)} />
+            <CustomSelect
+                options={userOptions}
+                value={userOptions.find((option) => option.value === selectedUser)}
+                onChange={(e) => setSelectedUser(e.value)}
+            />
             {
                 selectedUser && (
                     <button className='bg-gray-600 text-white rounded' onClick={handle}>

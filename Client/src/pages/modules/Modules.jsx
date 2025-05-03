@@ -20,8 +20,6 @@ const Modules = () => {
         dispatch(getModules())
     }, []);
 
-    console.log(allModules.data, "allModules");
-    
     return (
         <div>
             {allModules.length ? (

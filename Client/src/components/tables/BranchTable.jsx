@@ -6,7 +6,6 @@ import { getAllBranchesData } from '../../redux/slice/branchSlice';
 
 function BranchTable() {
   const allBranches = useSelector(getAllBranchesData);
-  console.log(allBranches, "allBranches");
 
   return (
     <>

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import '../modal.css';
 import { useDispatch, useSelector } from 'react-redux';
 import 'react-tabs/style/react-tabs.css';
-import CustomSelect from "../../select/CustomSelect";
 import './modulesModal.css';
 import { getBranches, getLockerGroupsData } from "../../../redux/api/menuApi";
 import { toast } from "react-toastify";
@@ -16,6 +15,7 @@ import CloseButton from "../attributes/CloseButton";
 import BranchModal from "../branch/BranchModal";
 import { useFormik } from 'formik';
 import LockerModal from "../locker/LockerModal";
+import CustomSelect from "../../select/CustomSelect";
 
 
 const ModulesModal = ({ isOpen, onClose, children }) => {
@@ -29,8 +29,8 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
 
   const lockerOptions = getLockerOptions().map((lockerType) => ({
-    id: lockerType,
-    name: lockerType.charAt(0).toUpperCase() + lockerType.slice(1),
+    name: lockerType,
+    label: lockerType.charAt(0).toUpperCase() + lockerType.slice(1),
   }));
 
   const handleLockerTypeChange = (selectedOption) => {
@@ -46,11 +46,10 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
     lockerGroupId: null,
   });
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
-console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
 
   const newBrainsOptions = Object.values(newBrains)?.map(brain => ({
-    id: brain.id,
-    name: brain.macAddress + ' ' + (brain.info ? brain.info : ''),
+    value : brain.id,
+    label: brain.macAddress + ' ' + (brain.info ? brain.info : ''),
   }));
 
   useEffect(() => {
@@ -120,14 +119,16 @@ console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
   };
 
   const handleNewBrainChange = (selectedOption) => {
+    console.log(selectedOption, 5111111111555);
+    
     sendGroupInfo('id', selectedOption.value);
-    dispatch(getLockerGroupRange({brainId: selectedOption.value, groupId: sentGeneralInfo.lockerGroupId}));
+    dispatch(getLockerGroupRange({ brainId: selectedOption.value, groupId: sentGeneralInfo.lockerGroupId }));
   };
 
   const handleLockerGroupChange = (selectedOption) => {
     sendGroupInfo('lockerGroupId', selectedOption.value);
-    if(sentGeneralInfo?.id){
-       dispatch(getLockerGroupRange({brainId: sentGeneralInfo.id, groupId: selectedOption.value}));
+    if (sentGeneralInfo?.id) {
+      dispatch(getLockerGroupRange({ brainId: sentGeneralInfo.id, groupId: selectedOption.value }));
     }
   };
 
@@ -154,7 +155,7 @@ console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
                       options={newBrainsOptions}
                       name="brainId"
                       onChange={(option) => {
-                        formik.setFieldValue('brainId', option?.value);
+                        formik.setFieldValue('brainId', option?.name);
                         handleNewBrainChange(option);
                       }}
                     // onChange={(option) => formik.setFieldValue('brainId', option?.id)}
@@ -162,7 +163,6 @@ console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
                     {formik.touched.brainId && formik.errors.brainId && (
                       <div className="text-red-500">{formik.errors.brainId}</div>
                     )}
-                    {/* <CustomSelect options={newBrainsOptions} onChange={handleNewBrainChange} /> */}
                   </div>
 
                 </div>
@@ -170,8 +170,11 @@ console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
                 <div className="flex ">
                   <div className="w-5/6 mr-2">
                     <CustomSelect
-                      options={branches}
-                      value={branches?.find(option => option.id === formik.values.branchId)}
+                      options={branches.map((branch) => ({
+                        label: branch.name,
+                        value: branch.id,
+                      }))}
+                      value={branches?.find(option => option.value === formik.values.branchId)}
                       onChange={(option) => {
                         formik.setFieldValue('branchId', option?.value);
                         handleBranchChange(option);
@@ -180,7 +183,6 @@ console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
                     {formik.touched.branchId && formik.errors.branchId && (
                       <div className="text-red-500">{formik.errors.branchId}</div>
                     )}
-                    {/* <CustomSelect options={branches} onChange={handleBranchChange} /> */}
                   </div>
                   <div className="flex w-1/6">
                     <button
@@ -207,7 +209,10 @@ console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
                 <div className="flex ">
                   <div className="w-5/6 mr-2">
                     <CustomSelect
-                      options={lockerGroups}
+                      options={lockerGroups.map((group) => ({
+                        label: group.name,
+                        value: group.id,
+                      }))}
                       onChange={handleLockerGroupChange}
                     />
                   </div>
@@ -230,7 +235,11 @@ console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
                 <label className="block text-gray-300">Locker type(optional)</label>
                 <div className="flex ">
                   <div className="w-5/6 mr-2">
-                    <CustomSelect options={lockerOptions} onChange={handleLockerTypeChange} />
+                    <CustomSelect options={Array.isArray(lockerOptions) ? lockerOptions.map((option) => ({
+                      value: option.label === "All" ? "" : option.name,
+                      label: option.label
+                    })) : []}
+                     onChange={handleLockerTypeChange} />
                   </div>
                 </div>
                 <label className="block text-gray-300">Locker numbers</label>
@@ -304,7 +313,7 @@ console.log(sentGeneralInfo, "sentGeneralInfosentGeneralInfo");
               <button
                 className="bg-gray-600 text-white rounded"
                 type="submit"
-                // onClick={addModules}
+              // onClick={addModules}
               >
                 Save
               </button>
