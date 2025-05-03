@@ -18,6 +18,7 @@ import AddAdminModal from '../../modals/addAdmin/AddAdminModal';
 import Connection from '../../connection/Connection';
 import MediaQuery from 'react-responsive';
 import { TbPlugConnected } from "react-icons/tb";
+import UserInfoModal from '../../userInfo/UserInfoModal';
 
 function AdminMenu() {
   const dispatch = useDispatch();
@@ -127,10 +128,7 @@ function AdminMenu() {
         {/* User Info & Manage Toggle */}
         <div className="flex items-center text-white flex-col">
           <MediaQuery minWidth={550}>
-            <div className="flex flex-col items-end">
-              <span>Michael</span>
-              <span>(Administrator)</span>
-            </div>
+            <UserInfoModal />
           </MediaQuery>
 
           <div className="manage__page">

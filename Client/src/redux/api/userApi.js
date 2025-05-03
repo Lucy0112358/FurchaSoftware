@@ -55,3 +55,16 @@ export const filterUserWithOutPaginte = createAsyncThunk(
       }
     }
 )
+
+export const logout = createAsyncThunk(
+  'user/logout',
+  async (_, thunkAPI) => {
+      try {
+        localStorage.removeItem("token");
+        window.location.href = '/login';
+        return;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)

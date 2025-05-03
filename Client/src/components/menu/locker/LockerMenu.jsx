@@ -19,6 +19,7 @@ import {
 } from '../../../redux/slice/lockerSlice';
 import { getLockers } from '../../../redux/api/lockerApi';
 import CustomSelect from '../../select/CustomSelect';
+import UserInfoModal from '../../userInfo/UserInfoModal';
 
 function LockerMenu() {
   const dispatch = useDispatch();
@@ -166,10 +167,7 @@ function LockerMenu() {
         {/* User Info & Manage Toggle */}
         <div className="flex items-center text-white flex-col">
           <MediaQuery minWidth={550}>
-            <div className="flex flex-col items-end">
-              <span>Michael</span>
-              <span>(Administrator)</span>
-            </div>
+            <UserInfoModal />
           </MediaQuery>
 
           <div className="manage__page">

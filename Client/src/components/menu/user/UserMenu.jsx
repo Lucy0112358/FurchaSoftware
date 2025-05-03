@@ -14,6 +14,7 @@ import MediaQuery from 'react-responsive'
 import LockerTypes from '../locker/components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
 import CustomSelect from '../../select/CustomSelect';
+import UserInfoModal from '../../userInfo/UserInfoModal';
 
 
 function UserMenu() {
@@ -181,10 +182,7 @@ function UserMenu() {
 
                 <div className="flex items-center text-white flex-col">
                     <MediaQuery minWidth={550}>
-                        <div className="flex flex-col items-end">
-                            <span>Michael</span>
-                            <span>(Administrator)</span>
-                        </div>
+                        <UserInfoModal />
                     </MediaQuery>
 
                     <div className="manage__page">
@@ -210,7 +208,7 @@ function UserMenu() {
                 <div className='flex justify-between'>
                     <div className='menu__filter__select'>
                         <CustomSelect
-                             options={(Array.isArray(branches) ? branches : []).map(branch => ({
+                            options={(Array.isArray(branches) ? branches : []).map(branch => ({
                                 label: branch.name,
                                 value: branch.id,
                             }))}

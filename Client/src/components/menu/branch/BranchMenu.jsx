@@ -17,6 +17,7 @@ import Connection from '../../connection/Connection';
 import ModulesModal from '../../modals/modules/ModulesModal';
 import BranchModal from '../../modals/branch/BranchModal';
 import { getAllBranches } from '../../../redux/api/branchApi';
+import UserInfoModal from '../../userInfo/UserInfoModal';
 
 
 function BranchMenu() {
@@ -78,10 +79,7 @@ function BranchMenu() {
 
                 <div className="flex items-center text-white flex-col">
                     <MediaQuery minWidth={550}>
-                        <div className="flex flex-col items-end">
-                            <span>Michael</span>
-                            <span>(Administrator)</span>
-                        </div>
+                        <UserInfoModal />
                     </MediaQuery>
 
                     <div className="manage__page">

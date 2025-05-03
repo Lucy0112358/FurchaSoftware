@@ -14,6 +14,7 @@ import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive';
 import Connection from '../../connection/Connection';
 import ModulesModal from '../../modals/modules/ModulesModal';
+import UserInfoModal from '../../userInfo/UserInfoModal';
 
 function ModulesMenu() {
   const dispatch = useDispatch();
@@ -130,10 +131,7 @@ function ModulesMenu() {
 
         <div className="flex items-center text-white flex-col">
           <MediaQuery minWidth={550}>
-            <div className="flex flex-col items-end">
-              <span>Michael</span>
-              <span>(Administrator)</span>
-            </div>
+            <UserInfoModal />
           </MediaQuery>
 
           <div className="manage__page">
