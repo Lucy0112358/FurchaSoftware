@@ -13,6 +13,7 @@ import Branch from './pages/branch/Branch';
 import { useDispatch } from 'react-redux';
 import { useEffect } from 'react';
 import { getAuthUser } from './redux/api/authApi';
+import NotFound from './pages/not-found/NotFound';
 
 
 
@@ -40,6 +41,7 @@ function App() {
             </Route>
           </Route>
           <Route path="login" element={<Signin />}></Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </>
