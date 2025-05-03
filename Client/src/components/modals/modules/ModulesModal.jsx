@@ -18,16 +18,12 @@ import LockerModal from "../locker/LockerModal";
 import CustomSelect from "../../select/CustomSelect";
 
 
-const ModulesModal = ({ isOpen, onClose, children }) => {
-  if (!isOpen) return null;
+const ModulesModal = ({ onClose }) => {
   const branches = useSelector(getModuleModalBranches);
   const lockerGroups = useSelector(getModuleModalGroupes)
   const newBrains = useSelector(getNewBrainsData);
   const lockerGroupRange = useSelector(getLockerGroupMinMax);
-  console.log(lockerGroupRange, 'lockerGroupRange');
-
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
-
   const lockerOptions = getLockerOptions().map((lockerType) => ({
     name: lockerType,
     label: lockerType.charAt(0).toUpperCase() + lockerType.slice(1),
@@ -48,7 +44,7 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
 
   const newBrainsOptions = Object.values(newBrains)?.map(brain => ({
-    value : brain.id,
+    value: brain.id,
     label: brain.macAddress + ' ' + (brain.info ? brain.info : ''),
   }));
 
@@ -119,8 +115,6 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
   };
 
   const handleNewBrainChange = (selectedOption) => {
-    console.log(selectedOption, 5111111111555);
-    
     sendGroupInfo('id', selectedOption.value);
     dispatch(getLockerGroupRange({ brainId: selectedOption.value, groupId: sentGeneralInfo.lockerGroupId }));
   };
@@ -190,13 +184,10 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                     >
                       <IoMdAdd className="fill-current" style={{ fontSize: 'xx-large' }} />
-                      <BranchModal isOpen={addBranchModalSwitch}
-                        onClose={(e) => {
-                          if (e?.stopPropagation) e.stopPropagation();
-                          setAddBranchModalSwitch(false);
-                        }}
-                      />
-
+                      {addBranchModalSwitch && <BranchModal onClose={(e) => {
+                        if (e?.stopPropagation) e.stopPropagation();
+                        setAddBranchModalSwitch(false);
+                      }} />}
                     </button>
                   </div>
                 </div>
@@ -222,13 +213,12 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                     >
                       <IoMdAdd className="fill-current" style={{ fontSize: 'xx-large' }} />
-                      <LockerModal
-                        isOpen={addGroupModalSwitch}
+                      {addGroupModalSwitch && <LockerModal
                         onClose={(e) => {
                           if (e?.stopPropagation) e.stopPropagation();
                           setAddGroupModalSwitch(false);
                         }}
-                      />
+                      />}
                     </button>
                   </div>
                 </div>
@@ -239,7 +229,7 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
                       value: option.label === "All" ? "" : option.name,
                       label: option.label
                     })) : []}
-                     onChange={handleLockerTypeChange} />
+                      onChange={handleLockerTypeChange} />
                   </div>
                 </div>
                 <label className="block text-gray-300">Locker numbers</label>
@@ -304,8 +294,11 @@ const ModulesModal = ({ isOpen, onClose, children }) => {
           </div>
           <div className="flex justify-end space-x-4 m-5 ">
             <div className="modal__button">
-              <button className="bg-gray-600 text-white rounded "
-                onClick={onClose}>
+              <button
+                type="button"
+                className="bg-gray-600 text-white rounded"
+                onClick={onClose}
+              >
                 Cancel
               </button>
             </div>

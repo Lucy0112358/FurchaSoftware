@@ -89,8 +89,7 @@ function LockerMenu() {
             <span>New Locker Group</span>
           </button>
         </div>
-        <LockerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-
+        {isModalOpen && <LockerModal onClose={() => setIsModalOpen(false)} />}
         {/* Filters */}
         <div className="menu__filter flex space-x-4">
           <div className='flex flex-col'>

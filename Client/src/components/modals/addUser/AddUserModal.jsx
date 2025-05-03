@@ -20,6 +20,7 @@ import NoData from "../../no-data/NoData";
 import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
 import CustomSelect from "../../select/CustomSelect";
+import ShowFormikError from "../../error/ShowFormikError";
 
 const AddUserModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -299,9 +300,7 @@ console.log(userInfo, "userInfo");
   const renderError = (fieldName) => {
     if (formErrors[fieldName]) {
       return (
-        <div className="text-red-500 text-sm mt-1">
-          {formErrors[fieldName]}
-        </div>
+        <ShowFormikError message={formErrors[fieldName]} />
       );
     }
     return null;

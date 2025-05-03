@@ -98,7 +98,7 @@ function AdminMenu() {
             <span>Add Admin</span>
           </button>
         </div>
-        <AddAdminModal isOpen={isModalOpen} onClose={handleCloseModal} />
+        {isModalOpen && <AddAdminModal onClose={handleCloseModal} />}
 
         {/* Filters */}
         <div className="menu__filter flex space-x-4">

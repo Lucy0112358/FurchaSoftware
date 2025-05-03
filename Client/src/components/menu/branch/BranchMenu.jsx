@@ -55,7 +55,7 @@ function BranchMenu() {
                         </span>
                     </button>
                 </div>
-                <BranchModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+                {isModalOpen && <BranchModal onClose={() => setIsModalOpen(false)} />}
                 <div className="menu__filter flex space-x-4">
                     <div className='menu__filter__search'>
                         <input

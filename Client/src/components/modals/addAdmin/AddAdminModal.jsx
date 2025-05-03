@@ -19,9 +19,9 @@ import { getPermissions, getRoles } from "../../../redux/api/authApi";
 import { getPermissionsData, getRolesData } from "../../../redux/slice/authSlice";
 import CustomSelect from "../../select/CustomSelect";
 import { setAdminInfo } from "../../../redux/api/adminApi";
+import ShowFormikError from "../../error/ShowFormikError";
 
-const AddAdminModal = ({ isOpen, onClose, children }) => {
-  if (!isOpen) return null;
+const AddAdminModal = ({ onClose, children }) => {
   const dispatch = useDispatch();
   const [formErrors, setFormErrors] = useState({});
   const [userOptions, setUserOptions] = useState([]);
@@ -90,37 +90,23 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
 
   const validateForm = () => {
     const errors = {};
-    // if (!sentGeneralInfo.name || !sentGeneralInfo.name.trim()) {
-    //   errors.name = 'Name is required';
-    // }
-    // if (!sentGeneralInfo.surname || !sentGeneralInfo.surname.trim()) {
-    //   errors.surname = 'Surname is required';
-    // }
-    // if (!sentGeneralInfo.email || !sentGeneralInfo.email.trim()) {
-    //   errors.email = 'Email is required';
-    // } else {
-    //   const emailRegex = /\S+@\S+\.\S+/;
-    //   if (!emailRegex.test(sentGeneralInfo.email)) {
-    //     errors.email = 'Invalid email format';
-    //   }
-    // }
-    // if (!sentGeneralInfo.phone || !sentGeneralInfo.phone.trim()) {
-    //   errors.phone = 'Phone is required';
-    // }
-    // if (!sentGeneralInfo.userGroups || !sentGeneralInfo.userGroups.length) {
-    //   errors.userGroups = 'At least one User Group must be selected';
-    // }
+    if (!selectedUser) {
+      errors.user = 'User is required';
+    }
+    if (!selectRole) {
+      errors.role = 'Role is required';
+    }
     return errors;
   };
 
   const addAdminUser = () => {
-    // const errors = validateForm();
-    // setFormErrors(errors);
+    const errors = validateForm();
+    setFormErrors(errors);
 
-    // if (Object.keys(errors).length > 0) {
-    //   toast.error('Please fill out the form correctly');
-    //   return;
-    // }
+    if (Object.keys(errors).length > 0) {
+      toast.error('Please fill out the form correctly');
+      return;
+    }
 
     const selectedPermissionIds = Object.entries(selectedPermissions)
       .filter(([id, isSelected]) => isSelected)
@@ -234,9 +220,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
   const renderError = (fieldName) => {
     if (formErrors[fieldName]) {
       return (
-        <div className="text-red-500 text-sm mt-1">
-          {formErrors[fieldName]}
-        </div>
+        <ShowFormikError message={formErrors[fieldName]} />
       );
     }
     return null;
@@ -304,7 +288,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
 
   return (
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
-      <div className="add__modal__content add__modal__content__addUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto h-full">
+      <div className="add__modal__content add__modal__content__addAdminUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto h-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">Assign Administrators Rights To The User</h2>
           <CloseButton onClick={onClose}>
@@ -330,6 +314,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
                         value={userOptions.find((option) => option.value === selectedUser)}
                         onChange={(e) => handleUserSelectChange(e)}
                       />
+                      {renderError('user')}
                     </div>
                   </div>
                 </div>
@@ -343,6 +328,7 @@ const AddAdminModal = ({ isOpen, onClose, children }) => {
                         value={roleOptions.find((option) => option.value === selectRole)}
                         onChange={handleRoleSelectChange}
                       />
+                      {renderError('role')}
                     </div>
                   </div>
                 </div>

@@ -12,7 +12,17 @@ function AdminTable() {
       {allAdmins?.length ?
         <div className="outlet__table__wrapper overflow-x-auto mt-2"
           style={{ height: allAdmins?.length >= 10 ? '480px' : 'auto' }}>
-          <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA', minWidth: '1110px' }}>
+          <table 
+          className="outlet__table min-w-full bg-white " 
+          style={{
+            color: '#AAAAAA',
+            minWidth: '1110px',
+            borderRadius:
+            allAdmins.length >= 10
+                ? '0px'
+                : '10px',
+          }}
+          >
             <thead>
               <tr className="outlet__table__header">
                 {adminTable.map((header, index) => (
@@ -37,7 +47,7 @@ function AdminTable() {
                   </td>
                   <td>
                     {admin.branches?.map((branch, idx) => (
-                      <div key={idx}>{branch.name}</div>
+                      <div key={idx}>{branch}</div>
                     ))}
                   </td>
                   <td>

@@ -1,17 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import '../menu.css';
-import { RiAddBoxLine } from "react-icons/ri";
 import { assets } from '../../../assets/assets';
 import { useDispatch, useSelector } from 'react-redux';
 import { filterUserByName, getBranches, getLockerGroupsData, getUserGroups, userFilter } from '../../../redux/api/menuApi';
 import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter, setUserGroupSelect } from '../../../redux/slice/menuSlice';
-import AddUserModal from '../../modals/addUser/AddUserModal';
 import { getAllUsers } from '../../../redux/api/userApi';
 import { getAllGroups } from '../../../redux/api/groupApi';
 import GeneralAddModal from '../../modals/GeneralAddModal';
 import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive'
-import LockerTypes from '../locker/components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
 import CustomSelect from '../../select/CustomSelect';
 import UserInfoModal from '../../userInfo/UserInfoModal';
@@ -51,7 +48,6 @@ function UserMenu() {
             return updatedFilters;
         });
     }
-
 
     useEffect(() => {
         dispatch(getBranches());

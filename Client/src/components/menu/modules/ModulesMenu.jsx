@@ -20,7 +20,7 @@ function ModulesMenu() {
   const dispatch = useDispatch();
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedGroups, setSelectedGroups] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModulesModalOpen, setIsModulesModalOpen] = useState(false);
   const [filters, setFilters] = useState({});
   const [inputValue, setInputValue] = useState('');
   const [debounceTimeout, setDebounceTimeout] = useState(null);
@@ -77,13 +77,13 @@ function ModulesMenu() {
       <div className="menu flex justify-around">
         <div className='menu__add'>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => setIsModulesModalOpen(true)}
             className="menu__add__button text-white">
             <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
             <span>Add Modules</span>
           </button>
         </div>
-        <ModulesModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        {isModulesModalOpen && <ModulesModal onClose={() => setIsModulesModalOpen(false)} />}
         <div className="menu__filter flex space-x-4">
           <div className='flex flex-col'>
             <div className='menu__filter__select'>

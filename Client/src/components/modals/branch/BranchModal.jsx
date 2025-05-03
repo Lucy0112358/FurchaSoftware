@@ -7,9 +7,9 @@ import "./branchModal.css";
 import { createBranch, getAllBranches } from "../../../redux/api/branchApi";
 import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
+import ShowFormikError from "../../error/ShowFormikError";
 
-const BranchModal = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
+const BranchModal = ({ onClose }) => {
   const dispatch = useDispatch();
   const formik = useFormik({
     initialValues: {
@@ -69,9 +69,7 @@ const BranchModal = ({ isOpen, onClose }) => {
                   value={formik.values.branchName}
                 />
                 {formik.touched.branchName && formik.errors.branchName && (
-                  <div className="text-red-600 text-xl mt-1">
-                    {formik.errors.branchName}
-                  </div>
+                  <ShowFormikError message={formik.errors.branchName} />
                 )}
               </div>
 
