@@ -64,15 +64,21 @@ const AddAdminModal = ({ onClose, children }) => {
     setRoleOptions(options);
   }, [roles]);
 
-  useEffect(() => {
-    const initialPermissions = permissions.reduce((acc, permission) => {
+   useEffect(() => {
+    const allPermissions = permissions.flatMap(type => type.permissions);
+    const initialPermissions = allPermissions.reduce((acc, permission) => {
       acc[permission.id] = true;
       return acc;
     }, {});
+
     if (Object.keys(initialPermissions).length) {
-      sendGroupInfo('Permission', 'permissions', Object.keys(initialPermissions)
-        .join(', '));
+      sendGroupInfo(
+        'Permission',
+        'permissions',
+        Object.keys(initialPermissions).join(', ')
+      );
     }
+
     setSelectedPermissions(initialPermissions);
   }, [permissions]);
 
@@ -112,7 +118,7 @@ const AddAdminModal = ({ onClose, children }) => {
       .filter(([id, isSelected]) => isSelected)
       .map(([id]) => Number(id));
 
-      const data = {...sentGeneralInfo, permissions: selectedPermissionIds}
+    const data = { ...sentGeneralInfo, permissions: selectedPermissionIds }
 
     dispatch(setAdminInfo(data))
       .then((response) => {
@@ -227,8 +233,6 @@ const AddAdminModal = ({ onClose, children }) => {
   };
 
   const sendGroupInfo = (part, key, value) => {
-    console.log(part, key, value, 999998888888);
-    
     dispatch(
       setAddUserInfo({
         [part]: {
@@ -266,13 +270,12 @@ const AddAdminModal = ({ onClose, children }) => {
         [id]: !prev[id],
       };
 
+      const trueIds = Object.entries(updated)
+        .filter(([_, value]) => value)
+        .map(([key]) => key)
+        .join(', ');
 
-      if (Object.keys(updated).length) {
-        const trueIds = Object.entries(updated)
-          .filter(([_, value]) => value)
-          .map(([key]) => key)
-          .join(', ');
-
+      if (trueIds.length) {
         sendGroupInfo('Permission', 'permissions', trueIds);
       }
 
@@ -338,20 +341,23 @@ const AddAdminModal = ({ onClose, children }) => {
                   <div className="add__modal__content__part  mr-1">
                     <span>Right</span>
                     <div className="add__modal__content__part__group mb-4 flex justify-between">
-                      {
-                        <div>
-                          {permissions.map((permission) => (
-                            <div key={permission.id} className="permission-item flex items-center">
-                              <CustomCheckbox
-                                id={permission.id}
-                                checked={selectedPermissions[permission.id]}
-                                onChange={() => handleCheckboxChange(permission.id)}
-                              />
-                              <span className="ml-2 text-white">{permission.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      }
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        {permissions.map((type) => (
+                          <div key={type.typeId} className="mb-4">
+                            <h3 className="text-lg font-semibold text-white mb-2">{type.typeName}</h3>
+                            {type.permissions.map((permission) => (
+                              <div key={permission.id} className="permission-item flex items-center ml-4">
+                                <CustomCheckbox
+                                  id={permission.id}
+                                  checked={selectedPermissions[permission.id]}
+                                  onChange={() => handleCheckboxChange(permission.id)}
+                                />
+                                <span className="ml-2 text-white">{permission.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>)

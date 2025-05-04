@@ -50,11 +50,6 @@ function AdminTable() {
                       <div key={idx}>{branch}</div>
                     ))}
                   </td>
-                  <td>
-                    {admin.userGroups?.map((group, idx) => (
-                      <div key={idx}>{group.groupName}</div>
-                    ))}
-                  </td>
                   <td className={` ${admin.state === 'Suspended' ? 'text-red-500' : ''}`}>
                     {admin.state}
                   </td>
