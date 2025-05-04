@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { lockerTable } from '../../data/tableIHeads';
 import NoData from '../no-data/NoData';
 import OfficeName from '../headers/OfficeName';
 import GroupName from '../headers/GroupName';
 import GenerateLocker from '../lockers/GenerateLocker';
 import PopupMenu from '../popups/locker/PopupMenu';
 import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '../../redux/slice/lockerSlice';
-import { FaTimesCircle } from "react-icons/fa";
 
 function LockerTableGroup() {
   const dispatch = useDispatch();
@@ -82,10 +80,10 @@ function LockerTableGroup() {
   return (
     <div className='select-none' onContextMenu={(e) => e.preventDefault()}>
       <div className='flex justify-end'>
-        <button 
-          type="button" 
-          style={{backgroundColor:'white', padding:'5px', marginRight:'20px'}} 
-          className='rounded' 
+        <button
+          type="button"
+          style={{ backgroundColor: 'white', padding: '5px', marginRight: '20px' }}
+          className='rounded'
           onClick={() => dispatch(setSelectedLockerIds([]))}>Unselect Lockers</button>
       </div>
       {allLockers.length ? (

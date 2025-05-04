@@ -1,5 +1,5 @@
 import React from 'react'
-import { adminTable, userTable } from '../../data/tableIHeads'
+import { adminTable } from '../../data/tableIHeads'
 import { useSelector } from 'react-redux';
 import NoData from '../no-data/NoData';
 import { getAllAdminsData } from '../../redux/slice/adminSlice';
@@ -12,16 +12,16 @@ function AdminTable() {
       {allAdmins?.length ?
         <div className="outlet__table__wrapper overflow-x-auto mt-2"
           style={{ height: allAdmins?.length >= 10 ? '480px' : 'auto' }}>
-          <table 
-          className="outlet__table min-w-full bg-white " 
-          style={{
-            color: '#AAAAAA',
-            minWidth: '1110px',
-            borderRadius:
-            allAdmins.length >= 10
-                ? '0px'
-                : '10px',
-          }}
+          <table
+            className="outlet__table min-w-full bg-white "
+            style={{
+              color: '#AAAAAA',
+              minWidth: '1110px',
+              borderRadius:
+                allAdmins.length >= 10
+                  ? '0px'
+                  : '10px',
+            }}
           >
             <thead>
               <tr className="outlet__table__header">

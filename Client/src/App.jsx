@@ -15,8 +15,6 @@ import { useEffect } from 'react';
 import { getAuthUser } from './redux/api/authApi';
 import NotFound from './pages/not-found/NotFound';
 
-
-
 function App() {
 
   const dispatch = useDispatch();
