@@ -56,5 +56,6 @@ export const getLoading = (state) => state.auth.loading;
 export const getIsAuth = (state) => state.auth.isAuth;
 export const getRolesData = (state) => state.auth.roles;
 export const getPermissionsData = (state) => state.auth.permissions;
+export const getAuthUserData = (state) => state.auth.authUser;
 
 export default authSlice.reducer;
