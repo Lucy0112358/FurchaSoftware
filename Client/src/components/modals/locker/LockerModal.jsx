@@ -73,7 +73,7 @@ const LockerModal = ({ onClose }) => {
               <div className="add__modal__content__part__group gap-4 mb-4 flex">
                 <div className="w-5/6">
                   <CustomSelect
-                    options={branches.map((branch) => ({
+                    options={branches?.map((branch) => ({
                       label: branch.name,
                       value: branch.id,
                     }))}

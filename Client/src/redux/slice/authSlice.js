@@ -8,6 +8,7 @@ const initialState = {
   authUser: {},
   roles: [],
   permissions: [],
+  authUserPermissions: [],
 };
 
 export const authSlice = createSlice({
@@ -37,6 +38,12 @@ export const authSlice = createSlice({
       .addCase(getAuthUser.fulfilled, (state, action) => {
         state.authUser = action.payload
         state.isAuth = true
+        state.authUserPermissions = {
+          'role': state.authUser.role,
+          'permissions': state.authUser.permissions
+          // 'role': 'LVL5_MasterAdmin',
+          // 'permissions': ['edit-user', 'view-user', 'delete-user', 'add-user'],
+      }
       })
       .addCase(getRoles.fulfilled, (state, action) => {
         state.roles = action.payload
@@ -57,5 +64,6 @@ export const getIsAuth = (state) => state.auth.isAuth;
 export const getRolesData = (state) => state.auth.roles;
 export const getPermissionsData = (state) => state.auth.permissions;
 export const getAuthUserData = (state) => state.auth.authUser;
+export const getAuthUserPermissionsData = (state) => state.auth.authUserPermissions;
 
 export default authSlice.reducer;

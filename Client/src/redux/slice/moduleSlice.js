@@ -4,7 +4,7 @@ import { userSlice } from "./userSlice";
 import { getLockerGroupRange, getModules, getNewBrains} from "../api/moduleApi";
 
 const initialState = {
-  modalBranches: {},
+  modalBranches: [],
   allModules: {},
   modalGroups: {},
   modalGroupsCopy: {},

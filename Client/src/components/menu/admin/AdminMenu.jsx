@@ -19,6 +19,8 @@ import Connection from '../../connection/Connection';
 import MediaQuery from 'react-responsive';
 import { TbPlugConnected } from "react-icons/tb";
 import UserInfoModal from '../../userInfo/UserInfoModal';
+import { useHasPermission } from '../../../hooks/useHasPermission';
+import ModalActionButton from '../../button/ModalActionButton';
 
 function AdminMenu() {
   const dispatch = useDispatch();
@@ -33,6 +35,7 @@ function AdminMenu() {
   const [inputValue, setInputValue] = useState('');
   const [debounceTimeout, setDebounceTimeout] = useState(null);
   const [manageEnabled, setManageEnabled] = useState(true);
+  const { hasPermission } = useHasPermission();
 
   useEffect(() => {
     dispatch(getBranches());
@@ -89,15 +92,13 @@ function AdminMenu() {
     <>
       <div className="menu flex justify-around">
         {/* Add Admin Button */}
-        <div className='menu__add'>
-          <button
+        {
+          hasPermission() && <ModalActionButton
             onClick={() => setIsModalOpen(true)}
-            className="menu__add__button text-white"
-          >
-            <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-            <span>Add Admin</span>
-          </button>
-        </div>
+            iconSrc={assets.add_icon}
+            text="Add Admin"
+          />
+        }
         {isModalOpen && <AddAdminModal onClose={handleCloseModal} />}
 
         {/* Filters */}

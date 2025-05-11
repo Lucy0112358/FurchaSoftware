@@ -5,7 +5,7 @@ import { userSlice } from "./userSlice";
 
 const initialState = {
   loading: false,
-  branches: {},
+  branches: [],
   userGroups: {},
   selectGroups: {},
   userGroupSelect: false,

@@ -18,6 +18,7 @@ export const signin = createAsyncThunk(
 
       const response = await instance(config);
       localStorage.setItem("token", response.data.token);
+      await thunkAPI.dispatch(getAuthUser());
       return true;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data.error.both);

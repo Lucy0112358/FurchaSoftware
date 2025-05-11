@@ -20,6 +20,7 @@ import {
 import { getLockers } from '../../../redux/api/lockerApi';
 import CustomSelect from '../../select/CustomSelect';
 import UserInfoModal from '../../userInfo/UserInfoModal';
+import { useHasPermission } from '../../../hooks/useHasPermission';
 
 function LockerMenu() {
   const dispatch = useDispatch();
@@ -34,6 +35,7 @@ function LockerMenu() {
   const lockerGroups = useSelector(getLockerGroups);
   const lockerViewEnabled = useSelector(getLockerStatusSelect);
   const lockerFilters = useSelector(getLockerFilter);
+  const { hasPermission } = useHasPermission();
 
   const branchOptions = Array.isArray(branches)
     ? branches.map(branch => ({ label: branch.name, value: branch.id }))
@@ -152,12 +154,16 @@ function LockerMenu() {
                   checked={lockerViewEnabled}
                   onChange={handleLockerStatusSelect}
                 />
-                <div className='menu__group__general mt-2'>
-                  <div className={`w-10 h-6 rounded-full relative transition ${lockerViewEnabled ? 'bg-green-500' : 'bg-gray-400'}`}>
-                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition transform ${lockerViewEnabled ? 'translate-x-4' : ''}`}></div>
-                  </div>
-                  <span className="text-white">View</span>
-                </div>
+                {
+                  hasPermission(['admin'], ['locker_group_create']) && (
+                    <div className='menu__group__general mt-2'>
+                      <div className={`w-10 h-6 rounded-full relative transition ${lockerViewEnabled ? 'bg-green-500' : 'bg-gray-400'}`}>
+                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition transform ${lockerViewEnabled ? 'translate-x-4' : ''}`}></div>
+                      </div>
+                      <span className="text-white">View</span>
+                    </div>
+                  )
+                }
               </label>
             </div>
           </div>

@@ -164,7 +164,7 @@ const ModulesModal = ({ onClose }) => {
                 <div className="flex ">
                   <div className="w-5/6 mr-2">
                     <CustomSelect
-                      options={branches.map((branch) => ({
+                      options={branches?.map((branch) => ({
                         label: branch.name,
                         value: branch.id,
                       }))}
@@ -306,7 +306,7 @@ const ModulesModal = ({ onClose }) => {
               <button
                 className="bg-gray-600 text-white rounded"
                 type="submit"
-              // onClick={addModules}
+                onClick={addModules}
               >
                 Save
               </button>

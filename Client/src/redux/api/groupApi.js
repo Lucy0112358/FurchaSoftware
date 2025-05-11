@@ -7,7 +7,7 @@ export const getAllGroups = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'User/user-groups/?adminId=8'
+          url: 'User/user-groups'
         };
        
         const response = await instance(config);

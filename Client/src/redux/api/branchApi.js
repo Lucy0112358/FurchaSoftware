@@ -24,7 +24,7 @@ export const getAllBranches = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'Branch/branches?adminId=8',
+          url: 'Branch/branches',
           params: {...params}
         };
         const response = await instance(config);
@@ -42,7 +42,7 @@ export const createBranch = createAsyncThunk(
         const config = {
           method: "post",
           data: data,
-          url: 'Branch/create-branch?adminId=8',
+          url: 'Branch/create-branch',
         };
         const response = await instance(config);
         return response?.data;

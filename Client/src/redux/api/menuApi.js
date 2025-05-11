@@ -7,7 +7,7 @@ export const getBranches = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'Branch/company-branches/?adminId=8',
+          url: 'Branch/company-branches',
         };
         
         const response = await instance(config);
@@ -24,7 +24,7 @@ export const getUserGroups = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'User/user-groups/?adminId=8',
+          url: 'User/user-groups',
         };
         
         const response = await instance(config);
@@ -57,7 +57,6 @@ export const userFilter = createAsyncThunk(
 export const setUserGroup = createAsyncThunk(
   'menu/setUserGroup',
   async (data, thunkAPI) => {
-    data.adminId=8
       try {
         const config = {
           method: "post",
@@ -76,7 +75,6 @@ export const setUserGroup = createAsyncThunk(
 export const setLockerGroup = createAsyncThunk(
   'menu/setLockerGroup',
   async (data, thunkAPI) => {
-    data.adminId=8
       try {
         const config = {
           method: "post",
@@ -100,7 +98,7 @@ export const filterUserByName = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'User/search-user/?adminId=8',
+          url: 'User/search-user/',
           params: { ...params },
         };
         
@@ -119,7 +117,7 @@ export const getLockerGroupsData = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'Locker/admin-lockerGroups/?adminId=8',
+          url: 'Locker/admin-lockerGroups',
         };
         
         const response = await instance(config);
