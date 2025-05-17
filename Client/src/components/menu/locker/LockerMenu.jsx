@@ -15,7 +15,8 @@ import LockerTypes from './components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
 import {
   getLockerFilter,
-  setLockerFilter
+  setLockerFilter,
+  setSelectedLockerIds
 } from '../../../redux/slice/lockerSlice';
 import { getLockers } from '../../../redux/api/lockerApi';
 import CustomSelect from '../../select/CustomSelect';
@@ -75,6 +76,7 @@ function LockerMenu() {
   };
 
   const handleLockerStatusSelect = () => {
+    dispatch(setSelectedLockerIds([]));
     dispatch(setLockerStatusSelect(!lockerViewEnabled));
   };
 

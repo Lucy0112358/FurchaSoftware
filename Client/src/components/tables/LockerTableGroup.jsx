@@ -4,15 +4,14 @@ import NoData from '../no-data/NoData';
 import OfficeName from '../headers/OfficeName';
 import GroupName from '../headers/GroupName';
 import GenerateLocker from '../lockers/GenerateLocker';
-import PopupMenu from '../popups/locker/PopupMenu';
+import LockerPopup from '../popups/locker/LockerPopup';
 import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '../../redux/slice/lockerSlice';
+import UnselectLockers from '../button/UnselectLockers';
 
 function LockerTableGroup() {
   const dispatch = useDispatch();
   const selectedLockerIds = useSelector(getSelectedLockerIds)
   const allLockers = useSelector(getAllLockersData);
-  const [checkedLockers, setCheckedLockers] = useState({});
-  // const [selectedLockerId, setSelectedLockerId] = useState([]);
 
   const [popup, setPopup] = useState({
     visible: false,
@@ -80,11 +79,7 @@ function LockerTableGroup() {
   return (
     <div className='select-none' onContextMenu={(e) => e.preventDefault()}>
       <div className='flex justify-end'>
-        <button
-          type="button"
-          style={{ backgroundColor: 'white', padding: '5px', marginRight: '20px' }}
-          className='rounded'
-          onClick={() => dispatch(setSelectedLockerIds([]))}>Unselect Lockers</button>
+       <UnselectLockers />
       </div>
       {allLockers.length ? (
         allLockers.map((locker, index) => {
@@ -160,7 +155,7 @@ function LockerTableGroup() {
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <PopupMenu locker={popup.locker} onClose={closePopup} branchId={popup.branchId} />
+                  <LockerPopup locker={popup.locker} onClose={closePopup} branchId={popup.branchId} />
                 </div>
               )}
             </React.Fragment>

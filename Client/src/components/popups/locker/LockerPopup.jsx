@@ -1,14 +1,14 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { getSelectedLockerIds } from '../../../redux/slice/lockerSlice';
-import PopupMenuMultiItem from './PopupMenuMultiItem';
+import LockerPopupMultiItem from './LockerPopupMultiItem';
 import Edit from '../../lockers/popupAction/Edit';
 import OpenLocker from '../../lockers/popupAction/OpenLocker';
 import SuspendLocker from '../../lockers/popupAction/SuspendLocker';
 import SetUser from '../../lockers/popupAction/SetUser';
 import HandAction from '../../lockers/popupAction/HandAction';
 
-function PopupMenu({ locker, onClose, branchId=null }) {
+function LockerPopup({ locker, onClose, branchId=null }) {
   const selectedLockerIds = useSelector(getSelectedLockerIds);
 
   return (
@@ -17,7 +17,7 @@ function PopupMenu({ locker, onClose, branchId=null }) {
       onClick={(e) => e.stopPropagation()}
     >
       {selectedLockerIds?.length > 0 ? (
-        <PopupMenuMultiItem selectedLockerIds={selectedLockerIds} onClose={onClose} />
+        <LockerPopupMultiItem selectedLockerIds={selectedLockerIds} onClose={onClose} />
       ) : (
         locker && (
           <>
@@ -50,4 +50,4 @@ function PopupMenu({ locker, onClose, branchId=null }) {
   );
 }
 
-export default PopupMenu;
+export default LockerPopup;

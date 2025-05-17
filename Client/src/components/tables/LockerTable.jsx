@@ -1,25 +1,73 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { lockerTable } from '../../data/tableIHeads';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import NoData from '../no-data/NoData';
 import OfficeName from '../headers/OfficeName';
 import GroupName from '../headers/GroupName';
-import { getAllLockersData } from '../../redux/slice/lockerSlice';
+import LockerPopup from '../popups/locker/LockerPopup';
+import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '../../redux/slice/lockerSlice';
+import CustomCheckbox from '../checkbox/CustomCheckbox';
+import UnselectLockers from '../button/UnselectLockers';
 
 function LockerTable() {
+  const dispatch = useDispatch();
   const allLockers = useSelector(getAllLockersData);
+  const selectedLockerIds = useSelector(getSelectedLockerIds);
+
+  const [popup, setPopup] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    locker: null,
+    branchId: null
+  });
+
+  const handleRightClick = (e, locker = null) => {
+    e.preventDefault();
+    const popupX = e.clientX + window.scrollX;
+    const popupY = e.clientY + window.scrollY;
+
+    if (!locker && selectedLockerIds.length === 0) {
+      return closePopup();
+    }
+
+    setPopup({
+      visible: true,
+      x: popupX,
+      y: popupY,
+      locker: locker,
+      branchId: locker ? locker.branchId : null,
+    });
+  };
+
+  const closePopup = () => {
+    setPopup({ ...popup, visible: false });
+  };
+
+  const handleGlobalClick = () => {
+    if (popup.visible) {
+      closePopup();
+    }
+  };
+
+  const handleSelectLocker = (itemId) => {
+    const newSelected = selectedLockerIds.includes(itemId)
+      ? selectedLockerIds.filter((id) => id !== itemId)
+      : [...selectedLockerIds, itemId];
+    dispatch(setSelectedLockerIds(newSelected));
+  };
 
   return (
-    <div>
+    <div className='select-none' onClick={handleGlobalClick} onContextMenu={(e) => e.preventDefault()}>
+      <div className='flex justify-end'>
+        <UnselectLockers />
+      </div>
       {allLockers.length ? (
         allLockers.map((locker, index) => (
           <React.Fragment key={index}>
-            {locker.lockers.length === 0 ? (
-              null
-            ) : (
+            {locker.lockers.length === 0 ? null : (
               <>
                 <OfficeName name={locker.officeName} />
-
                 {locker.lockers.map((lockerGroup, groupIndex) => (
                   <React.Fragment key={groupIndex}>
                     {lockerGroup.groupLockers.length !== 0 ? (
@@ -31,10 +79,7 @@ function LockerTable() {
                         <div
                           className="outlet__table__wrapper overflow-x-auto mt-2"
                           style={{
-                            height:
-                              lockerGroup.groupLockers.length >= 10
-                                ? '480px'
-                                : 'auto',
+                            height: lockerGroup.groupLockers.length >= 10 ? '480px' : 'auto',
                           }}
                         >
                           <table
@@ -42,10 +87,7 @@ function LockerTable() {
                             style={{
                               color: '#AAAAAA',
                               minWidth: '1110px',
-                              borderRadius:
-                                lockerGroup.groupLockers.length >= 10
-                                  ? '0px'
-                                  : '10px',
+                              borderRadius: lockerGroup.groupLockers.length >= 10 ? '0px' : '10px',
                             }}
                           >
                             <thead>
@@ -61,17 +103,14 @@ function LockerTable() {
                               {lockerGroup.groupLockers.map((item, itemIndex) => (
                                 <tr
                                   key={item.id}
-                                  className={
-                                    itemIndex % 2 === 0
-                                      ? 'bg-gray-50'
-                                      : 'bg-white'
-                                  }
+                                  onContextMenu={(e) => handleRightClick(e, item)}
+                                  className={itemIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
                                 >
-                                  <td>
-                                    <input
-                                      type="checkbox"
-                                      className="mr-2"
-                                    />{' '}
+                                  <td className='flex items-center'>
+                                    <CustomCheckbox
+                                      checked={selectedLockerIds.includes(item.id)}
+                                      onChange={() => handleSelectLocker(item.id)}
+                                    />
                                     {item.id}
                                   </td>
                                   <td>{'Locker name'}</td>
@@ -85,13 +124,7 @@ function LockerTable() {
                                     ))}
                                   </td>
                                   <td>{item.isOpen ? 'open' : 'closed'}</td>
-                                  <td
-                                    className={
-                                      item.state === 'suspended'
-                                        ? 'text-red-500 capitalize'
-                                        : 'capitalize'
-                                    }
-                                  >
+                                  <td className={item.state === 'suspended' ? 'text-red-500 capitalize' : 'capitalize'}>
                                     {item.state}
                                   </td>
                                 </tr>
@@ -109,6 +142,21 @@ function LockerTable() {
         ))
       ) : (
         <NoData text="No Lockers" />
+      )}
+
+      {/* Контекстное меню */}
+      {popup.visible && (
+        <div
+          style={{
+            position: 'absolute',
+            top: popup.y,
+            left: popup.x,
+            zIndex: 999,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <LockerPopup locker={popup.locker} onClose={closePopup} branchId={popup.branchId} />
+        </div>
       )}
     </div>
   );
