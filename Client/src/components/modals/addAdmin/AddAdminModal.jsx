@@ -18,7 +18,7 @@ import CloseButton from "../attributes/CloseButton";
 import { getPermissions, getRoles } from "../../../redux/api/authApi";
 import { getPermissionsData, getRolesData } from "../../../redux/slice/authSlice";
 import CustomSelect from "../../select/CustomSelect";
-import { setAdminInfo } from "../../../redux/api/adminApi";
+import { getAllAdmins, setAdminInfo } from "../../../redux/api/adminApi";
 import ShowFormikError from "../../error/ShowFormikError";
 
 const AddAdminModal = ({ onClose, children }) => {
@@ -123,14 +123,7 @@ const AddAdminModal = ({ onClose, children }) => {
     dispatch(setAdminInfo(data))
       .then((response) => {
         if (response && response.payload?.isSuccess) {
-          window.location.reload();
-          // dispatch(setAddUserInfo({}));
-          // setSentGeneralInfo({
-          //   user_info: {},
-          //   active_period: {},
-          //   userGroups: [],
-          //   cards: [],
-          // });
+          dispatch(getAllAdmins());
           onClose();
         } else {
           toast.error(response.error?.message || 'Error occurred');

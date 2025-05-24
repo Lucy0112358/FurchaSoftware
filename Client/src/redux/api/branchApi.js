@@ -19,7 +19,7 @@ export const getLockerGroupsByBranchId = createAsyncThunk(
 )
 
 export const getAllBranches = createAsyncThunk(
-  'admin/getAllBranches',
+  'branch/getAllBranches',
   async (params, thunkAPI) => {
       try {
         const config = {
@@ -36,7 +36,7 @@ export const getAllBranches = createAsyncThunk(
 )
 
 export const createBranch = createAsyncThunk(
-  'admin/createBranch',
+  'branch/createBranch',
   async (data, thunkAPI) => {
       try {
         const config = {
@@ -51,3 +51,54 @@ export const createBranch = createAsyncThunk(
       }
     }
 )
+
+export const deleteBranch = createAsyncThunk(
+  'branch/deleteBranch',
+  async (id, thunkAPI) => {
+      try {
+        const config = {
+          method: "delete",
+          url: 'Branch/branches/' + id,
+        };
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+export const getBranch = createAsyncThunk(
+  'branch/getBranch',
+  async (id, thunkAPI) => {
+      try {
+        const config = {
+          method: "get",
+          url: 'Branch/branches/' + id,
+        };
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+export const updateBranch = createAsyncThunk(
+  'branch/updateBranch',
+  async (data, thunkAPI) => {
+    try {
+      const { id, ...payload } = data;
+      const config = {
+        method: "put",
+        url: `Branch/branches/${id}`,
+        data: payload,
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error?.both || "Unknown error");
+    }
+  }
+);

@@ -8,7 +8,7 @@ function AdminTable() {
   const allAdmins = useSelector(getAllAdminsData);
 
   return (
-    <>
+    <div className='table-main'>
       {allAdmins?.length ?
         <div className="outlet__table__wrapper overflow-x-auto mt-2"
           style={{ height: allAdmins?.length >= 10 ? '480px' : 'auto' }}>
@@ -59,7 +59,7 @@ function AdminTable() {
           </table>
         </div> : <NoData text="No Admins" />
       }
-    </>
+    </div>
   )
 }
 

@@ -58,7 +58,7 @@ function LockerTable() {
   };
 
   return (
-    <div className='select-none' onClick={handleGlobalClick} onContextMenu={(e) => e.preventDefault()}>
+    <div className='table-main select-none' onClick={handleGlobalClick} onContextMenu={(e) => e.preventDefault()}>
       <div className='flex justify-end'>
         <UnselectLockers />
       </div>
