@@ -1,4 +1,5 @@
-﻿using Domain.Configuration;
+﻿using Domain.Attributes;
+using Domain.Configuration;
 using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
@@ -11,7 +12,7 @@ namespace FurchaAdminApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : BaseController
     {
         private readonly UserService userService;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -23,13 +24,13 @@ namespace FurchaAdminApi.Controllers
 
         [Authorize]
         [HttpGet("company-users")]
-        public ActionResult<ApiResult<List<UserResult>>> GetAdminUsers([FromQuery] int adminId)
+        public ActionResult<ApiResult<List<UserResult>>> GetAdminUsers()
         {
+            var adminId = GetClaimValue("AdminId");
             var httpContext = _httpContextAccessor.HttpContext;
-
             var userClaims = httpContext?.User.Claims;
             var nameClaim = userClaims?.FirstOrDefault(c => c.Type == "name")?.Value;
-            var users = userService.GetUsersForAdminBasedOnRole(adminId);
+            var users = userService.GetUsersForAdminBasedOnRole(int.Parse(adminId));
 
             if (users == null || !users.Any())
             {
@@ -39,16 +40,16 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<List<UserResult>>.Success(users));
         }
 
-
+        [Authorize]
         [HttpGet("filtered-users")]
         public ActionResult<ApiResult<List<UserResult>>> GetFilteredUsersWithPagination(
-              [FromQuery] int adminId,
-              [FromQuery] int? groupId,
-              [FromQuery] int? branchId,
+              [FromQuery] int? groupId = null,
+              [FromQuery] int? branchId = null,
               [FromQuery] int pageNumber = 1,
               [FromQuery] int page = 10)
         {
-            var users = userService.GetFilteredUsersByPagination(adminId, groupId, branchId, pageNumber, page);
+            var adminId = GetClaimValue("AdminId");
+            var users = userService.GetFilteredUsersByPagination(int.Parse(adminId), groupId, branchId, pageNumber, page);
 
             if (users == null || !users.Any())
             {
@@ -58,11 +59,13 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<List<UserResult>>.Success(users));
         }
 
-
+        [Authorize]
         [HttpGet("user-groups")]
-        public ActionResult<ApiResult<List<UserGroupResult>>> GetUserGroupsByAdminId(int adminId)
+        public ActionResult<ApiResult<List<UserGroupResult>>> GetUserGroupsByAdminId()
         {
-            var userGroups = userService.GetUserGroupsForAdminBasedOnRole(adminId);
+            var adminId = GetClaimValue("AdminId");
+
+            var userGroups = userService.GetUserGroupsForAdminBasedOnRole(int.Parse(adminId));
 
             if (userGroups == null)
             {
@@ -72,11 +75,13 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<List<UserGroupResult>>.Success(userGroups));
         }
 
-
+        [Authorize]
         [HttpGet("search-user")]
-        public ActionResult<ApiResult<List<UserResult>>> SearchUsersOfAdmin([FromQuery] string name, [FromQuery] int adminId)
+        public ActionResult<ApiResult<List<UserResult>>> SearchUsersOfAdmin([FromQuery] string name)
         {
-            var users = userService.SearchUsersOfAdmin(name, adminId);
+            var adminId = GetClaimValue("AdminId");
+
+            var users = userService.SearchUsersOfAdmin(name, int.Parse(adminId));
 
             if (users == null || users.Count == 0)
             {
@@ -86,6 +91,8 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<List<UserResult>>.Success(users));
         }
 
+        [Authorize]
+        [RequiresPermission("CreateUser")]
         [HttpPost("add-user")]
         public ActionResult<ApiResult<UserResult>> AddUser([FromBody] UserCreateRequest userCreateRequest)
         {
@@ -104,6 +111,8 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<UserResult>.Success(result));
         }
 
+        [Authorize]
+        [RequiresPermission("ManageUserGroup")]
         [HttpPost("add-user-group")]
         public ActionResult<ApiResult<UserGroupResult>> AddUserGroup([FromBody] UserGroupRequest userGroupRequest)
         {

@@ -5,13 +5,14 @@ using Domain.Configuration;
 using FurchaAdminApi.Models.Result;
 using Microsoft.AspNetCore.Authorization;
 using FurchaAdminApi.Models.Request;
+using Domain.Attributes;
 
 namespace FurchaAdminApi.Controllers
 {
     [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
-    public class LockerController : ControllerBase
+    public class LockerController : BaseController
     {
         private readonly LockerService _lockerService;
 
@@ -21,23 +22,22 @@ namespace FurchaAdminApi.Controllers
             _lockerService = lockerService;
         }
 
-
-        // GET: api/<LockerController>
+        [Authorize]
         [HttpGet]
         public ActionResult<ApiResult<List<OfficeResult>>> Get(
             int branchId,
             string? lockerType = null,
             int? lockerGroupId = null,
-            string? status = null,
-            bool? isActive = null
+            int? isOpen = null,
+            string? userName = null
           )
         {
             var lockers = _lockerService.GetLockersByFilters(
                 branchId,
                 lockerType,
                 lockerGroupId,
-                status,
-                isActive
+                isOpen,
+                userName
             );
 
             /* if (lockers == null || !lockers.Any())
@@ -49,7 +49,7 @@ namespace FurchaAdminApi.Controllers
 
         }
 
-        // GET api/<LockerController>/5
+        [Authorize]
         [HttpGet("{id}")]
         public ActionResult<string> Get(int id)
         {
@@ -63,7 +63,8 @@ namespace FurchaAdminApi.Controllers
             public string Name { get; set; }
         }
 
-        // POST api/<LockerController>
+        [Authorize]
+        [RequiresPermission("ManageLockerGroups")]
         [HttpPost]
         public ActionResult<ApiResult<string>> Post([FromBody] LockerGroupRequest request)
         {
@@ -82,6 +83,8 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<string>.Success("LockerGroup created successfully."));
         }
 
+        [Authorize]
+        [RequiresPermission("AddModule")]
         [HttpPost("CreateModule")]
         public ApiResult<bool> CreateModule([FromBody] ModuleRequest request)
         {
@@ -100,6 +103,7 @@ namespace FurchaAdminApi.Controllers
             return ApiResult<bool>.Success(true);
         }
 
+        [Authorize]
         [HttpGet("lockers-range")]
         public ActionResult<ApiResult<ModuleLockers>> GetLockersRange(int groupId)
         {
@@ -110,6 +114,7 @@ namespace FurchaAdminApi.Controllers
         }
 
 #warning When auth is done, this methode must return only modules accessible for the logged in admin
+        [Authorize]
         [HttpGet("GetModules")]
         public ActionResult<ApiResult<List<ModuleResult>>> GetModules()
         {
@@ -118,18 +123,23 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<List<ModuleResult>>.Success(modules));
         }
 
+        [Authorize]
         [HttpGet("get-new-brains")]
-        public ActionResult<ApiResult<List<NewModulesResult>>> GetNewModules(int adminId)
+        public ActionResult<ApiResult<List<NewModulesResult>>> GetNewModules()
         {
-            var modules = _lockerService.GetNewModules(adminId);
+            var adminId = GetClaimValue("AdminId");
+            var modules = _lockerService.GetNewModules(int.Parse(adminId));
 
             return Ok(ApiResult<List<NewModulesResult>>.Success(modules));
         }
 
+        [Authorize]
         [HttpGet("admin-lockerGroups")]
-        public ActionResult<ApiResult<List<LockerGroup>>> GetUserGroupsByAdminId([FromQuery] int adminId)
+        public ActionResult<ApiResult<List<LockerGroup>>> GetUserGroupsByAdminId()
         {
-            var lockerGroups = _lockerService.GetLockerGroupsByAdminId(adminId);
+            var adminId = GetClaimValue("AdminId");
+
+            var lockerGroups = _lockerService.GetLockerGroupsByAdminId(int.Parse(adminId));
 
             if (lockerGroups == null || !lockerGroups.Any())
             {
@@ -145,10 +155,11 @@ namespace FurchaAdminApi.Controllers
         {
         }
 
+        [Authorize]
         [HttpGet("GetGroupsWithLockers")]
         public ActionResult<ApiResult<List<LockersResult>>> GetGroupsWithLockers([FromQuery] int branchId)
         {
-            var groupsWithLockers = _lockerService.GetGroupsWithLockers                               (branchId);
+            var groupsWithLockers = _lockerService.GetGroupsWithLockers(branchId);
 
             /*  if (!groupsWithLockers.Any())
               {
@@ -158,6 +169,8 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<List<LockersResult>>.Success(groupsWithLockers));
         }
 
+        [Authorize]
+        [RequiresPermission("ManageLocker")]
         [HttpPost("edit-lockers")]
         public IActionResult EditLockers([FromBody] EditLockerRequest request)
         {
@@ -166,14 +179,60 @@ namespace FurchaAdminApi.Controllers
                 return BadRequest(ApiResult<string>.ErrorResult("Invalid request data."));
             }
 
-            _lockerService.EditLocker(request.GroupId, request.LockerIds, request.Type);
-            return Ok(ApiResult<string>.Success("Lockers edited successfully."));
+            try
+            {
+                _lockerService.EditLocker(request.LockerIds, request.Type);
+                return Ok(ApiResult<string>.Success("Lockers edited successfully."));
+
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.ErrorResult(ex.Message));
+
+            }
         }
 
-        // DELETE api/<LockerController>/5
+        [Authorize]
+        [RequiresPermission("ManageLocker")]
         [HttpDelete("{id}")]
+
+        [Authorize]
+        [RequiresPermission("ManageLocker")]
         public void Delete(int id)
         {
         }
+
+        [Authorize]
+        [RequiresPermission("ManageLocker")]
+        [HttpPost("open-lockers")]
+        public IActionResult OpenLockers([FromBody] List<int> lockerIds)
+        {
+
+            _lockerService.OpenLockers(lockerIds);
+            return Ok(ApiResult<string>.Success("Lockers edited successfully."));
+        }
+
+        [Authorize]
+        [RequiresPermission("ManageUsers")]
+        [HttpPost("set-user")]
+        public IActionResult SetUser([FromBody] SetUserRequest request)
+        {
+
+            _lockerService.SetUser(request.LockerIds, request.UserId);
+            return Ok(ApiResult<string>.Success("Lockers edited successfully."));
+        }
+
+        [Authorize]
+        [RequiresPermission("ManageUsers")]
+        [HttpPost("suspend-lockers")]
+        public IActionResult SuspendLockers([FromBody] List<int> lockerIds)
+        {
+
+            _lockerService.SuspendLockers(lockerIds);
+            return Ok(ApiResult<string>.Success("Lockers edited successfully."));
+        }
+
+
     }
 }

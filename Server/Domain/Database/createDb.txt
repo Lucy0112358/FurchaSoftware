@@ -17,6 +17,12 @@ CREATE TABLE IF NOT EXISTS furcha."BranchAddress"
     "Country" VARCHAR(100) NOT NULL
 );
 
+CREATE TABLE furcha."ObjectType" (
+    "Id" SERIAL PRIMARY KEY,
+    "Name" VARCHAR(100) NOT NULL UNIQUE
+);
+
+
 -- Create the Country table with manual PK insertion
 CREATE TABLE IF NOT EXISTS furcha."Country"
 (
@@ -343,3 +349,12 @@ CREATE TABLE "RolePermissions" (
 
 ALTER TABLE furcha."Locker"ADD COLUMN "BrainId" INT,
 ADD CONSTRAINT "FK_Locker_BrainModule"FOREIGN KEY ("BrainId") REFERENCES furcha."BrainModule" ("Id");.
+
+ALTER TABLE furcha."Permissions"
+ADD COLUMN "ObjectTypeId" INT;
+
+ALTER TABLE furcha."Permissions"
+ADD CONSTRAINT fk_permission_objecttype
+FOREIGN KEY ("ObjectTypeId")
+REFERENCES furcha."ObjectType"("Id")
+ON DELETE CASCADE;

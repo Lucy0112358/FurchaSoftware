@@ -1,5 +1,6 @@
 ﻿using Domain.Configuration;
 using FurchaAdminApi.Infrustructures;
+using FurchaAdminApi.Middlewares;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Npgsql;
@@ -20,27 +21,27 @@ namespace FurchaAdminApi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-            builder.Services.AddCors(options =>
-                 {
-                     options.AddDefaultPolicy(builder =>
-                     {
-                         builder.WithOrigins("http://192.168.0.129:3033/")
-                                .AllowAnyHeader()
-                                .AllowAnyMethod()
-                                .AllowCredentials();
-                     });
-                 });
-
             /*            builder.Services.AddCors(options =>
-                        {
-                            options.AddDefaultPolicy(builder =>
-                            {
-                                builder.AllowAnyOrigin()
-                                       .AllowAnyHeader()
-                                       .AllowAnyMethod();
-                            });
-                        });
-            */
+                             {
+                                 options.AddDefaultPolicy(builder =>
+                                 {
+                                     builder.WithOrigins("http://192.168.0.129:3033/")
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod()
+                                            .AllowCredentials();
+                                 });
+                             });*/
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+            });
+
             builder.Services.AddScoped<NpgsqlConnection>(provider =>
             {
                 var configuration = provider.GetRequiredService<IConfiguration>();
@@ -89,7 +90,7 @@ namespace FurchaAdminApi
     });
             });
             var app = builder.Build();
-            app.UseExceptionHandler(errorApp =>
+/*            app.UseExceptionHandler(errorApp =>
             {
                 errorApp.Run(async context =>
                 {
@@ -104,7 +105,7 @@ namespace FurchaAdminApi
 
                     await context.Response.WriteAsync($"{{\"error\":\"{error?.Message}\"}}");
                 });
-            });
+            });*/
 
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -115,6 +116,7 @@ namespace FurchaAdminApi
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseMiddleware<PermissionMiddleware>();
             app.MapControllers();
             app.Run();
         }

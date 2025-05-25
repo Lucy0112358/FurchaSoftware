@@ -15,7 +15,7 @@ namespace Domain.Entities
         [ForeignKey("Branch")]
         public int BranchId { get; set; }
 
-        public virtual Administrators Admin { get; set; }
+        public virtual Administrator Admin { get; set; }
         public virtual Branch Branch { get; set; }
     }
 }

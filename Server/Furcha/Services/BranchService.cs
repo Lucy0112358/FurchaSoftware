@@ -54,7 +54,7 @@ namespace FurchaAdminApi.Services
 
                 var branch = _branchRepository.CreateBranch(new Branch
                 {
-                    Name = newBranch.BranchName,
+                    Name = newBranch.Name,
                     CompanyId = _userRepository.GetCompanyIdByAdminId(adminId),
                     AddressId = address.Id,
                     Comment = newBranch.Comment,

@@ -1,7 +1,7 @@
 ﻿namespace Domain.Enums
 {
     /// <summary>
-    /// Mapping enum to furcha.Role
+    /// Mapping enum to furcha.Roles
     /// </summary>
     public enum RoleEnum : long
     {
