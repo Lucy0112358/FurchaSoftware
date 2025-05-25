@@ -1,11 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAuthUser, signin } from "../api/authApi";
+import { getAuthUser, getPermissions, getRoles, signin } from "../api/authApi";
 // import { APP_BASE_URL } from "../../config";
 
 const initialState = {
   loading: false,
   isAuth: false,
   authUser: {},
+  roles: [],
+  permissions: [],
+  authUserPermissions: [],
 };
 
 export const authSlice = createSlice({
@@ -14,6 +17,9 @@ export const authSlice = createSlice({
   reducers: {
     setLoading: (state, action) => {
       state.loading = action.payload.loading;
+    },
+    setPermissions: (state, action) => {
+      state.permissions = action.payload;
     },
   },
 
@@ -32,15 +38,32 @@ export const authSlice = createSlice({
       .addCase(getAuthUser.fulfilled, (state, action) => {
         state.authUser = action.payload
         state.isAuth = true
+        state.authUserPermissions = {
+          'role': state.authUser.role,
+          'permissions': state.authUser.permissions
+          // 'role': 'LVL5_MasterAdmin',
+          // 'permissions': ['edit-user', 'view-user', 'delete-user', 'add-user'],
+      }
+      })
+      .addCase(getRoles.fulfilled, (state, action) => {
+        state.roles = action.payload
+      })
+      .addCase(getPermissions.fulfilled, (state, action) => {
+        state.permissions = action.payload
       })
   },
 });
 
 export const {
   setLoading,
+  setPermissions
 } = authSlice.actions;
 
 export const getLoading = (state) => state.auth.loading;
 export const getIsAuth = (state) => state.auth.isAuth;
+export const getRolesData = (state) => state.auth.roles;
+export const getPermissionsData = (state) => state.auth.permissions;
+export const getAuthUserData = (state) => state.auth.authUser;
+export const getAuthUserPermissionsData = (state) => state.auth.authUserPermissions;
 
 export default authSlice.reducer;

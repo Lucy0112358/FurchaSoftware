@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import "../modal.css";
 import { useDispatch, useSelector } from "react-redux";
 import "react-tabs/style/react-tabs.css";
-import CustomSelect from "../../select/CustomSelect";
 import { getBranchesData } from "../../../redux/slice/menuSlice";
 import "./lockerModal.css";
 import { setLockerGroup } from "../../../redux/api/menuApi";
@@ -12,9 +11,10 @@ import { IoMdAdd } from "react-icons/io";
 import BranchModal from "../branch/BranchModal";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import CustomSelect from "../../select/CustomSelect";
+import ShowFormikError from "../../error/ShowFormikError";
 
-const LockerModal = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
+const LockerModal = ({ onClose }) => {
   const dispatch = useDispatch();
   const branches = useSelector(getBranchesData);
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
@@ -73,16 +73,17 @@ const LockerModal = ({ isOpen, onClose }) => {
               <div className="add__modal__content__part__group gap-4 mb-4 flex">
                 <div className="w-5/6">
                   <CustomSelect
-                    options={branches}
+                    options={branches?.map((branch) => ({
+                      label: branch.name,
+                      value: branch.id,
+                    }))}
                     onChange={handleSelectChange}
                     value={branches?.find(
                       (option) => option.value === formik.values.branchId
                     )}
                   />
                   {formik.touched.branchId && formik.errors.branchId && (
-                    <div className="text-red-500 text-xl mt-1">
-                      {formik.errors.branchId}
-                    </div>
+                    <ShowFormikError message={formik.errors.branchId} />
                   )}
                 </div>
                 <div className="flex w-1/6">
@@ -95,13 +96,10 @@ const LockerModal = ({ isOpen, onClose }) => {
                       className="fill-current"
                       style={{ fontSize: "xx-large" }}
                     />
-                    <BranchModal
-                      isOpen={addBranchModalSwitch}
-                      onClose={(e) => {
-                        if (e?.stopPropagation) e.stopPropagation();
-                        setAddBranchModalSwitch(false);
-                      }}
-                    />
+                    {addBranchModalSwitch && <BranchModal onClose={(e) => {
+                      if (e?.stopPropagation) e.stopPropagation();
+                      setAddBranchModalSwitch(false);
+                    }} />}
                   </button>
                 </div>
               </div>
@@ -121,9 +119,7 @@ const LockerModal = ({ isOpen, onClose }) => {
                     className="w-full p-1 border rounded"
                   />
                   {formik.touched.name && formik.errors.name && (
-                    <div className="text-red-500 text-xl mt-1">
-                      {formik.errors.name}
-                    </div>
+                    <ShowFormikError message={formik.errors.name} />
                   )}
                 </div>
               </div>

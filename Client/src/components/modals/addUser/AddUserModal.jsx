@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import CustomSelect from "../../select/CustomSelect";
 import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
 import { userFilter } from "../../../redux/api/menuApi";
 import { setUserInfo } from "../../../redux/api/userApi";
@@ -20,6 +19,8 @@ import GenerateLocker from "../../lockers/GenerateLocker";
 import NoData from "../../no-data/NoData";
 import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
+import CustomSelect from "../../select/CustomSelect";
+import ShowFormikError from "../../error/ShowFormikError";
 
 const AddUserModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -280,13 +281,7 @@ console.log(userInfo, "userInfo");
         },
       }));
 
-
-
     // sendGroupInfo('Locker', 'lockers', generalInfo)
-
-
-
-
 
     // const branchIds = selectedBranches.map((branch) => branch.value);
     // setSentGeneralInfo((prev) => ({
@@ -305,9 +300,7 @@ console.log(userInfo, "userInfo");
   const renderError = (fieldName) => {
     if (formErrors[fieldName]) {
       return (
-        <div className="text-red-500 text-sm mt-1">
-          {formErrors[fieldName]}
-        </div>
+        <ShowFormikError message={formErrors[fieldName]} />
       );
     }
     return null;
@@ -423,7 +416,11 @@ console.log(userInfo, "userInfo");
                 <div className="add__modal__content__part__group mb-4 flex items-center">
                   <div className="add__modal__group__select mr-4 w-full">
                     <CustomSelect
-                      options={userGroups}
+                      options={userGroups.map((group) => ({
+                        label: group.name,
+                        value: group.id,
+                      }))}
+                      value={selectedGroups}
                       onChange={handleGroupsSelectChange}
                       multiChoose={true}
                     />
@@ -578,11 +575,6 @@ console.log(userInfo, "userInfo");
                         }
                         ))
                     }
-                    {/* <CustomSelect
-                      options={branches}
-                      onChange={handleSelectBranch}
-                      multiChoose={true}
-                    /> */}
                     {renderError('branch')}
                   </div>
                 </div>
@@ -603,10 +595,10 @@ console.log(userInfo, "userInfo");
                                 : ''
                                 }`}
                               onMouseOver={(event) => {
-                                if (event.buttons === 1) {
+                                if (event.buttons === 1 && event.ctrlKey) {
+                                  handleBranchSelectRemove(item.id);
+                                } else if (event.buttons === 1) {
                                   handleBranchSelectAdd(item.id);
-                                } else if (event.buttons === 2) {
-                                  handleBranchSelectRemove(item.id); 
                                 }
                               }}
                               onClick={() => handleClickBranchSelect(item.id)}

@@ -35,7 +35,6 @@ function UserTable() {
               </tr>
             </thead>
             <tbody>
-
               {allUsers.map((user, index) => (
                 <tr key={user.id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
                   <td>

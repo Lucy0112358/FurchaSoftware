@@ -7,11 +7,10 @@ export const getAllUsers = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'User/company-users?adminId=8',
+          url: 'User/company-users',
         };
         
         const response = await instance(config);
-        // console.log(response.data, "aaaaaaaalllllllllllllUserrrrrr")
         return response?.data;
       } catch (error) {
         return thunkAPI.rejectWithValue(error.response.data.error.both);
@@ -32,6 +31,37 @@ export const setUserInfo = createAsyncThunk(
         
         const response = await instance(config);
         return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+export const filterUserWithOutPaginte = createAsyncThunk(
+  'user/filterUserWithOutPaginte',
+  async (params, thunkAPI) => {
+      try {
+        const config = {
+          method: "get",
+          url: 'User/filtered-users/',
+          params: { ...params },
+        };
+        
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+export const logout = createAsyncThunk(
+  'user/logout',
+  async (_, thunkAPI) => {
+      try {
+        localStorage.removeItem("token");
+        window.location.href = '/login';
+        return;
       } catch (error) {
         return thunkAPI.rejectWithValue(error.response.data.error.both);
       }

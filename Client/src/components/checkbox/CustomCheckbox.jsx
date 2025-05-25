@@ -1,25 +1,19 @@
-import { useState } from 'react';
-
-const CustomCheckbox = ({ id, onChange }) => {
-  const [isChecked, setIsChecked] = useState(false);
-
+const CustomCheckbox = ({ id, checked, onChange }) => {
   const handleCheckboxChange = () => {
-    const newCheckedState = !isChecked;
-    setIsChecked(newCheckedState);
     if (onChange) {
-      onChange(newCheckedState);
+      onChange(!checked);
     }
   };
 
   return (
     <div className="inline-flex items-start">
       <label
-        className="flex items-start cursor-pointer relative  mr-2 "
+        className="flex items-start cursor-pointer relative mr-2"
         htmlFor={id}
       >
         <input
           type="checkbox"
-          checked={isChecked}
+          checked={checked}
           onChange={handleCheckboxChange}
           className="peer h-5 w-5 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-slate-200 checked:bg-slate-600 checked:border-slate-800"
           id={id}

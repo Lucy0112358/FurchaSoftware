@@ -43,7 +43,7 @@ export const getModules = createAsyncThunk(
         try {
           const config = {
             method: "get",
-            url: 'Locker/get-new-brains/?adminId=8',
+            url: 'Locker/get-new-brains',
           };
           
           const response = await instance(config);

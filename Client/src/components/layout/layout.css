@@ -20,6 +20,7 @@ table td {
 /* width */
 .outlet__table__wrapper::-webkit-scrollbar {
     width: 20px;
+    height: 0.1px;
 }
 
 /* Track */
@@ -47,8 +48,12 @@ table td {
     height: auto;
     /* height: 480px; */
     width: 100%;
-    max-width: 1130px;
+    /* max-width: 1130px; */
     overflow-x: auto;
+}
+
+.table-main {
+    margin-right: 3rem;
 }
 
 /* Handle on hover */
@@ -84,7 +89,15 @@ table td {
 }
 
 /* Небольшие ноутбуки */
-@media (max-width: 1024px) {}
+@media (max-width: 1024px) {
+   
+}
 
 /* Десктопы */
-@media (max-width: 1280px) {}
+@media (max-width: 1330px) {
+   
+}
+
+@media (max-width: 1440px) {
+   
+}

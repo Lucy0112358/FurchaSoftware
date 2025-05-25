@@ -1,10 +1,21 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import './sidebar.css';
 import { assets } from '../../assets/assets';
 import { sitebarItems } from '../../data/SidebarItems';
-
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { setSelectedLockerIds } from '../../redux/slice/lockerSlice';
 
 const Sidebar = () => {
+  const location = useLocation();
+  const dispatch = useDispatch();
+  useEffect(() => {
+    handleSidebarChange(location.pathname);
+  }, [location.pathname]);
+
+  const handleSidebarChange = (path) => {
+   dispatch(setSelectedLockerIds([]))
+  };
   return (
     <div className='sidebar h-screen'>
       <div className="sidebar__logo">
@@ -12,13 +23,10 @@ const Sidebar = () => {
       </div>
       <div className='sidebar__content'>
         {sitebarItems.map((item, index) => {
-          // Проверяем, содержит ли URL слово "locker" и совпадает ли с путем элемента
-          const isActive = location.pathname.includes('locker') && item.path.includes('locker');
-          
           return (
-            <NavLink 
-              key={index} 
-              to={item.path} 
+            <NavLink
+              key={index}
+              to={item.path}
               className={'sidebar__content__link'}
             >
               <item.icon />

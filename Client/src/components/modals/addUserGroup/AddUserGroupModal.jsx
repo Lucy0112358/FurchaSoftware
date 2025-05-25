@@ -13,6 +13,7 @@ import GroupName from "../../headers/GroupName";
 import GenerateLocker from "../../lockers/GenerateLocker";
 import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
+import ShowFormikError from "../../error/ShowFormikError";
 
 
 const AddUserGroupModal = ({ isOpen, onClose, children }) => {
@@ -168,9 +169,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
   const renderError = (fieldName) => {
     if (formErrors[fieldName]) {
       return (
-        <div className="text-red-500 text-sm mt-1">
-          {formErrors[fieldName]}
-        </div>
+        <ShowFormikError message={formErrors[fieldName]} />
       );
     }
     return null;
@@ -238,11 +237,6 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
                       }
                       ))
                   }
-                  {/* <CustomSelect
-                      options={branches}
-                      onChange={handleSelectBranch}
-                      multiChoose={true}
-                    /> */}
                   {renderError('branch')}
                 </div>
               </div>
@@ -263,10 +257,10 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
                               : ''
                               }`}
                               onMouseOver={(event) => {
-                                if (event.buttons === 1) {
+                                if (event.buttons === 1 && event.ctrlKey) {
+                                  handleBranchSelectRemove(item.id);
+                                } else if (event.buttons === 1) {
                                   handleBranchSelectAdd(item.id);
-                                } else if (event.buttons === 2) {
-                                  handleBranchSelectRemove(item.id); 
                                 }
                               }}
                             onClick={() => handleClickBranchSelect(item.id)}

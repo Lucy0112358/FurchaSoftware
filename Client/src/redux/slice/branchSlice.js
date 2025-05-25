@@ -1,9 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAllBranches } from "../api/branchApi";
+import { getAllBranches, getBranch } from "../api/branchApi";
 
 const initialState = {
   loading: false,
   allBranches: [],
+  branchData: {},
 };
 
 export const branchSlice = createSlice({
@@ -31,6 +32,9 @@ export const branchSlice = createSlice({
         state.errorMessage = action.payload;
         state.loading = false;
       })
+      .addCase(getBranch.fulfilled, (state, action) => {
+        state.branch = action.payload;
+      })
   },
 });
 
@@ -40,5 +44,6 @@ export const {
 
 export const getLoadingNow = (state) => state.branch.loading;
 export const getAllBranchesData = (state) => state.branch.allBranches;
+export const getBranchData = (state) => state.branch.branchData;
 
 export default branchSlice.reducer;

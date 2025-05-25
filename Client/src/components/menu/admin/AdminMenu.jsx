@@ -1,167 +1,167 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import '../menu.css';
 import { assets } from '../../../assets/assets';
 import CustomSelect from '../../select/CustomSelect';
 import { useDispatch, useSelector } from 'react-redux';
-import { filterUserByName, getBranches, getLockerGroupsData, userFilter } from '../../../redux/api/menuApi';
-import { getSelectGroupSelect, getBranchesData, getUserGroupsData } from '../../../redux/slice/menuSlice';
-import { TbPlugConnected } from "react-icons/tb";
-import MediaQuery from 'react-responsive'
-import Connection from '../../connection/Connection';
+import {
+  filterUserByName,
+  getBranches,
+  getLockerGroupsData,
+  userFilter
+} from '../../../redux/api/menuApi';
+import {
+  getBranchesData,
+  getUserGroupsData
+} from '../../../redux/slice/menuSlice';
+import { setPermissions } from '../../../redux/slice/authSlice';
 import AddAdminModal from '../../modals/addAdmin/AddAdminModal';
-
+import Connection from '../../connection/Connection';
+import MediaQuery from 'react-responsive';
+import { TbPlugConnected } from "react-icons/tb";
+import UserInfoModal from '../../userInfo/UserInfoModal';
+import { useHasPermission } from '../../../hooks/useHasPermission';
+import ModalActionButton from '../../button/ModalActionButton';
 
 function AdminMenu() {
-    const dispatch = useDispatch();
-    const [selectedBranch, setSelectedBranch] = useState(null);
-    const [selectedGroups, setSelectedGroups] = useState(null);
-    const [filters, setFilters] = useState({});
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const branches = useSelector(getBranchesData);
-    const userGroups = useSelector(getUserGroupsData);
-    const [manageEnabled, setManageEnabled] = useState(true);
+  const dispatch = useDispatch();
 
-    //input search by nane
-    const [inputValue, setInputValue] = useState('');
-    const [debounceTimeout, setDebounceTimeout] = useState(null);
+  const branches = useSelector(getBranchesData);
+  const userGroups = useSelector(getUserGroupsData);
 
-    const handleSelectChange = (selectedOption) => {
-        setSelectedBranch(selectedOption);
-        addFilters(selectedOption, 'branchId')
-    }
-    const handleGroupsSelectChange = (selectedOption) => {
-        setSelectedGroups(selectedOption);
-        addFilters(selectedOption, 'groupId')
-        // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
-    };
+  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [filters, setFilters] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [debounceTimeout, setDebounceTimeout] = useState(null);
+  const [manageEnabled, setManageEnabled] = useState(true);
+  const { hasPermission } = useHasPermission();
 
-    const addFilters = (selectedOption, key) => {
-        setFilters((prevFilters) => {
-            const updatedFilters = {
-                ...prevFilters,
-                [key]: selectedOption.value,
-            };
+  useEffect(() => {
+    dispatch(getBranches());
+    dispatch(getLockerGroupsData());
+  }, [dispatch]);
 
-            dispatch(userFilter(updatedFilters));
-            return updatedFilters;
-        });
-    }
+  const handleSelectChange = (option, key, setSelected) => {
+    setSelected(option);
+    const updatedFilters = { ...filters, [key]: option.value };
+    setFilters(updatedFilters);
+    dispatch(userFilter(updatedFilters));
+  };
 
-    useEffect(() => {
-        dispatch(getBranches());
-        dispatch(getLockerGroupsData());
-    }, []);
+  const handleSearchChange = (e) => {
+    const name = e.target.value;
+    setInputValue(name);
+    setFilters({});
 
-    const handleFilterName = (e) => {
-        let name = e.target.value;
-        setFilters({})
-        setInputValue(name);
+    if (debounceTimeout) clearTimeout(debounceTimeout);
 
-        if (debounceTimeout) {
-            clearTimeout(debounceTimeout);
+    const timeout = setTimeout(() => {
+      dispatch(filterUserByName({ name }));
+    }, 1000);
+
+    setDebounceTimeout(timeout);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    dispatch(setPermissions([]));
+  };
+
+  const renderSelect = (label, options, value, onChange) => (
+    <div className='menu__filter__select'>
+      <CustomSelect
+        options={options}
+        value={options.find(opt => opt.value === value?.value)}
+        onChange={onChange}
+      />
+      <label className="text-white block">{label}</label>
+    </div>
+  );
+
+  // Safe mapping
+  const branchOptions = Array.isArray(branches)
+    ? branches.map(branch => ({ label: branch.name, value: branch.id }))
+    : [];
+
+  const groupOptions = Array.isArray(userGroups)
+    ? userGroups.map(group => ({ label: group.name, value: group.id }))
+    : [];
+
+  return (
+    <>
+      <div className="menu flex justify-around">
+        {/* Add Admin Button */}
+        {
+          hasPermission() && <ModalActionButton
+            onClick={() => setIsModalOpen(true)}
+            iconSrc={assets.add_icon}
+            text="Add Admin"
+          />
         }
+        {isModalOpen && <AddAdminModal onClose={handleCloseModal} />}
 
-        setDebounceTimeout(
-            setTimeout(() => {
-                dispatch(filterUserByName({ 'name': name }));
-            }, 1000)
-        );
-    };
+        {/* Filters */}
+        <div className="menu__filter flex space-x-4">
+          <div className='flex flex-col'>
+            {renderSelect("Site", branchOptions, selectedBranch, (opt) => handleSelectChange(opt, 'branchId', setSelectedBranch))}
+            {renderSelect("User Group", groupOptions, selectedGroup, (opt) => handleSelectChange(opt, 'groupId', setSelectedGroup))}
+          </div>
 
-    return (
-        <>
-            <div className="menu flex justify-around">
-                <div className='menu__add'>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="menu__add__button text-white">
-                        <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-                        <span className="">
-                            {"Add Admin"}
-                        </span>
-                    </button>
-                </div>
-                <AddAdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+          {/* Search */}
+          <div className='menu__filter__search'>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={handleSearchChange}
+              className="w-full rounded"
+            />
+            <label className="text-white block">Search User</label>
+          </div>
+        </div>
 
-                <div className="menu__filter flex space-x-4">
-                    <div className='flex flex-col'>
-                        <div className='menu__filter__select'>
-                            <CustomSelect options={branches} onChange={handleSelectChange} />
-                            <label className="text-white block">Site</label>
-                        </div>
-                        <div className='menu__filter__select'>
-                            <CustomSelect options={userGroups} onChange={handleGroupsSelectChange} />
-                            <label className="text-white block">User Group</label>
-                        </div>
-                    </div>
-                    <div className='menu__filter__search'>
-                        <input
-                            type="text"
-                            value={inputValue}
-                            onChange={handleFilterName}
-                            className="w-full rounded"
-                        />
-                        <label className="text-white block">Search User</label>
-                    </div>
-                </div>
+        {/* Connection Status */}
+        <div className="menu__connection flex items-start text-white">
+          <MediaQuery minWidth={769}><Connection /></MediaQuery>
+          <MediaQuery maxWidth={768}><TbPlugConnected className='menu__connection__status__icon' /></MediaQuery>
+        </div>
 
-                <div className="menu__connection flex items-start text-white">
-                    <MediaQuery minWidth={769}>
-                        <Connection />
-                    </MediaQuery>
-                    <MediaQuery maxWidth={768}>
-                        <TbPlugConnected className='menu__connection__status__icon' />
-                    </MediaQuery>
-                </div>
+        {/* User Info & Manage Toggle */}
+        <div className="flex items-center text-white flex-col">
+          <MediaQuery minWidth={550}>
+            <UserInfoModal />
+          </MediaQuery>
 
-                <div className="flex items-center text-white flex-col">
-                    <MediaQuery minWidth={550}>
-                        <div className="flex flex-col items-end">
-                            <span>Michael</span>
-                            <span>(Administrator)</span>
-                        </div>
-                    </MediaQuery>
+          <div className="manage__page">
+            <label className="inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={manageEnabled}
+                onChange={() => setManageEnabled(!manageEnabled)}
+              />
+              <div className={`w-10 h-6 rounded-full relative transition ${manageEnabled ? 'bg-green-500' : 'bg-gray-400'}`}>
+                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transform transition ${manageEnabled ? 'translate-x-4' : ''}`} />
+              </div>
+            </label>
+            <span>Manage</span>
+          </div>
+        </div>
+      </div>
 
-                    <div className="manage__page">
-                        <label className="inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="sr-only"
-                                checked={manageEnabled}
-                                onChange={() => setManageEnabled(!manageEnabled)}
-                            />
-                            <div className={`w-10 h-6 bg-gray-400 rounded-full relative transition duration-300 ease-in-out ${manageEnabled ? 'bg-green-500' : ''}`}>
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition duration-300 ease-in-out transform ${manageEnabled ? 'translate-x-4' : ''}`}></div>
-                            </div>
-                        </label>
-                        <span>Manage</span>
-                    </div>
-                </div>
-                {/* </div> */}
-                {/* <LockerTypes /> */}
-            </div>
-            <div className="menu__filter__mobile hidden">
-                <div className='flex justify-between'>
-                    <div className='menu__filter__select'>
-                        <CustomSelect options={branches} onChange={handleSelectChange} />
-                        <label className="text-white block">Site</label>
-                    </div>
-                    <div className='menu__filter__select'>
-                        <CustomSelect options={userGroups} onChange={handleGroupsSelectChange} />
-                        <label className="text-white block">User Group</label>
-                    </div>
-                    <div className='menu__filter__search'>
-                        <input
-                            type="text"
-                            className="w-full p-2 rounded"
-                        />
-                        <label className="text-white block">Search User</label>
-                    </div>
-                </div>
-
-            </div>
-        </>
-    );
+      {/* Mobile Filter */}
+      <div className="menu__filter__mobile hidden">
+        <div className='flex justify-between'>
+          {renderSelect("Site", branchOptions, selectedBranch, (opt) => handleSelectChange(opt, 'branchId', setSelectedBranch))}
+          {renderSelect("User Group", groupOptions, selectedGroup, (opt) => handleSelectChange(opt, 'groupId', setSelectedGroup))}
+          <div className='menu__filter__search'>
+            <input type="text" className="w-full p-2 rounded" />
+            <label className="text-white block">Search User</label>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
 
-export default AdminMenu
+export default AdminMenu;

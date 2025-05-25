@@ -46,10 +46,8 @@ export const {
   setAddAdminInfo,
 } = adminSlice.actions;
 
-export const getLoadingNow = (state) => state.user.loading;
-
-export const getAllAdminsData = (state) => state.user.allAdmins;
-
-export const getAddAdminInfo = (state) => state.user.adminInfo;
+export const getLoadingNow = (state) => state.admin.loading;
+export const getAllAdminsData = (state) => state.admin.allAdmins;
+export const getAddAdminInfo = (state) => state.admin.adminInfo;
 
 export default adminSlice.reducer;

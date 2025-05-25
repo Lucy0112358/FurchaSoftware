@@ -7,7 +7,7 @@ export const getAllAdmins = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'User/company-users?adminId=8',
+          url: 'Auth/get-admins',
         };
         const response = await instance(config);
         return response?.data;
@@ -17,21 +17,22 @@ export const getAllAdmins = createAsyncThunk(
     }
 )
 
-// export const setUserInfo = createAsyncThunk(
-//   'menu/setUserInfo',
-//   async (data, thunkAPI) => {
-//     data.adminId = 8;
-//       try {
-//         const config = {
-//           method: "post",
-//           url: 'User/add-user',
-//           data: data
-//         };
+export const setAdminInfo = createAsyncThunk(
+  'admin/setAdminInfo',
+  async (data, thunkAPI) => {
+    console.log(data, "dataaaaaaa");
+    
+      try {
+        const config = {
+          method: "post",
+          url: 'Auth/create-admin',
+          data: data
+        };
         
-//         const response = await instance(config);
-//         return response?.data;
-//       } catch (error) {
-//         return thunkAPI.rejectWithValue(error.response.data.error.both);
-//       }
-//     }
-// )
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)

@@ -19,7 +19,7 @@ function GenerateLocker({ item, index }) {
         return <TemporaryPersonal label={name} lockernumber={incrementedIndex} />;
       case 'common':
         return <Common label={name} lockernumber={incrementedIndex} />;
-      case 'hand':
+      case 'handover':
         return <Hand lockernumber={incrementedIndex} />;
       case 'parcel':
         return <Parcel label={name} lockernumber={incrementedIndex} size="L" orderNum="44623598" />;

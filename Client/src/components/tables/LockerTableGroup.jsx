@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { lockerTable } from '../../data/tableIHeads';
+import { useDispatch, useSelector } from 'react-redux';
 import NoData from '../no-data/NoData';
 import OfficeName from '../headers/OfficeName';
 import GroupName from '../headers/GroupName';
 import GenerateLocker from '../lockers/GenerateLocker';
-import PopupMenu from '../popups/locker/PopupMenu';
-import { getAllLockersData } from '../../redux/slice/lockerSlice';
+import LockerPopup from '../popups/locker/LockerPopup';
+import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '../../redux/slice/lockerSlice';
+import UnselectLockers from '../button/UnselectLockers';
 
 function LockerTableGroup() {
+  const dispatch = useDispatch();
+  const selectedLockerIds = useSelector(getSelectedLockerIds)
   const allLockers = useSelector(getAllLockersData);
 
   const [popup, setPopup] = useState({
@@ -16,19 +18,30 @@ function LockerTableGroup() {
     x: 0,
     y: 0,
     locker: null,
+    branchId: null
   });
 
-  const handleRightClick = (e, locker) => {
+  const handleRightClick = (e, locker = null) => {
     e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const popupX = rect.left + window.scrollX + 10;
-    const popupY = rect.top + window.scrollY + rect.height + 5;
+    let popupX, popupY;
+    if (locker) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      popupX = rect.left + window.scrollX + 10;
+      popupY = rect.top + window.scrollY + rect.height + 5;
+    } else {
+      popupX = e.clientX + window.scrollX;
+      popupY = e.clientY + window.scrollY;
+    }
+    if (!locker && selectedLockerIds.length === 0) {
+      return closePopup();
+    }
 
     setPopup({
       visible: true,
       x: popupX,
       y: popupY,
       locker: locker,
+      branchId: locker ? locker.branchId : null,
     });
   };
 
@@ -42,24 +55,51 @@ function LockerTableGroup() {
     }
   };
 
+  const handleBranchSelectAdd = (itemId) => {
+    const newSelected = selectedLockerIds.includes(itemId)
+      ? selectedLockerIds
+      : [...selectedLockerIds, itemId];
+    dispatch(setSelectedLockerIds(newSelected));
+  };
+
+  const handleClickBranchSelect = (itemId) => {
+    const newSelected = selectedLockerIds.includes(itemId)
+      ? selectedLockerIds.filter((id) => id !== itemId)
+      : [...selectedLockerIds, itemId];
+    dispatch(setSelectedLockerIds(newSelected));
+  };
+
+  const handleBranchSelectRemove = (itemId) => {
+    const newSelected = selectedLockerIds.includes(itemId)
+      ? selectedLockerIds.filter((id) => id !== itemId)
+      : selectedLockerIds;
+    dispatch(setSelectedLockerIds(newSelected));
+  };
+
   return (
-    <div>
+    <div className='select-none' onContextMenu={(e) => e.preventDefault()}>
+      <div className='flex justify-end'>
+       <UnselectLockers />
+      </div>
       {allLockers.length ? (
         allLockers.map((locker, index) => {
-          // Если у этого "офиса" нет locker.lockers или он пуст, пропускаем
           if (!locker.lockers || locker.lockers.length === 0) {
             return null;
           }
 
           return (
             <React.Fragment key={index}>
-              {/* Отображаем название офиса */}
               <OfficeName name={locker.officeName} />
-
-              {/* Контейнер, который ловит клики для закрытия popup */}
-              <div className="pl-5" onClick={handleGlobalClick}>
+              <div className="pl-5"
+                onClick={handleGlobalClick}
+                onContextMenu={(e) => {
+                  if (selectedLockerIds.length > 0) {
+                    handleRightClick(e);
+                  } else {
+                    e.preventDefault();
+                  }
+                }}>
                 {locker.lockers.map((lockerGroup, groupIndex) => {
-                  // Если нет groupLockers или она пуста, пропускаем
                   if (
                     !lockerGroup.groupLockers ||
                     lockerGroup.groupLockers.length === 0
@@ -71,41 +111,53 @@ function LockerTableGroup() {
                     <React.Fragment key={groupIndex}>
                       <GroupName name={lockerGroup.groupName} />
 
-                      <div className="flex flex-wrap mb-4">
+                      <div
+                        className="flex flex-wrap mb-4 ">
                         {lockerGroup.groupLockers.map((item, itemIndex) => (
                           <div
-                            key={itemIndex} // или item.id, если уникально
-                            className="mr-2 mb-2"
-                            onContextMenu={(e) => handleRightClick(e, item)}
-                            style={{ cursor: 'context-menu' }}
+                            key={itemIndex}
+                            onContextMenu={(e) => {
+                              if (!selectedLockerIds.length > 0) {
+                                handleRightClick(e, item);
+                              } else {
+                                e.preventDefault();
+                              }
+                            }}
+                            className={`mr-2 mb-2 ${selectedLockerIds.includes(item.id)
+                              ? 'selected__branch__id'
+                              : ''
+                              }`}
+                            onMouseOver={(event) => {
+                              if (event.buttons === 1 && event.ctrlKey) {
+                                handleBranchSelectRemove(item.id);
+                              } else if (event.buttons === 1) {
+                                handleBranchSelectAdd(item.id);
+                              }
+                            }}
+                            onClick={() => handleClickBranchSelect(item.id)}
                           >
                             <GenerateLocker item={item} index={itemIndex} />
+
                           </div>
                         ))}
-
-                        {/* Popup-меню (одно на все локеры) */}
-                        {popup.visible && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: popup.y,
-                              left: popup.x,
-                              backgroundColor: '#eee',
-                              border: '1px solid #ccc',
-                              borderRadius: '4px',
-                              padding: '5px 10px',
-                              zIndex: 999,
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <PopupMenu locker={popup.locker} onClose={closePopup} />
-                          </div>
-                        )}
                       </div>
                     </React.Fragment>
                   );
                 })}
               </div>
+              {popup.visible && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: popup.y,
+                    left: popup.x,
+                    zIndex: 999,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <LockerPopup locker={popup.locker} onClose={closePopup} branchId={popup.branchId} />
+                </div>
+              )}
             </React.Fragment>
           );
         })

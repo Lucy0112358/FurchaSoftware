@@ -1,19 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import '../menu.css';
-import { RiAddBoxLine } from "react-icons/ri";
 import { assets } from '../../../assets/assets';
-import CustomSelect from '../../select/CustomSelect';
 import { useDispatch, useSelector } from 'react-redux';
 import { filterUserByName, getBranches, getLockerGroupsData, getUserGroups, userFilter } from '../../../redux/api/menuApi';
 import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter, setUserGroupSelect } from '../../../redux/slice/menuSlice';
-import AddUserModal from '../../modals/addUser/AddUserModal';
 import { getAllUsers } from '../../../redux/api/userApi';
 import { getAllGroups } from '../../../redux/api/groupApi';
 import GeneralAddModal from '../../modals/GeneralAddModal';
 import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive'
-import LockerTypes from '../locker/components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
+import CustomSelect from '../../select/CustomSelect';
+import UserInfoModal from '../../userInfo/UserInfoModal';
 
 
 function UserMenu() {
@@ -50,7 +48,6 @@ function UserMenu() {
             return updatedFilters;
         });
     }
-
 
     useEffect(() => {
         dispatch(getBranches());
@@ -116,11 +113,25 @@ function UserMenu() {
                 <div className="menu__filter flex space-x-4">
                     <div className='flex flex-col'>
                         <div className='menu__filter__select'>
-                            <CustomSelect options={branches} onChange={handleSelectChange} />
+                            <CustomSelect
+                                options={(Array.isArray(branches) ? branches : []).map(branch => ({
+                                    label: branch.name,
+                                    value: branch.id,
+                                }))}
+                                value={selectedBranch}
+                                onChange={handleSelectChange}
+                            />
                             <label className="text-white block">Site</label>
                         </div>
                         <div className='menu__filter__select'>
-                            <CustomSelect options={userGroups} onChange={handleGroupsSelectChange} />
+                            <CustomSelect
+                                options={(Array.isArray(userGroups) ? userGroups : []).map(group => ({
+                                    label: group.name,
+                                    value: group.id,
+                                }))}
+                                value={selectedGroups}
+                                onChange={handleGroupsSelectChange}
+                            />
                             <label className="text-white block">User Group</label>
                         </div>
                     </div>
@@ -167,10 +178,7 @@ function UserMenu() {
 
                 <div className="flex items-center text-white flex-col">
                     <MediaQuery minWidth={550}>
-                        <div className="flex flex-col items-end">
-                            <span>Michael</span>
-                            <span>(Administrator)</span>
-                        </div>
+                        <UserInfoModal />
                     </MediaQuery>
 
                     <div className="manage__page">
@@ -195,11 +203,25 @@ function UserMenu() {
             <div className="menu__filter__mobile hidden">
                 <div className='flex justify-between'>
                     <div className='menu__filter__select'>
-                        <CustomSelect options={branches} onChange={handleSelectChange} />
+                        <CustomSelect
+                            options={(Array.isArray(branches) ? branches : []).map(branch => ({
+                                label: branch.name,
+                                value: branch.id,
+                            }))}
+                            value={selectedBranch}
+                            onChange={handleSelectChange}
+                        />
                         <label className="text-white block">Site</label>
                     </div>
                     <div className='menu__filter__select'>
-                        <CustomSelect options={userGroups} onChange={handleGroupsSelectChange} />
+                        <CustomSelect
+                            options={(Array.isArray(userGroups) ? userGroups : []).map(group => ({
+                                label: group.name,
+                                value: group.id,
+                            }))}
+                            value={selectedGroups}
+                            onChange={handleGroupsSelectChange}
+                        />
                         <label className="text-white block">User Group</label>
                     </div>
                     <div className='menu__filter__search'>

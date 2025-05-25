@@ -18,3 +18,81 @@ export const getLockers = createAsyncThunk(
       }
     }
 )
+
+export const editLockersType = createAsyncThunk(
+  'locker/editLockersType',
+  async (data, thunkAPI) => {
+      try {
+        const config = {
+          method: "post",
+          data: data,
+          url: 'Locker/edit-lockers',
+        };
+       
+        const response = await instance(config);
+        console.log("response", response);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+export const openLockers = createAsyncThunk(
+  'locker/openLockers',
+  async (data, thunkAPI) => {
+      try {
+        const config = {
+          method: "post",
+          data: data,
+          url: 'Locker/open-lockers',
+        };
+       
+        const response = await instance(config);
+        console.log("response", response);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+export const suspendLockers = createAsyncThunk(
+  'locker/suspendLockers',
+  async (data, thunkAPI) => {
+      try {
+        const config = {
+          method: "post",
+          data: data,
+          url: 'Locker/suspend-lockers',
+        };
+       
+        const response = await instance(config);
+        console.log("response", response);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+export const setUser = createAsyncThunk(
+  'locker/setUser',
+  async (data, thunkAPI) => {
+      try {
+        const config = {
+          method: "post",
+          data: data,
+          url: 'Locker/set-user',
+        };
+       
+        const response = await instance(config);
+        console.log("response", response);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+

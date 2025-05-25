@@ -4,35 +4,42 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import "../modal.css";
 import "./branchModal.css";
-import { createBranch, getAllBranches } from "../../../redux/api/branchApi";
+import { createBranch, updateBranch, getAllBranches } from "../../../redux/api/branchApi";
 import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
+import ShowFormikError from "../../error/ShowFormikError";
 
-const BranchModal = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
+const BranchModal = ({ onClose, mode = "add", initialData = {} }) => {
   const dispatch = useDispatch();
+
+  const isEditMode = mode === "edit";
+
   const formik = useFormik({
     initialValues: {
-      branchName: "",
-      address: "",
-      comment: ""
+      name: initialData.name || "",
+      address: initialData.address || "",
+      comment: initialData.comment || ""
     },
     validationSchema: Yup.object({
-      branchName: Yup.string().required("Branch Name is required")
+      name: Yup.string().required("Branch Name is required"),
     }),
     onSubmit: (values) => {
-      dispatch(createBranch(values))
+      const action = isEditMode
+        ? updateBranch({ id: initialData.id, ...values })
+        : createBranch(values);
+
+      dispatch(action)
         .then((response) => {
-          if (response && response.error) {
+          if (response?.error) {
             toast.error(response.error.message);
-          } else if (response && response.payload.isSuccess) {
-            toast.success("Branch created successfully");
+          } else if (response?.payload?.isSuccess) {
+            toast.success(`Branch ${isEditMode ? "updated" : "created"} successfully`);
             dispatch(getAllBranches());
             onClose();
           } else {
             toast.error("Something went wrong");
           }
-        })
+        });
     },
   });
 
@@ -45,33 +52,31 @@ const BranchModal = ({ isOpen, onClose }) => {
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
       <div className="add__modal__content add__modal__content__addModules rounded-lg shadow-lg w-full max-w-4xl overflow-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-white">Add branch</h2>
-          <CloseButton onClick={onClose}>
-            &times;
-          </CloseButton>
+          <h2 className="text-2xl font-semibold text-white">
+            {isEditMode ? "Edit branch" : "Add branch"}
+          </h2>
+          <CloseButton onClick={onClose}>&times;</CloseButton>
         </div>
 
         <form>
           <div className="add__modal__content__part">
             <span>General</span>
             <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-              <label htmlFor="branchName" className="block text-gray-300">
+              <label htmlFor="name" className="block text-gray-300">
                 Branch Name*
               </label>
               <div>
                 <input
-                  id="branchName"
-                  name="branchName"
+                  id="name"
+                  name="name"
                   type="text"
                   className="w-full p-1 border rounded"
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  value={formik.values.branchName}
+                  value={formik.values.name}
                 />
-                {formik.touched.branchName && formik.errors.branchName && (
-                  <div className="text-red-600 text-xl mt-1">
-                    {formik.errors.branchName}
-                  </div>
+                {formik.touched.name && formik.errors.name && (
+                  <ShowFormikError message={formik.errors.name} />
                 )}
               </div>
 
@@ -122,7 +127,7 @@ const BranchModal = ({ isOpen, onClose }) => {
                 onClick={handleSave}
                 className="bg-gray-600 text-white rounded"
               >
-                Save
+                {isEditMode ? "Update" : "Save"}
               </button>
             </div>
           </div>
