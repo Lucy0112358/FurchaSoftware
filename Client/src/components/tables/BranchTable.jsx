@@ -67,7 +67,7 @@ function BranchTable() {
         >
           <table
             className="outlet__table min-w-full bg-white"
-            style={{ color: '#AAAAAA', minWidth: '1110px' }}
+            style={{ color: '#AAAAAA' }}
           >
             <thead>
               <tr className="outlet__table__header">

@@ -1,32 +1,35 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { userTable } from '../../data/tableIHeads'
 import { useSelector } from 'react-redux';
 import { getAllUsersData } from '../../redux/slice/userSlice';
 import NoData from '../no-data/NoData';
-import TemporaryPersonal from '../lockers/temporary-personal/TemporaryPersonal';
-import Personal from '../lockers/personal/Personal';
-import Common from '../lockers/common/Common';
-import Hand from '../lockers/hand/Hand';
-import Parcel from '../lockers/parcel/Parcel';
-import Unspecified from '../lockers/unspecified/Unspecified';
+import CustomCheckbox from '../checkbox/CustomCheckbox';
 
 function UserTable() {
   const allUsers = useSelector(getAllUsersData);
-  // console.log(allUsers, "sdada");
+  const [selectedLockerIds, setSelectedLockerIds] = useState([]);
+
+  const handleSelectLocker = (itemId) => {
+    setSelectedLockerIds((prevSelected) => {
+      const isSelected = prevSelected.includes(itemId);
+      if (isSelected) {
+        return prevSelected.filter((id) => id !== itemId);
+      } else {
+        return [...prevSelected, itemId];
+      }
+    });
+      // const newSelected = selectedLockerIds.includes(itemId)
+      //   ? selectedLockerIds.filter((id) => id !== itemId)
+      //   : [...selectedLockerIds, itemId];
+      // dispatch(setSelectedLockerIds(newSelected));
+    };
 
   return (
     <>
-      {/* <TemporaryPersonal label="TO" lockernumber="87" />
-    <Personal label="SJ" lockernumber="87" />
-    <Common label="QQ" lockernumber="99" />
-    <Hand  lockernumber="87" />
-    <Parcel label="SJ" lockernumber="7" size="L" orderNum="44623598"/>
-    <Unspecified lockernumber="7" /> */}
-
       {allUsers?.length ?
         <div className="outlet__table__wrapper overflow-x-auto mt-2"
           style={{ height: allUsers?.length >= 10 ? '480px' : 'auto' }}>
-          <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA', minWidth: '1110px' }}>
+          <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA' }}>
             <thead>
               <tr className="outlet__table__header">
                 {userTable.map((header, index) => (
@@ -37,8 +40,12 @@ function UserTable() {
             <tbody>
               {allUsers.map((user, index) => (
                 <tr key={user.id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                  <td>
-                    <input type="checkbox" className="mr-2" /> {user.id}
+                  <td className='flex items-center'>
+                    <CustomCheckbox
+                      checked={selectedLockerIds.includes(user.id)}
+                      onChange={() => handleSelectLocker(user.id)}
+                    />
+                    {user.id}
                   </td>
                   <td>{user.name}</td>
                   <td>{user.surname}</td>

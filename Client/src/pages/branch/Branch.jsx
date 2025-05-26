@@ -12,9 +12,7 @@ const Branch = () => {
   }, []);
 
   return (
-    <div>
       <BranchTable />
-    </div>
   );
 };
 
