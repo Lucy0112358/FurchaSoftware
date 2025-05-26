@@ -657,15 +657,29 @@ namespace Domain.Repositories
                     value = value?.ToString(); // Convert enum to string
                 }
 
+                // Check if the property is a nullable DateTime
+                if (value is DateTime? && value == null)
+                {
+                    value = DateTime.UtcNow; // If nullable DateTime is null, use UTC now
+                }
+                // Check if the property is a non-nullable DateTime
+                else if (value is DateTime && value.Equals(default(DateTime)))
+                {
+                    value = DateTime.UtcNow; // If DateTime is default, use UTC now
+                }
+
                 // Wrap column name in double quotes for case sensitivity
                 var quotedColumnName = $"\"{columnName}\"";
 
                 columns.Add(quotedColumnName);
                 parameters.Add($"@{columnName}");
-                param.Add($"@{columnName}", value ?? DBNull.Value); // Handle null values
+
+                // Handle DBNull for other null values
+                param.Add($"@{columnName}", value ?? DBNull.Value);
 
                 propertyList.Add(property); // Add to the list of included properties
             }
+
 
             var columnsString = string.Join(", ", columns);
             var parameterString = string.Join(", ", parameters.Select((p, idx) =>

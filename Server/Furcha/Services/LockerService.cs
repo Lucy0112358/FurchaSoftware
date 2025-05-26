@@ -4,6 +4,7 @@ using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
+using System.Security.Cryptography.X509Certificates;
 using System.Transactions;
 
 namespace FurchaAdminApi.Services
@@ -20,11 +21,11 @@ namespace FurchaAdminApi.Services
             _userRepository = userRepository;
         }
         /// <summary>
-        /// Each user in the group should have access to same lockers in the lockerGroup. <br></br>
+        /// Each user in the group should have access to same editingLockers in the lockerGroup. <br></br>
         /// Each locker is in only one lockerGroup.
         /// </summary>
         /// <param name="ugId">The ID of the user group.</param>
-        /// <returns>A list of permitted lockers for the user group.</returns>
+        /// <returns>A list of permitted editingLockers for the user group.</returns>
         public List<Locker> GetPermittedLockersOfUserGroup(int ugId)
         {
             var permittedLockers = _lockerRepository.GetPermittedLockersOfUserGroup(ugId);
@@ -33,7 +34,7 @@ namespace FurchaAdminApi.Services
         }
 
         /// <summary>
-        /// Retrieves lockers based on specified filtering criteria.
+        /// Retrieves editingLockers based on specified filtering criteria.
         /// </summary>
         /// <param name="lockerType">The type of locker.</param>
         /// <param name="lockerGroupId">The locker group ID.</param>
@@ -41,8 +42,9 @@ namespace FurchaAdminApi.Services
         /// <param name="status">The status of the locker.</param>
         /// <param name="isActive">Indicates if the locker is active.</param>
         /// <param name="lockerStatus">The current status of the locker.</param>
-        /// <returns>A list of lockers that match the specified criteria.</returns>
-        public List<OfficeResult> GetLockersByFilters(int branchId, string? lockerType, int? lockerGroupId, string? status, bool? isActive)
+        /// <returns>A list of editingLockers that match the specified criteria.</returns>
+        public List<OfficeResult> GetLockersByFilters(int branchId, string? lockerType, int? lockerGroupId, int? isOpen = null,
+            string? userName = null)
         {
 
             var adminBranches = _branchRepository.GetBranchesByAdminId(8);
@@ -51,7 +53,14 @@ namespace FurchaAdminApi.Services
 
             foreach (var branch in adminBranches)
             {
-                var lockers = _lockerRepository.GetLockersByCriteria(branch.Id, lockerType, lockerGroupId, status, isActive);
+                var lockers = _lockerRepository.GetLockersByCriteria(branch.Id, lockerType, lockerGroupId, isOpen);
+
+                if (userName != null)
+                {
+                    /*                   .Where(u => u.Name.Contains(name, StringComparison.OrdinalIgnoreCase)
+                                             || u.Surname.Contains(name, StringComparison.OrdinalIgnoreCase))
+                                    .ToList();*/
+                }
 
                 var branchLockerGroups = _lockerRepository.GetLockerGroupsByBranchId(branch.Id)
                     .OrderByDescending(group => group.Id)
@@ -75,7 +84,8 @@ namespace FurchaAdminApi.Services
                             IsActive = locker.IsActive,
                             IsOpen = locker.IsOpen,
                             groupid = locker.groupid,
-                            Users = locker.Users
+                            Users = locker.Users,
+                            BranchId = locker.BranchId
                         }).ToList()
                     });
                 }
@@ -142,7 +152,7 @@ namespace FurchaAdminApi.Services
         }
 
         /// <summary>
-        /// Retrieves lockers based on specified filtering criteria.
+        /// Retrieves editingLockers based on specified filtering criteria.
         /// </summary>
         public List<ModuleResult> GetModules()
         {
@@ -307,40 +317,115 @@ namespace FurchaAdminApi.Services
             return lockerGroups;
         }
 
-        public void EditLocker(int? groupId, List<int> lockerIds, string? type)
+        public void EditLocker(List<int> lockerIds, string type)
         {
+            var editingLockers = new List<Locker>();
+
             foreach (var id in lockerIds)
             {
                 var locker = _lockerRepository.GetLockerByIdOrDefault(id);
                 if (locker != null)
                 {
-                    if (groupId != null)
+                    editingLockers.Add(locker);
+                }
+            }
+
+            // Safe because nulls are excluded
+            var groupedLockers = editingLockers
+                .GroupBy(l => l.groupid)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            foreach (var lockerGroup in groupedLockers)
+            {
+                var types = new HashSet<string>();
+                if (type != "common")
+                {
+                    types.Add(type);
+                }
+
+                var groupId = lockerGroup.Key;
+                var lockersInGroup = lockerGroup.Value;
+
+                var all = _lockerRepository.GetLockersOfGroup((int)lockerGroup.Key);
+                foreach (var locker in all)
+                {
+                    if (!lockersInGroup.Contains(locker))
                     {
-                        locker.groupid = groupId;
+                        if (locker.LockerType != "common")
+                        {
+                            types.Add(locker.LockerType.ToLower());
+                        }
                     }
+
+                }
+                if (types.Count > 2)
+                {
+                    throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "Locker types must be the same in the group");
+                }
+                foreach (var locker in lockersInGroup)
+                {
+
                     if (type != null)
                     {
                         locker.LockerType = type;
                     }
-                    locker = _lockerRepository.UpdateLocker(locker);
+                    _lockerRepository.UpdateLocker(locker);
                 }
+            }
+
+
+            /*if (locker != null)
+            {
+                groupedLockers.TryGetValue(locker.groupid, out string val);
+                if (type != val)
+                {
+                    throw new Exception();
+                }
+                if (type != null)
+                {
+                    locker.LockerType = type;
+                }
+                _lockerRepository.UpdateLocker(locker);
+            }*/
+
+
+        }
+
+        public void SuspendLockers(List<int> lockerIds)
+        {
+            // make isactive to 0, or 1
+            foreach (var id in lockerIds)
+            {
+                var locker = _lockerRepository.GetLockerByIdOrDefault(id);
+                if (locker.IsActive == 1)
+                {
+                    locker.IsActive = 2;
+                }
+                else
+                {
+                    locker.IsActive = 1;
+                }
+                locker = _lockerRepository.UpdateLocker(locker);
             }
 
         }
 
-        public void SuspendLocker(int lockerId)
+        public void OpenLockers(List<int> lockerIds)
         {
             // make isactive to 0, or 1
+            foreach (var id in lockerIds)
+            {
+                var locker = _lockerRepository.GetLockerByIdOrDefault(id);
+                if (locker.IsOpen == 2) locker.IsOpen = 1;
+
+                locker = _lockerRepository.UpdateLocker(locker);
+            }
         }
 
-        public void OpenLocker(int lockerId)
+        public void SetUser(List<int> lockerIds, int userId)
         {
             // make isactive to 0, or 1
-        }
-
-        public void SetUser(int lockerId, int userId)
-        {
-            // make isactive to 0, or 1
+            _userRepository.AssignLockersToUser(lockerIds, userId);
         }
     }
 }

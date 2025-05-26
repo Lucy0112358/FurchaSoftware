@@ -1,16 +1,16 @@
-﻿using Domain.Configuration;
-using Domain.Entities;
+﻿using Domain.Attributes;
+using Domain.Configuration;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FurchaAdminApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BranchController : ControllerBase
+    public class BranchController : BaseController
     {
         private readonly UserService _userService;
         private readonly BranchService _branchService;
@@ -20,10 +20,12 @@ namespace FurchaAdminApi.Controllers
             _branchService = branchService;
         }
 
+        [Authorize]
         [HttpGet("company-branches")]
-        public ActionResult<ApiResult<List<BranchFilterResult>>> GetAllBranchesOfCompanyByAdminId([FromQuery] int adminId)
+        public ActionResult<ApiResult<List<BranchFilterResult>>> GetAllBranchesOfCompanyByAdminId()
         {
-            var branches = _userService.GetAdminBranches(adminId);
+            var adminId = GetClaimValue("AdminId");
+            var branches = _userService.GetAdminBranches(int.Parse(adminId));
 
             if (branches == null || !branches.Any())
             {
@@ -33,28 +35,32 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<List<BranchFilterResult>>.Success(branches));
         }
 
+        [Authorize]
+        [RequiresPermission("CreateBranch")]
         [HttpPost("create-branch")]
-        public ActionResult<ApiResult<bool>> CreateBranch([FromQuery] int adminId, [FromBody] CreateBranchRequest request)
+        public ActionResult<ApiResult<bool>> CreateBranch([FromBody] CreateBranchRequest request)
         {
-            var branch = _branchService.CreateBranch(request, adminId);         
+            var adminId = GetClaimValue("AdminId");
+            var branch = _branchService.CreateBranch(request, int.Parse(adminId));         
 
             return Ok(ApiResult<bool>.Success(branch));
         }
 
+        [Authorize]
         [HttpGet("branches")]
-        public ActionResult<ApiResult<List<AllBranchResult>>> GetAllBranchesOfCompanyByAdminId([FromQuery] int adminId, [FromQuery] string? name)
+        public ActionResult<ApiResult<List<AllBranchResult>>> GetAllBranchesOfCompanyByAdminId([FromQuery] string? name)
         {
-
+            var adminId = GetClaimValue("AdminId");
             if (name == null )
             {
-                var branches = _branchService.GetAllBranches(adminId);
+                var branches = _branchService.GetAllBranches(int.Parse(adminId));
 
                 return Ok(ApiResult<List<AllBranchResult>>.Success(branches));
 
             }
             else
             {
-                var branches = _branchService.GetSearchedBranches(name, adminId);
+                var branches = _branchService.GetSearchedBranches(name, int.Parse(adminId));
 
                 return Ok(ApiResult<List<AllBranchResult>>.Success(branches));
             }

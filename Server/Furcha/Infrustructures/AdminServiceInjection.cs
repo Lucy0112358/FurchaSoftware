@@ -1,4 +1,5 @@
 ﻿using Domain.Configuration;
+using FurchaAdminApi.Middlewares;
 using FurchaAdminApi.Repos;
 using FurchaAdminApi.Services;
 
@@ -20,7 +21,7 @@ namespace FurchaAdminApi.Infrustructures
             services.AddScoped(typeof(AuthenticationService));
             services.AddScoped(typeof(LockerService));
             services.AddScoped(typeof(ISanitizer), typeof(Sanitizer));
-
+            services.AddScoped(typeof(IPermissionService), typeof(PermissionService));
             return services;
         }
     }

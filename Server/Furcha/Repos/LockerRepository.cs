@@ -210,27 +210,26 @@ namespace FurchaAdminApi.Repos
         /// <param name="isActive">Indicates if the locker is active (optional).</param>
         /// <param name="lockerStatus">The specific locker status (optional).</param>
         /// <returns>A list of lockers that match the specified criteria, with full details.</returns>
-        internal List<LockerWithUsers> GetLockersByCriteria(int branchId, string? lockerType = null, int? lockerGroupId = null, string? status = null, bool? isActive = null)
+        internal List<LockerWithUsers> GetLockersByCriteria(int branchId, string? lockerType = null, int? lockerGroupId = null, int? isOpen = null)
         {
             var sql = @"
-    SELECT 
-        l.""Id"",
-        l.Number,
-        l.""groupid"",
-        l.""LockerType"",
-        l.""IsActive"",
-        l.""IsOpen"",
-        l.""BranchId"",
-        l.""PasswordHash"",
-        u.""Name""
-    FROM furcha.""Locker"" l
-    LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""LockerId""
-    LEFT JOIN furcha.""User"" u ON ul.""UserId"" = u.Id
-    WHERE (l.""LockerType"" = @LockerType OR @LockerType IS NULL)
-      AND (l.""groupid"" = @LockerGroupId OR @LockerGroupId IS NULL)
-      AND (l.""BranchId"" = @BranchId OR @BranchId IS NULL)
-      AND (l.""IsOpen"" = @IsActive OR @IsActive IS NULL)
-      AND (l.""IsActive"" = @IsActive OR @IsActive IS NULL)";
+                    SELECT 
+                        l.""Id"",
+                        l.Number,
+                        l.""groupid"",
+                        l.""LockerType"",
+                        l.""IsActive"",
+                        l.""IsOpen"",
+                        l.""BranchId"",
+                        l.""PasswordHash"",
+                        u.""Name""
+                    FROM furcha.""Locker"" l 
+                    LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""LockerId""
+                    LEFT JOIN furcha.""User"" u ON ul.""UserId"" = u.Id
+                    WHERE (l.""LockerType"" = @LockerType OR @LockerType IS NULL)
+                      AND (l.""groupid"" = @LockerGroupId OR @LockerGroupId IS NULL)
+                      AND (l.""BranchId"" = @BranchId OR @BranchId IS NULL)
+                      AND (l.""IsOpen"" = @IsOpen OR @IsOpen IS NULL)";
 
             var connectionString = "Host=192.168.0.129;Port=7887;Database=furcha;Username=postgres;Password=Andresuga0713.;";
 
@@ -263,8 +262,7 @@ namespace FurchaAdminApi.Repos
                         LockerType = lockerType,
                         LockerGroupId = lockerGroupId,
                         BranchId = branchId,
-                        IsOpen = isActive == true ? 1 : (int?)null,
-                        IsActive = isActive == true ? 1 : (int?)null
+                        IsOpen = isOpen,
                     },
                     splitOn: "Name"
                 ).Distinct().ToList();

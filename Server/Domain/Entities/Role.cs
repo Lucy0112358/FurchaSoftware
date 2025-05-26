@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Domain.Entities
 {
     [Table("Roles", Schema = "furcha")]
-    public class Role
+    public class Roles
     {
         // We manually set it in the database from RoleEnum values
         [Key]

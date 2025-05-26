@@ -5,23 +5,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Domain.Entities
 {
     [Table("Administrators", Schema = "furcha")]
-    public class Administrators : User
+    public class Administrators 
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public new int Id { get; set; }
-
-        [Required]
-        [MaxLength(255)]
-        public string Name { get; set; }
-
-        [Required]
-        [MaxLength(255)]
-        public string Surname { get; set; }
-
-        [Required]
-        [MaxLength(255)]
-        public string Email { get; set; }
+        public int CompanyId { get; set; }
 
         [Required]
         public string PasswordHash { get; set; }
@@ -44,13 +33,15 @@ namespace Domain.Entities
 
         public DateTime ModifiedDate { get; set; }
 
-        [ForeignKey("ModifiedBy")]
-        public virtual Administrators ModifiedByAdmin { get; set; }
-        public virtual ICollection<AdminBranch> AdminBranches { get; set; }
+        public long RoleId   { get; set; }
 
-        public Administrators()
+    /*    [ForeignKey("ModifiedBy")]
+        public virtual Administrators ModifiedByAdmin { get; set; }*/
+      //  public virtual ICollection<AdminBranch> AdminBranches { get; set; }
+
+      /*  public Administrators()
         {
             AdminBranches = new HashSet<AdminBranch>();
-        }
+        }*/
     }
 }

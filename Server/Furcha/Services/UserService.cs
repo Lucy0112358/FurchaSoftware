@@ -88,7 +88,6 @@ namespace FurchaAdminApi.Services
             return userResults;
         }
 
-
         public List<BranchFilterResult> GetAdminBranches(int adminId)
         {
             var branches = _userRepository.GetAllBranchesOfAdmin(adminId);
@@ -146,7 +145,7 @@ namespace FurchaAdminApi.Services
             return _userRepository.GetCompanyUsers(companyId);
         }
 
-        public List<User> GetUsersForLVL4Admin(Administrators admin)
+        public List<User> GetUsersForLVL4Admin(Administrator admin)
         {
             var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
 
@@ -160,7 +159,7 @@ namespace FurchaAdminApi.Services
             return users;
         }
 
-        public List<User> GetUsersForCommonAdmin(Administrators admin)
+        public List<User> GetUsersForCommonAdmin(Administrator admin)
         {
             var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
 
@@ -280,7 +279,6 @@ namespace FurchaAdminApi.Services
                   .Where(u => u.Name.Contains(name, StringComparison.OrdinalIgnoreCase)
                            || u.Surname.Contains(name, StringComparison.OrdinalIgnoreCase))
                   .ToList();
-
 
             return filteredUsers;
         }

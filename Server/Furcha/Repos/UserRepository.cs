@@ -17,6 +17,13 @@ namespace FurchaAdminApi.Repos
         {
         }
 
+        public List<ObjectType> GetAllObjectTypes()
+        {
+            var sql = @"SELECT * FROM furcha.""ObjectType""";
+            return Query<ObjectType>(sql).ToList();
+        }
+
+
         /// <summary>
         /// Returns all the users of the company, regardless of a branch
         /// </summary>
@@ -46,21 +53,21 @@ namespace FurchaAdminApi.Repos
         /// <summary>
         /// Returns an administrator by their UserId
         /// </summary>
-        public Administrators? GetAdminByUserId(int userId)
+        public Administrator? GetAdminByUserId(int userId)
         {
             var sql = $@"SELECT * 
                          FROM furcha.""Administrators"" 
                          WHERE ""UserId"" = @userId 
                          LIMIT 1";
 
-            var admin = Query<Administrators>(
+            var admin = Query<Administrator>(
                 sql: sql,
                 param: new { userId });
 
             return admin.SingleOrDefault();
         }
 
-        public Administrators? GetAdminById(int adminId)
+        public Administrator? GetAdminById(int adminId)
         {
             var sql = $@"
                     SELECT a.*, u.*
@@ -69,7 +76,7 @@ namespace FurchaAdminApi.Repos
                     WHERE a.""id"" = @adminId
                     LIMIT 1";
 
-            var admin = Query<Administrators, User>(
+            var admin = Query<Administrator, User>(
                 sql: sql,
                 map: (admin, user) =>
                 {
@@ -208,6 +215,21 @@ namespace FurchaAdminApi.Repos
             return users;
         }
 
+        public List<RolePermissionResult> GetRolePermissions(long roleId)
+        {
+            var sql = @"
+                SELECT P.""Id"", P.""Name"", P.""Description"", P.""ObjectTypeId"", RP.""IsOptional""
+                FROM furcha.""Permissions"" P
+                INNER JOIN furcha.""RolePermissions"" RP ON P.""Id"" = RP.""PermissionId""
+                WHERE RP.""RoleId"" = @roleId";
+
+            var permissions = Query<RolePermissionResult>(
+                sql: sql,
+                param: new { roleId }).ToList();
+
+            return permissions;
+        }
+
         /// <summary>
         /// Returns the list of active users in the specified group <br></br>
         /// This is already grouped by branch, as each userGroup is associated with one Branch
@@ -326,6 +348,24 @@ namespace FurchaAdminApi.Repos
 
             return userGroups;
         }
+
+        public User? GetUserByAdminId(int adminId)
+        {
+            var sql = @"
+        SELECT u.* 
+        FROM furcha.""User"" u
+        INNER JOIN furcha.""Administrators"" a ON u.""id"" = a.""UserId""
+        WHERE a.""id"" = @adminId
+        LIMIT 1";
+
+            var user = Query<User>(
+                sql: sql,
+                param: new { adminId }
+            ).SingleOrDefault();
+
+            return user;
+        }
+
 
         /// <summary>
         /// Returns a list of branches associated with the specified admin
@@ -476,6 +516,27 @@ namespace FurchaAdminApi.Repos
 
                     Insert(userUserGroup);
                 });
+            }
+            catch (Exception ex)
+            {
+#warning add a more specific error message here
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
+            }
+
+        }
+
+        public void AssignLockerToUser(int lockerId, int userId)
+        {
+            try
+            {
+                 var userLocker = new UserLocker
+                    {
+                        UserId = userId,
+                        LockerId = lockerId
+                 };
+
+                    Insert(userLocker);
+               
             }
             catch (Exception ex)
             {
