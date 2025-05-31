@@ -4,12 +4,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import NoData from '../no-data/NoData';
 import { getAllBranchesData } from '../../redux/slice/branchSlice';
 import BranchPopup from '../popups/branch/BranchPopup';
-// import { setSelectedLockerIds } from '../../redux/slice/lockerSlice'; // если нужно
 
 function BranchTable() {
-  const dispatch = useDispatch();
   const allBranches = useSelector(getAllBranchesData);
-
   const [popup, setPopup] = useState({
     visible: false,
     x: 0,

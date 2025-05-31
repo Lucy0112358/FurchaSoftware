@@ -16,17 +16,8 @@ const Users = () => {
     dispatch(getAllUsers());
   }, []);
 
-  // const allUsers = useSelector(getAllUsersData);
-
   return (
-    <div className="">
-      <OfficeName name="Tallinn Office" />
-      <div >
-        {
-          !userGroupSelected ? <UserTable /> : <UserTableGroup />
-        }
-      </div>
-    </div>
+    !userGroupSelected ? <UserTable /> : <UserTableGroup />
   );
 };
 

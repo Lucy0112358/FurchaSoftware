@@ -13,7 +13,7 @@ function UserTableGroup() {
         allUserGroups.length ?
           <div className="outlet__table__wrapper overflow-x-auto mt-2"
             style={{ height: allUserGroups?.length >= 10 ? '480px' : 'auto' }}>
-            <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA', minWidth: '1110px' }}>
+            <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA'}}>
               <thead>
                 <tr className="outlet__table__header">
                   {userTableGroups.map((header) => (
