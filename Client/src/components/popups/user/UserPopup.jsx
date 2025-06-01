@@ -1,6 +1,4 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { getSelectedLockerIds } from '../../../redux/slice/lockerSlice';
 import UserPopupMultiItem from './UserPopupMultiItem';
 import Edit from '../../popupAction/user/Edit';
 import Delete from '../../popupAction/user/Delete';

@@ -13,8 +13,6 @@ function Change({ user={}, onClose }) {
     const handleChange = () => {
         
         if (user?.id) {
-            console.log(user, 9999999999999999999999999999);
-            
             const data = {
                 ids: [user.id],
                 state: user.state === 'active' ? 2 : 1

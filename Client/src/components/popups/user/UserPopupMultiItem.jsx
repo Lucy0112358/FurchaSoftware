@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
-import OpenLocker from '../../popupAction/locker/OpenLocker';
-import SuspendLocker from '../../popupAction/locker/SuspendLocker';
-import LockerType from '../../popupAction/locker/LockerType';
 import State from '../../popupAction/user/State';
 import Delete from '../../popupAction/user/Delete';
-import ChangeMulti from '../../popupAction/user/state/ChangeMulti';
 import AddUserGroup from '../../popupAction/user/AddUserGroup';
 
 function UserPopupMultiItem({ selectedIds, onClose }) {
