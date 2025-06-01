@@ -60,15 +60,15 @@ function UserTable() {
   };
 
   return (
-    <>
+    <div onContextMenu={(e) => e.preventDefault()}
+      onClick={handleGlobalClick}>
       <div className='flex justify-end mb-5'>
         <UnselectUsers setSelectedUserIds={setSelectedUserIds} />
       </div>
       {allUsers?.length ?
         <div className="outlet__table__wrapper overflow-x-auto mt-2 select-none"
           style={{ height: allUsers?.length >= 10 ? '480px' : 'auto' }}
-          onContextMenu={(e) => e.preventDefault()}
-          onClick={handleGlobalClick}>
+        >
           <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA' }}>
             <thead>
               <tr className="outlet__table__header">
@@ -125,12 +125,12 @@ function UserTable() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <UserPopup user={popup.user} onClose={closePopup} selectedIds={selectedUserIds}/>
+              <UserPopup user={popup.user} onClose={closePopup} selectedIds={selectedUserIds} />
             </div>
           )}
         </div> : <NoData text="No Users" />
       }
-    </>
+    </div>
   )
 }
 

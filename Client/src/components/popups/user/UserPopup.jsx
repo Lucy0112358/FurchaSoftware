@@ -2,9 +2,13 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { getSelectedLockerIds } from '../../../redux/slice/lockerSlice';
 import UserPopupMultiItem from './UserPopupMultiItem';
+import Edit from '../../popupAction/user/Edit';
+import Delete from '../../popupAction/user/Delete';
+import State from '../../popupAction/user/State';
 
 
 function UserPopup({ user, onClose, selectedIds}) {
+console.log(user.id, selectedIds);
 
   return (
     <div
@@ -26,9 +30,9 @@ function UserPopup({ user, onClose, selectedIds}) {
             </div>
 
             <div className="flex flex-col gap-2">
-              {/* <Edit lockers={[user]} onClose={onClose} /> */}
-              {/* <OpenLocker lockers={[user.id]} onClose={onClose} />
-              <SuspendLocker lockers={[user.id]} onClose={onClose} /> */}
+              <Edit lockers={user} onClose={onClose} />
+              <State user={user} onClose={onClose} />
+              <Delete ids={[user.id]} onClose={onClose} />
             </div>
           </>
         )
