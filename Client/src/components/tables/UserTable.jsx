@@ -4,13 +4,15 @@ import { useSelector } from 'react-redux';
 import { getAllUsersData } from '../../redux/slice/userSlice';
 import NoData from '../no-data/NoData';
 import CustomCheckbox from '../checkbox/CustomCheckbox';
+import UnselectUsers from '../button/UnselectUsers';
+import UserPopup from '../popups/user/UserPopup';
 
 function UserTable() {
   const allUsers = useSelector(getAllUsersData);
-  const [selectedLockerIds, setSelectedLockerIds] = useState([]);
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
 
   const handleSelectLocker = (itemId) => {
-    setSelectedLockerIds((prevSelected) => {
+    setSelectedUserIds((prevSelected) => {
       const isSelected = prevSelected.includes(itemId);
       if (isSelected) {
         return prevSelected.filter((id) => id !== itemId);
@@ -18,17 +20,55 @@ function UserTable() {
         return [...prevSelected, itemId];
       }
     });
-      // const newSelected = selectedLockerIds.includes(itemId)
-      //   ? selectedLockerIds.filter((id) => id !== itemId)
-      //   : [...selectedLockerIds, itemId];
-      // dispatch(setSelectedLockerIds(newSelected));
-    };
+    // const newSelected = selectedUserIds.includes(itemId)
+    //   ? selectedUserIds.filter((id) => id !== itemId)
+    //   : [...selectedUserIds, itemId];
+    // dispatch(setSelectedUserIds(newSelected));
+  };
+  const [popup, setPopup] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    user: {}
+  });
+
+  const handleRightClick = (e, user = null) => {
+    e.preventDefault();
+    const popupX = e.clientX + window.scrollX;
+    const popupY = e.clientY + window.scrollY;
+
+    if (!user && selectedUserIds.length === 0) {
+      return closePopup();
+    }
+
+    setPopup({
+      visible: true,
+      x: popupX,
+      y: popupY,
+      user: user,
+    });
+  };
+
+  const closePopup = () => {
+    setPopup({ ...popup, visible: false });
+  };
+
+  const handleGlobalClick = () => {
+    if (popup.visible) {
+      closePopup();
+    }
+  };
 
   return (
     <>
+      <div className='flex justify-end mb-5'>
+        <UnselectUsers setSelectedUserIds={setSelectedUserIds} />
+      </div>
       {allUsers?.length ?
-        <div className="outlet__table__wrapper overflow-x-auto mt-2"
-          style={{ height: allUsers?.length >= 10 ? '480px' : 'auto' }}>
+        <div className="outlet__table__wrapper overflow-x-auto mt-2 select-none"
+          style={{ height: allUsers?.length >= 10 ? '480px' : 'auto' }}
+          onContextMenu={(e) => e.preventDefault()}
+          onClick={handleGlobalClick}>
           <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA' }}>
             <thead>
               <tr className="outlet__table__header">
@@ -39,10 +79,13 @@ function UserTable() {
             </thead>
             <tbody>
               {allUsers.map((user, index) => (
-                <tr key={user.id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                <tr
+                  key={user.id}
+                  className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+                  onContextMenu={(e) => handleRightClick(e, user)}>
                   <td className='flex items-center'>
                     <CustomCheckbox
-                      checked={selectedLockerIds.includes(user.id)}
+                      checked={selectedUserIds.includes(user.id)}
                       onChange={() => handleSelectLocker(user.id)}
                     />
                     {user.id}
@@ -72,6 +115,19 @@ function UserTable() {
               ))}
             </tbody>
           </table>
+          {popup.visible && (
+            <div
+              style={{
+                position: 'absolute',
+                top: popup.y,
+                left: popup.x,
+                zIndex: 999,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <UserPopup user={popup.user} onClose={closePopup} selectedIds={selectedUserIds}/>
+            </div>
+          )}
         </div> : <NoData text="No Users" />
       }
     </>

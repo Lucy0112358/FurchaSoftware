@@ -1,12 +1,8 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
-import { setSelectedLockerIds } from '../../redux/slice/lockerSlice';
 
-function UnselectLockers() {
-  const dispatch = useDispatch();
-
+function UnselectUsers({ setSelectedUserIds }) {
   const handleUnselect = () => {
-    dispatch(setSelectedLockerIds([]));
+    setSelectedUserIds([]);
   };
 
   return (
@@ -20,4 +16,4 @@ function UnselectLockers() {
   );
 }
 
-export default UnselectLockers;
+export default UnselectUsers;

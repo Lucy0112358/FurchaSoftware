@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from "react-toastify";
-import ConfirmModal from '../../../confirm/ConfirmModal';
+import { deleteBranch } from '../../../redux/api/branchApi';
+import ConfirmModal from '../../confirm/ConfirmModal';
 
-function Delete({ module, onClose }) {
+function Delete({ branch, onClose }) {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 
     const handleDelete = () => {
-        alert('Delete module')
-        // if (branch?.id) {
-        //     dispatch(deleteBranch(branch.id))
-        //         .unwrap()
-        //         .then((res) => {
-        //             toast.success(res.message);
-        //             onClose();
-        //         })
-        //         .catch((err) => {
-        //             toast.error(err?.message || "Ошибка при удалении");
-        //         });
-        // }
+        if (branch?.id) {
+            dispatch(deleteBranch(branch.id))
+                .unwrap()
+                .then((res) => {
+                    toast.success(res.message);
+                    onClose();
+                })
+                .catch((err) => {
+                    toast.error(err?.message || "Ошибка при удалении");
+                });
+        }
     };
 
     return (
@@ -33,7 +33,7 @@ function Delete({ module, onClose }) {
 
             {showConfirm && (
                 <ConfirmModal
-                    message={'Are you sure you want to delete the module?'}
+                    message={'Are you sure you want to delete the branch?'}
                     onConfirm={() => {
                         handleDelete();
                         setShowConfirm(false);

@@ -2,11 +2,11 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { getSelectedLockerIds } from '../../../redux/slice/lockerSlice';
 import LockerPopupMultiItem from './LockerPopupMultiItem';
-import Edit from '../../lockers/popupAction/Edit';
-import OpenLocker from '../../lockers/popupAction/OpenLocker';
-import SuspendLocker from '../../lockers/popupAction/SuspendLocker';
-import SetUser from '../../lockers/popupAction/SetUser';
-import HandAction from '../../lockers/popupAction/HandAction';
+import Edit from '../../popupAction/locker/Edit';
+import OpenLocker from '../../popupAction/locker/OpenLocker';
+import SuspendLocker from '../../popupAction/locker/SuspendLocker';
+import SetUser from '../../popupAction/locker/SetUser';
+import HandAction from '../../popupAction/locker/HandAction';
 
 function LockerPopup({ locker, onClose, branchId=null }) {
   const selectedLockerIds = useSelector(getSelectedLockerIds);

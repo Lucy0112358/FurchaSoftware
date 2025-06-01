@@ -1,6 +1,7 @@
 import React from 'react';
-import Edit from '../../lockers/popupAction/Edit';
-import Delete from '../../lockers/popupAction/branch/Delete';
+import Edit from '../../popupAction/locker/Edit';
+import Delete from '../../popupAction/module/Delete';
+
 
 function ModulePopup({ module, onClose }) {
   return (
