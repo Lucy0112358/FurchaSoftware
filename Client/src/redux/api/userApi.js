@@ -101,3 +101,22 @@ export const changeUserState = createAsyncThunk(
       }
     }
 )
+
+export const changeUserGroup = createAsyncThunk(
+  'user/changeUserGroup',
+  async ({ids, groupId}, thunkAPI) => {
+    console.log(groupId, ids);
+    
+      try {
+        const config = {
+          method: "patch",
+          url: 'User/change-group',
+          data: { ids: ids, groupId: groupId }
+        };
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)

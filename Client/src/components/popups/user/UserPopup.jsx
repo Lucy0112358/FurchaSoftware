@@ -5,10 +5,10 @@ import UserPopupMultiItem from './UserPopupMultiItem';
 import Edit from '../../popupAction/user/Edit';
 import Delete from '../../popupAction/user/Delete';
 import State from '../../popupAction/user/State';
+import AddUserGroup from '../../popupAction/user/AddUserGroup';
 
 
-function UserPopup({ user, onClose, selectedIds}) {
-console.log(user.id, selectedIds);
+function UserPopup({ user, onClose, selectedIds }) {
 
   return (
     <div
@@ -31,8 +31,9 @@ console.log(user.id, selectedIds);
 
             <div className="flex flex-col gap-2">
               <Edit lockers={user} onClose={onClose} />
-              <State user={user} onClose={onClose} />
               <Delete ids={[user.id]} onClose={onClose} />
+              <State user={user} onClose={onClose} />
+              <AddUserGroup ids={[user.id]} onClose={onClose} />
             </div>
           </>
         )

@@ -50,7 +50,7 @@ function ChangeMulti({ ids = [], onClose }) {
                     className='bg-gray-600 text-white rounded cursor-pointer'
                     onClick={() => setShowConfirm(true)}
                 >
-                    Save
+                    Save State
                 </button>
             }
 
