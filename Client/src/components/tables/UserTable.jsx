@@ -20,10 +20,6 @@ function UserTable() {
         return [...prevSelected, itemId];
       }
     });
-    // const newSelected = selectedUserIds.includes(itemId)
-    //   ? selectedUserIds.filter((id) => id !== itemId)
-    //   : [...selectedUserIds, itemId];
-    // dispatch(setSelectedUserIds(newSelected));
   };
   const [popup, setPopup] = useState({
     visible: false,

@@ -3,6 +3,7 @@ import OpenLocker from '../../popupAction/locker/OpenLocker';
 import SuspendLocker from '../../popupAction/locker/SuspendLocker';
 import LockerType from '../../popupAction/locker/LockerType';
 import State from '../../popupAction/user/State';
+import Delete from '../../popupAction/user/Delete';
 
 function UserPopupMultiItem({ selectedIds, onClose }) {
   return (
@@ -19,12 +20,9 @@ function UserPopupMultiItem({ selectedIds, onClose }) {
         </div>
       </div>
       <div className='flex flex-col gap-2'>
-        MultiItem
         <State ids={selectedIds} onClose={onClose} />
+        <Delete ids={selectedIds} onClose={onClose} />
 
-        {/* <OpenLocker lockers={selectedLockerIds} onClose={onClose} />
-        <SuspendLocker lockers={selectedLockerIds} onClose={onClose} />
-        <LockerType lockers={selectedLockerIds} onClose={onClose} /> */}
       </div>
     </div>
   )

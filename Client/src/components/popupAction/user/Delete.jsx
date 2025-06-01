@@ -30,7 +30,7 @@ function Delete({ ids, onClose }) {
                 className='bg-gray-600 text-white rounded cursor-pointer'
                 onClick={() => setShowConfirm(true)}
             >
-                Delete
+                Delete user(s)
             </button>
 
             {showConfirm && (

@@ -8,6 +8,7 @@ import CustomSelect from '../../../select/CustomSelect';
 function ChangeMulti({ ids = [], onClose }) {
     const [selectedStateValue, setSelectedStateValue] = useState(null);
     const options = [
+        { label: 'Select state', value: null },
         { label: 'Active', value: 1 },
         { label: 'Suspended', value: 2 },
     ];
@@ -20,7 +21,6 @@ function ChangeMulti({ ids = [], onClose }) {
     const [showConfirm, setShowConfirm] = useState(false);
 
     const handleChange = () => {
-
         if (ids?.length > 0) {
             const data = {
                 ids: ids,
@@ -42,6 +42,7 @@ function ChangeMulti({ ids = [], onClose }) {
         <>
             <CustomSelect
                 options={options}
+                defaultValue={{ label: 'Select state', value: null }}
                 onChange={handleChangeState}
             />
             {
