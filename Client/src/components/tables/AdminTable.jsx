@@ -1,22 +1,75 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { adminTable } from '../../data/tableIHeads'
 import { useSelector } from 'react-redux';
 import NoData from '../no-data/NoData';
 import { getAllAdminsData } from '../../redux/slice/adminSlice';
+import CustomCheckbox from '../checkbox/CustomCheckbox';
+import UnselectUsers from '../button/UnselectUsers';
+import UserPopup from '../popups/user/UserPopup';
+import AdminPopup from '../popups/admin/AdminPopup';
 
 function AdminTable() {
   const allAdmins = useSelector(getAllAdminsData);
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  const handleSelectLocker = (itemId) => {
+    setSelectedIds((prevSelected) => {
+      const isSelected = prevSelected.includes(itemId);
+      if (isSelected) {
+        return prevSelected.filter((id) => id !== itemId);
+      } else {
+        return [...prevSelected, itemId];
+      }
+    });
+  };
+
+  const [popup, setPopup] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    admin: {}
+  });
+
+  const handleRightClick = (e, admin = null) => {
+    e.preventDefault();
+    const popupX = e.clientX + window.scrollX;
+    const popupY = e.clientY + window.scrollY;
+
+    if (!admin && selectedIds.length === 0) {
+      return closePopup();
+    }
+
+    setPopup({
+      visible: true,
+      x: popupX,
+      y: popupY,
+      admin: admin,
+    });
+  };
+
+  const closePopup = () => {
+    setPopup({ ...popup, visible: false });
+  };
+
+  const handleGlobalClick = () => {
+    if (popup.visible) {
+      closePopup();
+    }
+  };
 
   return (
-    <div className='table-main'>
+    <div onContextMenu={(e) => e.preventDefault()}
+      onClick={handleGlobalClick}>
+      <div className='flex justify-end mb-5'>
+        <UnselectUsers setSelectedUserIds={setSelectedIds} />
+      </div>
       {allAdmins?.length ?
         <div className="outlet__table__wrapper overflow-x-auto mt-2"
           style={{ height: allAdmins?.length >= 10 ? '480px' : 'auto' }}>
           <table
-            className="outlet__table min-w-full bg-white "
+            className="outlet__table min-w-full bg-white"
             style={{
               color: '#AAAAAA',
-              minWidth: '1110px',
               borderRadius:
                 allAdmins.length >= 10
                   ? '0px'
@@ -31,11 +84,17 @@ function AdminTable() {
               </tr>
             </thead>
             <tbody>
-
               {allAdmins.map((admin, index) => (
-                <tr key={admin.id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                  <td>
-                    <input type="checkbox" className="mr-2" /> {admin.id}
+                <tr 
+                  key={admin.id} 
+                  className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+                  onContextMenu={(e) => handleRightClick(e, admin)}>
+                  <td className='flex items-center'>
+                    <CustomCheckbox
+                      checked={selectedIds.includes(admin.id)}
+                      onChange={() => handleSelectLocker(admin.id)}
+                    />
+                    {admin.id}
                   </td>
                   <td>{admin.name}</td>
                   <td>{admin.surname}</td>
@@ -57,6 +116,19 @@ function AdminTable() {
               ))}
             </tbody>
           </table>
+          {popup.visible && (
+            <div
+              style={{
+                position: 'absolute',
+                top: popup.y,
+                left: popup.x,
+                zIndex: 999,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <AdminPopup admin={popup.admin} onClose={closePopup} selectedIds={selectedIds} />
+            </div>
+          )}
         </div> : <NoData text="No Admins" />
       }
     </div>
