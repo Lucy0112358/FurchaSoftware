@@ -1,8 +1,8 @@
 import React from 'react';
 
-function UnselectUsers({ setSelectedUserIds }) {
+function UnselectIds({ setSelectedIds, buttonText="Unselect Users" }) {
   const handleUnselect = () => {
-    setSelectedUserIds([]);
+    setSelectedIds([]);
   };
 
   return (
@@ -11,9 +11,9 @@ function UnselectUsers({ setSelectedUserIds }) {
       className="rounded bg-white px-2 py-1 mr-5"
       onClick={handleUnselect}
     >
-      Unselect Users
+      {buttonText}
     </button>
   );
 }
 
-export default UnselectUsers;
+export default UnselectIds;

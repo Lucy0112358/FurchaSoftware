@@ -7,8 +7,7 @@ import { filterUserByName, getBranches, userFilter } from '../../../redux/api/me
 import {
   getSelectGroupSelect,
   getBranchesData,
-  getUserGroupsData,
-  setUserGroupSelect
+  getUserGroupsData
 } from '../../../redux/slice/menuSlice';
 import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive';

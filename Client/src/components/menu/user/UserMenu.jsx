@@ -37,6 +37,15 @@ function UserMenu() {
         // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
     };
 
+    useEffect(() => {
+        const storedValue = localStorage.getItem('userGroupEnabled');
+        if (storedValue !== null) {
+            const parsedValue = storedValue === 'true';
+            dispatch(setUserGroupSelect(parsedValue));
+            parsedValue ? dispatch(getAllGroups()) : dispatch(getAllUsers());
+        }
+    }, [dispatch]);
+
     const addFilters = (selectedOption, key) => {
         setFilters((prevFilters) => {
             const updatedFilters = {
@@ -81,11 +90,14 @@ function UserMenu() {
     };
 
     const handleUserGroupSelect = () => {
-        dispatch(setUserGroupSelect(!userGroupEnabled));
-        if (userGroupEnabled) {
-            dispatch(getAllUsers())
+        const newValue = !userGroupEnabled;
+        dispatch(setUserGroupSelect(newValue));
+        localStorage.setItem('userGroupEnabled', newValue.toString());
+
+        if (newValue) {
+            dispatch(getAllGroups());
         } else {
-            dispatch(getAllGroups())
+            dispatch(getAllUsers());
         }
     };
 

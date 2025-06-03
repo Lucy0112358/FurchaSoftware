@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { getAllUsersData } from '../../redux/slice/userSlice';
 import NoData from '../no-data/NoData';
 import CustomCheckbox from '../checkbox/CustomCheckbox';
-import UnselectUsers from '../button/UnselectUsers';
+import UnselectIds from '../button/UnselectIds';
 import UserPopup from '../popups/user/UserPopup';
 
 function UserTable() {
@@ -59,7 +59,7 @@ function UserTable() {
     <div onContextMenu={(e) => e.preventDefault()}
       onClick={handleGlobalClick}>
       <div className='flex justify-end mb-5'>
-        <UnselectUsers setSelectedUserIds={setSelectedUserIds} />
+        <UnselectIds setSelectedIds={setSelectedUserIds} />
       </div>
       {allUsers?.length ?
         <div className="outlet__table__wrapper overflow-x-auto mt-2 select-none"
