@@ -43,7 +43,7 @@ namespace FurchaAdminApi.Services
         }
 
         public Administrators CreateAdmin(CreateAdminRequest request)
-        {         
+        {
             // admin branch
             // admin lockers
             var admin = new Administrators
@@ -58,11 +58,19 @@ namespace FurchaAdminApi.Services
                 ModifiedBy = 8,
                 LastPasswordChangeDate = DateTime.UtcNow,
                 ForcePasswordReset = true,
-                   CompanyId = 5,
+                CompanyId = 5,
 
 
             };
+
             admin = _adminRepository.CreateAdmin(admin);
+
+            _userRepository.UpdateUser(new Dictionary<string, object>
+                    {
+                        { nameof(User.Id), request.UserId },
+                        { nameof(User.Role), request.RoleId },
+                    });
+
             foreach (var permission in request.Permissions)
             {
                 var a = new AdminPermissions
@@ -72,6 +80,7 @@ namespace FurchaAdminApi.Services
                 };
                 _adminRepository.CreateAdminPermissions(a);
             }
+
             return admin;
         }
 
@@ -124,8 +133,6 @@ namespace FurchaAdminApi.Services
             return grouped;
         }
 
-
-
         public List<Roles> GetRoles()
         {
             return _adminRepository.GetRoles();
@@ -157,6 +164,7 @@ namespace FurchaAdminApi.Services
 
             return loginResult;
         }
+
         private LoginResult GetLoginResult(Administrator administrator)
         {
             //don't forget to add the log table data here as well

@@ -66,5 +66,29 @@ namespace FurchaAdminApi.Controllers
             }
 
         }
+
+      //  [Authorize]
+     //   [RequiresPermission("CreateBranch")]
+        [HttpPut("branches")]
+        public ActionResult<ApiResult<bool>> EditBranch([FromQuery] int id, [FromBody] CreateBranchRequest request)
+        {
+           // var adminId = GetClaimValue("AdminId");
+            var branch = _branchService.EditBranch(request,  id);
+
+            return Ok(ApiResult<bool>.Success(branch));
+        }
+
+      //  [Authorize]
+      //  [RequiresPermission("DeleteBranch")]
+        [HttpDelete("branches/{id}")]
+        public ActionResult<ApiResult<bool>> DeleteBranch(int id)
+        {
+         //   var adminId = GetClaimValue("AdminId");
+            _branchService.DeleteBranch(id);
+
+      
+
+            return Ok(ApiResult<bool>.Success(true));
+        }
     }
 }

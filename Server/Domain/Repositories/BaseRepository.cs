@@ -293,6 +293,20 @@ namespace Domain.Repositories
             }
         }
 
+        protected void Delete<T>(int Id)
+        {
+
+            var entityType = typeof(T);
+            var schema = GetSchema(entityType);
+            var entityName = entityType.Name;
+
+            var sql = $"DELETE FROM [{schema}].[{entityName}] WHERE Id = @Id";
+
+            using (var sqlConnection = new PostgreSqlConnection(furchaContext.ConnectionString))
+            {
+                sqlConnection.Query<T>(sql: sql, param: new { Id });
+            }
+        }
 
         /// <summary>
         /// Executes a SELECT TOP 1 * statement against the schema defined by the T TableAttribute.Schema.

@@ -2,8 +2,6 @@
 using Domain.Entities;
 using Domain.Repositories;
 using Npgsql;
-using System.ComponentModel.Design;
-using System.Diagnostics.Metrics;
 
 namespace FurchaAdminApi.Repos
 {
@@ -64,6 +62,11 @@ namespace FurchaAdminApi.Repos
             return result;
         }
 
+        internal Branch UpdateBranch(Dictionary<string, object> branch)
+        {
+            return Update<Branch>(branch);
+        }
+
         internal BranchAddress CreateBranchAddress(BranchAddress address)
         {
             var result = Insert(address);
@@ -118,6 +121,13 @@ namespace FurchaAdminApi.Repos
 
             return res;
         }
+
+        internal void DeleteBranch(int id)
+        {
+            Delete<Branch>(id);
+        }
+
+
         public List<string> GetLockerTypesByBranch(int branchId)
         {
             var sql = @"
