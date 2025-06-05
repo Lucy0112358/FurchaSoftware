@@ -1,6 +1,6 @@
 import React from 'react';
-import Edit from '../../lockers/popupAction/Edit';
-import Delete from '../../lockers/popupAction/branch/Delete';
+import Edit from '../../popupAction/branch/Edit';
+import Delete from '../../popupAction/branch/Delete';
 
 function BranchPopup({ branch, onClose }) {
   return (

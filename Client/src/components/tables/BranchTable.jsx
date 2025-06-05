@@ -4,12 +4,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import NoData from '../no-data/NoData';
 import { getAllBranchesData } from '../../redux/slice/branchSlice';
 import BranchPopup from '../popups/branch/BranchPopup';
-// import { setSelectedLockerIds } from '../../redux/slice/lockerSlice'; // если нужно
 
 function BranchTable() {
-  const dispatch = useDispatch();
   const allBranches = useSelector(getAllBranchesData);
-
   const [popup, setPopup] = useState({
     visible: false,
     x: 0,
@@ -67,7 +64,7 @@ function BranchTable() {
         >
           <table
             className="outlet__table min-w-full bg-white"
-            style={{ color: '#AAAAAA', minWidth: '1110px' }}
+            style={{ color: '#AAAAAA' }}
           >
             <thead>
               <tr className="outlet__table__header">

@@ -17,13 +17,9 @@ const Lockers = () => {
   return (
     <div id="lockers">
       {!lockerStatusSelect ?
-        <div >
-          <LockerTable />
-        </div>
+        <LockerTable />
         :
-        <div >
-          <LockerTableGroup />
-        </div>
+        <LockerTableGroup />
       }
     </div>
   );

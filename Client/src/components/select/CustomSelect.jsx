@@ -1,7 +1,7 @@
 import React from 'react';
 import Select from 'react-select';
 
-export default function CustomSelect({ options, onChange, value, multiChoose = false }) {
+export default function CustomSelect({ options, onChange, value, multiChoose = false, defaultValue= {} }) {
   return (
     <Select
       styles={{
@@ -20,6 +20,7 @@ export default function CustomSelect({ options, onChange, value, multiChoose = f
         value: option.label === "All" ? "" : option.value,
         label: option.label
       })) : []}
+      defaultValue={defaultValue}
       isMulti={multiChoose}
       value={value}
       onChange={onChange}

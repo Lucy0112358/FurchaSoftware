@@ -8,7 +8,7 @@ const initialState = {
   branches: [],
   userGroups: {},
   selectGroups: {},
-  userGroupSelect: false,
+  userGroupSelect: localStorage.getItem('userGroupEnabled') === 'true',
   lockerStatusSelect: false,
   lockerGroups: {},
   menuFilter: {},

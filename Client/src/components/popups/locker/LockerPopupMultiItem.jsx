@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import OpenLocker from '../../lockers/popupAction/OpenLocker';
-import SuspendLocker from '../../lockers/popupAction/SuspendLocker';
-import LockerType from '../../lockers/popupAction/LockerType';
+import OpenLocker from '../../popupAction/locker/OpenLocker';
+import SuspendLocker from '../../popupAction/locker/SuspendLocker';
+import LockerType from '../../popupAction/locker/LockerType';
 
 function LockerPopupMultiItem({ selectedLockerIds, onClose }) {
   return (

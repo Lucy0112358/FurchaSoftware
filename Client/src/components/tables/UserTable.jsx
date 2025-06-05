@@ -1,32 +1,71 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { userTable } from '../../data/tableIHeads'
 import { useSelector } from 'react-redux';
 import { getAllUsersData } from '../../redux/slice/userSlice';
 import NoData from '../no-data/NoData';
-import TemporaryPersonal from '../lockers/temporary-personal/TemporaryPersonal';
-import Personal from '../lockers/personal/Personal';
-import Common from '../lockers/common/Common';
-import Hand from '../lockers/hand/Hand';
-import Parcel from '../lockers/parcel/Parcel';
-import Unspecified from '../lockers/unspecified/Unspecified';
+import CustomCheckbox from '../checkbox/CustomCheckbox';
+import UnselectIds from '../button/UnselectIds';
+import UserPopup from '../popups/user/UserPopup';
 
 function UserTable() {
   const allUsers = useSelector(getAllUsersData);
-  // console.log(allUsers, "sdada");
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+
+  const handleSelectLocker = (itemId) => {
+    setSelectedUserIds((prevSelected) => {
+      const isSelected = prevSelected.includes(itemId);
+      if (isSelected) {
+        return prevSelected.filter((id) => id !== itemId);
+      } else {
+        return [...prevSelected, itemId];
+      }
+    });
+  };
+  const [popup, setPopup] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    user: {}
+  });
+
+  const handleRightClick = (e, user = null) => {
+    e.preventDefault();
+    const popupX = e.clientX + window.scrollX;
+    const popupY = e.clientY + window.scrollY;
+
+    if (!user && selectedUserIds.length === 0) {
+      return closePopup();
+    }
+
+    setPopup({
+      visible: true,
+      x: popupX,
+      y: popupY,
+      user: user,
+    });
+  };
+
+  const closePopup = () => {
+    setPopup({ ...popup, visible: false });
+  };
+
+  const handleGlobalClick = () => {
+    if (popup.visible) {
+      closePopup();
+    }
+  };
 
   return (
-    <>
-      {/* <TemporaryPersonal label="TO" lockernumber="87" />
-    <Personal label="SJ" lockernumber="87" />
-    <Common label="QQ" lockernumber="99" />
-    <Hand  lockernumber="87" />
-    <Parcel label="SJ" lockernumber="7" size="L" orderNum="44623598"/>
-    <Unspecified lockernumber="7" /> */}
-
+    <div onContextMenu={(e) => e.preventDefault()}
+      onClick={handleGlobalClick}>
+      <div className='flex justify-end mb-5'>
+        <UnselectIds setSelectedIds={setSelectedUserIds} />
+      </div>
       {allUsers?.length ?
-        <div className="outlet__table__wrapper overflow-x-auto mt-2"
-          style={{ height: allUsers?.length >= 10 ? '480px' : 'auto' }}>
-          <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA', minWidth: '1110px' }}>
+        <div className="outlet__table__wrapper overflow-x-auto mt-2 select-none"
+          style={{ height: allUsers?.length >= 10 ? '480px' : 'auto' }}
+        >
+          <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA' }}>
             <thead>
               <tr className="outlet__table__header">
                 {userTable.map((header, index) => (
@@ -36,9 +75,16 @@ function UserTable() {
             </thead>
             <tbody>
               {allUsers.map((user, index) => (
-                <tr key={user.id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                  <td>
-                    <input type="checkbox" className="mr-2" /> {user.id}
+                <tr
+                  key={user.id}
+                  className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+                  onContextMenu={(e) => handleRightClick(e, user)}>
+                  <td className='flex items-center'>
+                    <CustomCheckbox
+                      checked={selectedUserIds.includes(user.id)}
+                      onChange={() => handleSelectLocker(user.id)}
+                    />
+                    {user.id}
                   </td>
                   <td>{user.name}</td>
                   <td>{user.surname}</td>
@@ -65,9 +111,22 @@ function UserTable() {
               ))}
             </tbody>
           </table>
+          {popup.visible && (
+            <div
+              style={{
+                position: 'absolute',
+                top: popup.y,
+                left: popup.x,
+                zIndex: 999,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <UserPopup user={popup.user} onClose={closePopup} selectedIds={selectedUserIds} />
+            </div>
+          )}
         </div> : <NoData text="No Users" />
       }
-    </>
+    </div>
   )
 }
 

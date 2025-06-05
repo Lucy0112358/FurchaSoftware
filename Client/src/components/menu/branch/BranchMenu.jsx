@@ -5,7 +5,7 @@ import { assets } from '../../../assets/assets';
 import CustomSelect from '../../select/CustomSelect';
 import { useDispatch, useSelector } from 'react-redux';
 import { filterUserByName, getBranches, getUserGroups, userFilter } from '../../../redux/api/menuApi';
-import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter, setUserGroupSelect } from '../../../redux/slice/menuSlice';
+import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter } from '../../../redux/slice/menuSlice';
 import AddUserModal from '../../modals/addUser/AddUserModal';
 import { getAllUsers } from '../../../redux/api/userApi';
 import { getAllGroups } from '../../../redux/api/groupApi';

@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from "react-toastify";
-import { deleteBranch } from '../../../../redux/api/branchApi';
-import ConfirmModal from '../../../confirm/ConfirmModal';
+import ConfirmModal from '../../confirm/ConfirmModal';
+import { deleteUserGroups } from '../../../redux/api/groupApi';
 
-function Delete({ branch, onClose }) {
+function Delete({ ids, onClose }) {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 
     const handleDelete = () => {
-        if (branch?.id) {
-            dispatch(deleteBranch(branch.id))
+        if (ids?.length > 0) {
+            dispatch(deleteUserGroups(ids))
                 .unwrap()
                 .then((res) => {
                     toast.success(res.message);
@@ -28,13 +28,12 @@ function Delete({ branch, onClose }) {
                 className='bg-gray-600 text-white rounded cursor-pointer'
                 onClick={() => setShowConfirm(true)}
             >
-                Delete
+                Delete user group(s)
             </button>
 
             {showConfirm && (
                 <ConfirmModal
-                
-                    message={'Are you sure you want to delete the branch?'}
+                    message={'Are you sure you want to delete the user group?'}
                     onConfirm={() => {
                         handleDelete();
                         setShowConfirm(false);
