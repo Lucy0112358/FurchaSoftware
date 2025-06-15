@@ -14,6 +14,8 @@ import MediaQuery from 'react-responsive';
 import Connection from '../../connection/Connection';
 import ModulesModal from '../../modals/modules/ModulesModal';
 import UserInfoModal from '../../userInfo/UserInfoModal';
+import { useHasPermission } from '../../../hooks/useHasPermission';
+import ModalActionButton from '../../button/ModalActionButton';
 
 function ModulesMenu() {
   const dispatch = useDispatch();
@@ -23,8 +25,9 @@ function ModulesMenu() {
   const [filters, setFilters] = useState({});
   const [inputValue, setInputValue] = useState('');
   const [debounceTimeout, setDebounceTimeout] = useState(null);
-  const [manageEnabled, setManageEnabled] = useState(true);
+  const [manageEnabled, setManageEnabled] = useState(true); 
   const fileInputRef = useRef(null);
+  const { hasPermission } = useHasPermission();
 
   const userGroupEnabled = useSelector(getSelectGroupSelect);
   const userBranches = useSelector(getBranchesData) || [];
@@ -74,14 +77,13 @@ function ModulesMenu() {
   return (
     <>
       <div className="menu flex justify-around">
-        <div className='menu__add'>
-          <button
+        {
+          hasPermission() && <ModalActionButton
             onClick={() => setIsModulesModalOpen(true)}
-            className="menu__add__button text-white">
-            <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-            <span>Add Modules</span>
-          </button>
-        </div>
+            iconSrc={assets.add_icon}
+            text="Add Modules"
+          />
+        }
         {isModulesModalOpen && <ModulesModal onClose={() => setIsModulesModalOpen(false)} />}
         <div className="menu__filter flex space-x-4">
           <div className='flex flex-col'>

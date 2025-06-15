@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import OpenLocker from '../../popupAction/locker/OpenLocker';
 import SuspendLocker from '../../popupAction/locker/SuspendLocker';
 import LockerType from '../../popupAction/locker/LockerType';
+import { useHasPermission } from '../../../hooks/useHasPermission';
 
 function LockerPopupMultiItem({ selectedLockerIds, onClose }) {
+  const { hasPermission } = useHasPermission();
+
   return (
     <div className="bg-white rounded-xl max-w-md mx-auto">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Edit Selected Lockers</h2>
@@ -18,9 +21,13 @@ function LockerPopupMultiItem({ selectedLockerIds, onClose }) {
         </div>
       </div>
       <div className='flex flex-col gap-2'>
-        <OpenLocker lockers={selectedLockerIds} onClose={onClose} />
+        {
+          hasPermission(['LVL3_Admin'], ['Open_Locker']) && <OpenLocker lockers={selectedLockerIds} onClose={onClose} />
+        }
         <SuspendLocker lockers={selectedLockerIds} onClose={onClose} />
-        <LockerType lockers={selectedLockerIds} onClose={onClose} />
+        {
+          hasPermission() && <LockerType lockers={selectedLockerIds} onClose={onClose} />
+        }
       </div>
     </div>
   )

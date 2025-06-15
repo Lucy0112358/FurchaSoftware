@@ -7,9 +7,11 @@ import OpenLocker from '../../popupAction/locker/OpenLocker';
 import SuspendLocker from '../../popupAction/locker/SuspendLocker';
 import SetUser from '../../popupAction/locker/SetUser';
 import HandAction from '../../popupAction/locker/HandAction';
+import { useHasPermission } from '../../../hooks/useHasPermission';
 
-function LockerPopup({ locker, onClose, branchId=null }) {
+function LockerPopup({ locker, onClose, branchId = null }) {
   const selectedLockerIds = useSelector(getSelectedLockerIds);
+  const { hasPermission } = useHasPermission();
 
   return (
     <div
@@ -32,7 +34,9 @@ function LockerPopup({ locker, onClose, branchId=null }) {
 
             <div className="flex flex-col gap-2">
               <Edit lockers={[locker]} onClose={onClose} />
-              <OpenLocker lockers={[locker.id]} onClose={onClose} />
+              {
+                hasPermission(['LVL3_Admin'], ['Open_Locker']) && <OpenLocker lockers={[locker.id]} onClose={onClose} />
+              }
               <SuspendLocker lockers={[locker.id]} onClose={onClose} />
 
               {locker.lockerType === 'handOver' && (

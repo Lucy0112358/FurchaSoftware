@@ -22,6 +22,7 @@ import { getLockers } from '../../../redux/api/lockerApi';
 import CustomSelect from '../../select/CustomSelect';
 import UserInfoModal from '../../userInfo/UserInfoModal';
 import { useHasPermission } from '../../../hooks/useHasPermission';
+import ModalActionButton from '../../button/ModalActionButton';
 
 function LockerMenu() {
   const dispatch = useDispatch();
@@ -84,15 +85,13 @@ function LockerMenu() {
     <>
       <div className="menu flex justify-around">
         {/* Add Locker Group Button */}
-        <div className='menu__add'>
-          <button
+ {
+          hasPermission() && <ModalActionButton
             onClick={() => setIsModalOpen(true)}
-            className="menu__add__button text-white"
-          >
-            <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-            <span>New Locker Group</span>
-          </button>
-        </div>
+            iconSrc={assets.add_icon}
+            text="New Locker Group"
+          />
+        }
         {isModalOpen && <LockerModal onClose={() => setIsModalOpen(false)} />}
         {/* Filters */}
         <div className="menu__filter flex space-x-4">
@@ -157,14 +156,14 @@ function LockerMenu() {
                   onChange={handleLockerStatusSelect}
                 />
                 {
-                  hasPermission(['admin'], ['locker_group_create']) && (
+                  // hasPermission(['admin'], ['locker_group_create']) && (
                     <div className='menu__group__general mt-2'>
                       <div className={`w-10 h-6 rounded-full relative transition ${lockerViewEnabled ? 'bg-green-500' : 'bg-gray-400'}`}>
                         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition transform ${lockerViewEnabled ? 'translate-x-4' : ''}`}></div>
                       </div>
                       <span className="text-white">View</span>
                     </div>
-                  )
+                  // )
                 }
               </label>
             </div>

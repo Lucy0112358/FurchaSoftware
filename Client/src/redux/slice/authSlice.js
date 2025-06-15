@@ -41,8 +41,8 @@ export const authSlice = createSlice({
         state.authUserPermissions = {
           'role': state.authUser.role,
           'permissions': state.authUser.permissions
-          // 'role': 'LVL5_MasterAdmin',
-          // 'permissions': ['edit-user', 'view-user', 'delete-user', 'add-user'],
+          // 'role': 'LVL2_Admin',
+          // 'permissions': ['Open_Locker'],
       }
       })
       .addCase(getRoles.fulfilled, (state, action) => {
