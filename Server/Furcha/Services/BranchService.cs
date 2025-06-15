@@ -4,6 +4,7 @@ using FurchaAdminApi.Mappers;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
+using System.ComponentModel.Design;
 using System.Net;
 
 namespace FurchaAdminApi.Services
@@ -63,5 +64,27 @@ namespace FurchaAdminApi.Services
 
                 return true;           
         }
+
+        public bool EditBranch(CreateBranchRequest newBranch, int id)
+        {
+
+            var branch = _branchRepository.UpdateBranch(
+                    new Dictionary<string, object>
+                    {
+                        { nameof(Branch.Id), id },
+                        { nameof(Branch.Name), newBranch.Name },
+                        { nameof(Branch.Comment), newBranch.Comment },
+                      //  { nameof(Branch.Name), newBranch.Name },
+                    });
+
+            return true;
+        }
+
+        public void DeleteBranch(int branchId)
+        {
+          
+             _branchRepository.DeleteBranch(branchId);
+        }
+
     }
 }

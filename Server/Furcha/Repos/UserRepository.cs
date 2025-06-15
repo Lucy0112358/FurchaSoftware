@@ -249,8 +249,10 @@ namespace FurchaAdminApi.Repos
             return groupUsers;
         }
 
-
-
+        internal User UpdateUser(Dictionary<string, object> user)
+        {
+            return Update<User>(user);
+        }
 
         /*        public List<User> GetUsersByBranchAndGroup(int groupId, int branchId)
                 {
