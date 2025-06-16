@@ -18,6 +18,7 @@ import ModulesModal from '../../modals/modules/ModulesModal';
 import BranchModal from '../../modals/branch/BranchModal';
 import { getAllBranches } from '../../../redux/api/branchApi';
 import UserInfoModal from '../../userInfo/UserInfoModal';
+import Manage from '../../manage/Manage';
 
 
 function BranchMenu() {
@@ -81,21 +82,7 @@ function BranchMenu() {
                     <MediaQuery minWidth={550}>
                         <UserInfoModal />
                     </MediaQuery>
-
-                    <div className="manage__page">
-                        <label className="inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="sr-only"
-                                checked={manageEnabled}
-                                onChange={() => setManageEnabled(!manageEnabled)}
-                            />
-                            <div className={`w-10 h-6 bg-gray-400 rounded-full relative transition duration-300 ease-in-out ${manageEnabled ? 'bg-green-500' : ''}`}>
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition duration-300 ease-in-out transform ${manageEnabled ? 'translate-x-4' : ''}`}></div>
-                            </div>
-                        </label>
-                        <span>Manage</span>
-                    </div>
+                    <Manage />
                 </div>
             </div>
             <div className="menu__filter__mobile hidden">

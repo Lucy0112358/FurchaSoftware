@@ -10,39 +10,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getModules } from '../../redux/api/moduleApi';
 import { getModulesData } from '../../redux/slice/moduleSlice';
 import ModulePopup from '../../components/popups/modules/ModulePopup';
+import { useContextMenu } from '../../hooks/useContextMenu';
 
 const Modules = () => {
     const allModules = useSelector(getModulesData);
     const dispatch = useDispatch();
-    const [popup, setPopup] = useState({
-        visible: false,
-        x: 0,
-        y: 0,
-        module: {},
-    });
-
-    const handleRightClick = (e, item) => {
-        console.log('Right click on item:', item);
-        
-        e.preventDefault();
-        const popupX = e.clientX + window.scrollX;
-        const popupY = e.clientY + window.scrollY;
-
-        setPopup({
-            visible: true,
-            x: popupX,
-            y: popupY,
-            module: item,
-        });
-    };
-
-    const handleGlobalClick = () => {
-        if (popup.visible) closePopup();
-    };
-
-    const closePopup = () => {
-        setPopup((prev) => ({ ...prev, visible: false }));
-    };
+    const {
+        popup,
+        handleRightClick,
+        handleGlobalClick,
+        closePopup,
+      } = useContextMenu();
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -99,7 +77,7 @@ const Modules = () => {
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <ModulePopup module={popup.module} onClose={closePopup} />
+                                <ModulePopup module={popup.target} onClose={closePopup} />
                             </div>
                         )}
                     </React.Fragment>

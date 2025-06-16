@@ -7,53 +7,19 @@ import GenerateLocker from '../lockers/GenerateLocker';
 import LockerPopup from '../popups/locker/LockerPopup';
 import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '../../redux/slice/lockerSlice';
 import UnselectLockers from '../button/UnselectLockers';
+import { useContextMenu } from '../../hooks/useContextMenu';
 
 function LockerTableGroup() {
   const dispatch = useDispatch();
   const selectedLockerIds = useSelector(getSelectedLockerIds)
   const allLockers = useSelector(getAllLockersData);
 
-  const [popup, setPopup] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    locker: null,
-    branchId: null
-  });
-
-  const handleRightClick = (e, locker = null) => {
-    e.preventDefault();
-    let popupX, popupY;
-    if (locker) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      popupX = rect.left + window.scrollX + 10;
-      popupY = rect.top + window.scrollY + rect.height + 5;
-    } else {
-      popupX = e.clientX + window.scrollX;
-      popupY = e.clientY + window.scrollY;
-    }
-    if (!locker && selectedLockerIds.length === 0) {
-      return closePopup();
-    }
-
-    setPopup({
-      visible: true,
-      x: popupX,
-      y: popupY,
-      locker: locker,
-      branchId: locker ? locker.branchId : null,
-    });
-  };
-
-  const closePopup = () => {
-    setPopup({ ...popup, visible: false });
-  };
-
-  const handleGlobalClick = () => {
-    if (popup.visible) {
-      closePopup();
-    }
-  };
+  const {
+      popup,
+      handleRightClick,
+      handleGlobalClick,
+      closePopup,
+    } = useContextMenu(selectedLockerIds);
 
   const handleBranchSelectAdd = (itemId) => {
     const newSelected = selectedLockerIds.includes(itemId)
@@ -155,7 +121,7 @@ function LockerTableGroup() {
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <LockerPopup locker={popup.locker} onClose={closePopup} branchId={popup.branchId} />
+                  <LockerPopup locker={popup.target} onClose={closePopup} branchId={popup.branchId} />
                 </div>
               )}
             </React.Fragment>

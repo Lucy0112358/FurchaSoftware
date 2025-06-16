@@ -8,47 +8,19 @@ import LockerPopup from '../popups/locker/LockerPopup';
 import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '../../redux/slice/lockerSlice';
 import CustomCheckbox from '../checkbox/CustomCheckbox';
 import UnselectLockers from '../button/UnselectLockers';
+import { useContextMenu } from '../../hooks/useContextMenu';
 
 function LockerTable() {
   const dispatch = useDispatch();
   const allLockers = useSelector(getAllLockersData);
   const selectedLockerIds = useSelector(getSelectedLockerIds);
 
-  const [popup, setPopup] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    locker: null,
-    branchId: null
-  });
-
-  const handleRightClick = (e, locker = null) => {
-    e.preventDefault();
-    const popupX = e.clientX + window.scrollX;
-    const popupY = e.clientY + window.scrollY;
-
-    if (!locker && selectedLockerIds.length === 0) {
-      return closePopup();
-    }
-
-    setPopup({
-      visible: true,
-      x: popupX,
-      y: popupY,
-      locker: locker,
-      branchId: locker ? locker.branchId : null,
-    });
-  };
-
-  const closePopup = () => {
-    setPopup({ ...popup, visible: false });
-  };
-
-  const handleGlobalClick = () => {
-    if (popup.visible) {
-      closePopup();
-    }
-  };
+  const {
+    popup,
+    handleRightClick,
+    handleGlobalClick,
+    closePopup,
+  } = useContextMenu(selectedLockerIds);
 
   const handleSelectLocker = (itemId) => {
     const newSelected = selectedLockerIds.includes(itemId)
@@ -58,7 +30,11 @@ function LockerTable() {
   };
 
   return (
-    <div className='table-main select-none' onClick={handleGlobalClick} onContextMenu={(e) => e.preventDefault()}>
+    <div 
+      className='table-main select-none'
+      onClick={handleGlobalClick}
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <div className='flex justify-end'>
         <UnselectLockers />
       </div>
@@ -144,7 +120,6 @@ function LockerTable() {
         <NoData text="No Lockers" />
       )}
 
-      {/* Контекстное меню */}
       {popup.visible && (
         <div
           style={{
@@ -155,7 +130,7 @@ function LockerTable() {
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <LockerPopup locker={popup.locker} onClose={closePopup} branchId={popup.branchId} />
+          <LockerPopup locker={popup.target} onClose={closePopup} branchId={popup.branchId} />
         </div>
       )}
     </div>

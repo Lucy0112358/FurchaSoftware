@@ -4,51 +4,18 @@ import { useSelector, useDispatch } from 'react-redux';
 import NoData from '../no-data/NoData';
 import { getAllBranchesData } from '../../redux/slice/branchSlice';
 import BranchPopup from '../popups/branch/BranchPopup';
+import { getManage } from '../../redux/slice/systemSlice';
+import { useContextMenu } from '../../hooks/useContextMenu';
 
 function BranchTable() {
   const allBranches = useSelector(getAllBranchesData);
-  const [popup, setPopup] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    branch: null,
-  });
 
-  const handleRightClick = (e, branch = null) => {
-    e.preventDefault();
-    const popupX = e.clientX + window.scrollX;
-    const popupY = e.clientY + window.scrollY;
-
-    setPopup({
-      visible: true,
-      x: popupX,
-      y: popupY,
-      branch,
-    });
-  };
-
-  const popupRef = useRef(null);
-
-  const closePopup = () => {
-    setPopup((prev) => ({ ...prev, visible: false }));
-  };
-
-  const handleGlobalClick = () => {
-    if (popup.visible) closePopup();
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (popup.visible && popupRef.current && !popupRef.current.contains(e.target)) {
-        closePopup();
-      }
-    };
-
-    window.addEventListener('click', handleClickOutside);
-    return () => {
-      window.removeEventListener('click', handleClickOutside);
-    };
-  }, [popup.visible]);
+  const {
+    popup,
+    handleRightClick,
+    handleGlobalClick,
+    closePopup,
+  } = useContextMenu();
 
   return (
     <div
@@ -103,7 +70,6 @@ function BranchTable() {
       )}
       {popup.visible && (
         <div
-          ref={popupRef}
           style={{
             position: 'absolute',
             top: popup.y,
@@ -112,7 +78,7 @@ function BranchTable() {
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <BranchPopup branch={popup.branch} onClose={closePopup} />
+          <BranchPopup branch={popup.target} onClose={closePopup} />
         </div>
       )}
     </div>

@@ -6,10 +6,18 @@ import NoData from '../no-data/NoData';
 import CustomCheckbox from '../checkbox/CustomCheckbox';
 import UnselectIds from '../button/UnselectIds';
 import UserPopup from '../popups/user/UserPopup';
+import { useContextMenu } from '../../hooks/useContextMenu';
 
 function UserTable() {
   const allUsers = useSelector(getAllUsersData);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
+
+  const {
+    popup,
+    handleRightClick,
+    handleGlobalClick,
+    closePopup,
+  } = useContextMenu(selectedUserIds);
 
   const handleSelectLocker = (itemId) => {
     setSelectedUserIds((prevSelected) => {
@@ -20,39 +28,6 @@ function UserTable() {
         return [...prevSelected, itemId];
       }
     });
-  };
-  const [popup, setPopup] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    user: {}
-  });
-
-  const handleRightClick = (e, user = null) => {
-    e.preventDefault();
-    const popupX = e.clientX + window.scrollX;
-    const popupY = e.clientY + window.scrollY;
-
-    if (!user && selectedUserIds.length === 0) {
-      return closePopup();
-    }
-
-    setPopup({
-      visible: true,
-      x: popupX,
-      y: popupY,
-      user: user,
-    });
-  };
-
-  const closePopup = () => {
-    setPopup({ ...popup, visible: false });
-  };
-
-  const handleGlobalClick = () => {
-    if (popup.visible) {
-      closePopup();
-    }
   };
 
   return (
@@ -121,7 +96,7 @@ function UserTable() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <UserPopup user={popup.user} onClose={closePopup} selectedIds={selectedUserIds} />
+              <UserPopup user={popup.target} onClose={closePopup} selectedIds={selectedUserIds} />
             </div>
           )}
         </div> : <NoData text="No Users" />

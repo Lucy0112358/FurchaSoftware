@@ -7,6 +7,7 @@ import lockerReducer from '../slice/lockerSlice';
 import moduleReducer from '../slice/moduleSlice';
 import branchReducer from '../slice/branchSlice';
 import adminReducer from '../slice/adminSlice';
+import systemReducer from '../slice/systemSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,5 +19,6 @@ export const store = configureStore({
     modules: moduleReducer,
     branch: branchReducer,
     admin: adminReducer,
+    system: systemReducer,
   },
 });
