@@ -21,6 +21,8 @@ import { TbPlugConnected } from "react-icons/tb";
 import UserInfoModal from '../../userInfo/UserInfoModal';
 import { useHasPermission } from '../../../hooks/useHasPermission';
 import ModalActionButton from '../../button/ModalActionButton';
+import Manage from '../../manage/Manage';
+
 
 function AdminMenu() {
   const dispatch = useDispatch();
@@ -34,7 +36,6 @@ function AdminMenu() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [debounceTimeout, setDebounceTimeout] = useState(null);
-  const [manageEnabled, setManageEnabled] = useState(true);
   const { hasPermission } = useHasPermission();
 
   useEffect(() => {
@@ -131,21 +132,7 @@ function AdminMenu() {
           <MediaQuery minWidth={550}>
             <UserInfoModal />
           </MediaQuery>
-
-          <div className="manage__page">
-            <label className="inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={manageEnabled}
-                onChange={() => setManageEnabled(!manageEnabled)}
-              />
-              <div className={`w-10 h-6 rounded-full relative transition ${manageEnabled ? 'bg-green-500' : 'bg-gray-400'}`}>
-                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transform transition ${manageEnabled ? 'translate-x-4' : ''}`} />
-              </div>
-            </label>
-            <span>Manage</span>
-          </div>
+          <Manage />
         </div>
       </div>
 

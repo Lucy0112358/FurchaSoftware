@@ -20,7 +20,7 @@ const Modules = () => {
         handleRightClick,
         handleGlobalClick,
         closePopup,
-      } = useContextMenu();
+    } = useContextMenu();
 
     useEffect(() => {
         const handleClickOutside = (e) => {
