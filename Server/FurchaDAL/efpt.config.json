@@ -1,0 +1,121 @@
+﻿{
+   "CodeGenerationMode": 4,
+   "ContextClassName": "furchaContext",
+   "ContextNamespace": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": null,
+   "OutputContextPath": null,
+   "OutputPath": "Models",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "FurchaDAL",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 2,
+   "SelectedToBeGenerated": 0,
+   "T4TemplatePath": null,
+   "Tables": [
+      {
+         "Name": "[furcha].[AdminBranch]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[Administrator]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[AdminPermission]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[AdminSession]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[BrainModule]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[Branch]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[BranchAddress]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[Card]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[Company]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[Locker]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[LockerGroup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[Permission]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[Role]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[RolePermission]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[User]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[UserBranch]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[UserEventLog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[UserGroup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[UserGroup_Branch]",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": null,
+   "UncountableWords": null,
+   "UseAsyncStoredProcedureCalls": true,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDatabaseNamesForRoutines": true,
+   "UseDateOnlyTimeOnly": true,
+   "UseDbContextSplitting": false,
+   "UseDecimalDataAnnotationForSprocResult": true,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseInternalAccessModifiersForSprocsAndFunctions": false,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UsePrefixNavigationNaming": false,
+   "UseSchemaFolders": false,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": false,
+   "UseT4": false,
+   "UseT4Split": false
+}
