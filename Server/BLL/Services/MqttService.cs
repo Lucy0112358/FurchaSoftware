@@ -64,7 +64,7 @@ namespace BLL.Services
 
             if (topic.StartsWith("webserver/"))
             {
-               if(message.Command == (int)CommandTypes.OpenLocker)
+                if (message.Command == (int)CommandTypes.OpenLocker)
                 {
                     // HandleRequest(topic, message);
                 }
