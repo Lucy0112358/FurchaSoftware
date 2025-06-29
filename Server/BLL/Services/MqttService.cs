@@ -1,7 +1,9 @@
 ﻿using Domain.Enums;
+using FurchaBLL.Constants;
 using FurchaBLL.MqttModels.Subscribe;
 using MQTTnet;
 using MQTTnet.Client;
+using System;
 using System.Text;
 using System.Text.Json;
 
@@ -58,10 +60,14 @@ namespace BLL.Services
         {
             var topic = e.ApplicationMessage.Topic;
             var responseMessage = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-          
+            var message = JsonSerializer.Deserialize<MqttBaseRequest<object>>(responseMessage);
+
             if (topic.StartsWith("webserver/"))
             {
-                 HandleRequest(topic, responseMessage);
+               if(message.Command == (int)CommandTypes.OpenLocker)
+                {
+                    // HandleRequest(topic, message);
+                }
             }
 
         }
@@ -74,5 +80,5 @@ namespace BLL.Services
         }
 
 
-        }
+    }
 }

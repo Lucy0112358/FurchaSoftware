@@ -2,8 +2,8 @@
 {
     public enum CommandTypes
     {
-        Open = 1,
-        Close,
+        OpenLocker = 1,
+        CloseLocker,
 
     }
 }
