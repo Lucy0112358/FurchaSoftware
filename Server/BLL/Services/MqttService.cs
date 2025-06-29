@@ -1,4 +1,5 @@
 ﻿using Domain.Enums;
+using FurchaBLL.MqttModels.Subscribe;
 using MQTTnet;
 using MQTTnet.Client;
 using System.Text;
@@ -60,12 +61,18 @@ namespace BLL.Services
           
             if (topic.StartsWith("webserver/"))
             {
-                HandleRequest(topic, responseMessage);
+                 HandleRequest(topic, responseMessage);
             }
+
+        }
+
+        public void HandleRequest<T>(string topic, string message)
+        {
+            var request = new MqttBaseRequest<T>();
 
 
         }
 
 
-    }
+        }
 }
