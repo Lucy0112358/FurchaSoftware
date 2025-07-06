@@ -1,9 +1,10 @@
-﻿using Domain.Enums;
+﻿using Domain.Entities;
+using Domain.Enums;
 using FurchaBLL.Constants;
 using FurchaBLL.MqttModels.Subscribe;
 using MQTTnet;
 using MQTTnet.Client;
-using System;
+using MQTTnet.Server;
 using System.Text;
 using System.Text.Json;
 
@@ -11,6 +12,11 @@ namespace BLL.Services
 {
     public class MqttService
     {
+        private IMqttClient _mqttClient;
+        public MqttService(IMqttClient mqttClient)
+        {
+            _mqttClient = mqttClient;
+        }
         public async Task InitializeClient()
         {
             var factory = new MqttFactory();
@@ -39,7 +45,7 @@ namespace BLL.Services
                 await mqttClient.PublishAsync(mqttMessage);
             };
 
-            mqttClient.ApplicationMessageReceivedAsync += ApplicationMessageReceivedHandler;
+            mqttClient.ApplicationMessageReceivedAsync += HandleRequest;
 
             try
             {
@@ -56,7 +62,7 @@ namespace BLL.Services
             }
         }
 
-        private async Task ApplicationMessageReceivedHandler(MqttApplicationMessageReceivedEventArgs e)
+        private async Task HandleRequest(MqttApplicationMessageReceivedEventArgs e)
         {
             var topic = e.ApplicationMessage.Topic;
             var responseMessage = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
@@ -64,19 +70,42 @@ namespace BLL.Services
 
             if (topic.StartsWith("webserver/"))
             {
-                if (message.Command == (int)CommandTypes.OpenLocker)
+                if (message.Command == (int)CommandTypes.OpenLockerStatusUpdate)
                 {
-                    // HandleRequest(topic, message);
+                    var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<Locker>>(responseMessage);
+
+                    // db update
+                }
+                if (message.Command == (int)CommandTypes.OpenLockersFromAdminStatusUpdate)
+                {
+                    var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<Locker>>>(responseMessage);
+
+                    // take lockers id-s
+                    // iterate through them 
+                    // save them in the db
                 }
             }
 
         }
 
-        public void HandleRequest<T>(string topic, string message)
+        public async Task SendBrainCommandAsync(MqttBaseRequest<List<Locker>> command, string companyUID, string brainUID)
         {
-            var request = new MqttBaseRequest<T>();
+            try
+            {
+                var payload = JsonSerializer.Serialize(command);
+                var topic = $"controller/{companyUID}/{brainUID}/commands";
+                var message = new MqttApplicationMessageBuilder()
+                    .WithTopic(topic)
+                    .WithPayload(payload)
+                    .WithRetainFlag(true)
+                    .Build();
 
-
+                var result = await _mqttClient.PublishAsync(message, CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                // to log  $"Error while publishing message: {ex.Message}"; companyid, brainid
+            }
         }
 
 

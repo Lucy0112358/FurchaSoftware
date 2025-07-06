@@ -2,8 +2,9 @@
 {
     public enum CommandTypes
     {
-        OpenLocker = 1,
-        CloseLocker,
-
+        OpenLockerStatusUpdate = 1,
+        CloseLockerStatusUpdate,
+        OpenLockersFromAdminStatusUpdate,
+        SynchronizeUsers
     }
 }
