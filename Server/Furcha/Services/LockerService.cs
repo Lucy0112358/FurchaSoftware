@@ -1,9 +1,12 @@
-﻿using Domain.Entities;
+﻿using BLL.Services;
+using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
+using FurchaBLL.Constants;
+using FurchaBLL.MqttModels.Subscribe;
 using System.Security.Cryptography.X509Certificates;
 using System.Transactions;
 
@@ -14,11 +17,14 @@ namespace FurchaAdminApi.Services
         private readonly LockerRepository _lockerRepository;
         private readonly BranchRepository _branchRepository;
         private readonly UserRepository _userRepository;
-        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository)
+        private readonly MqttService _mqttService;
+
+        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository, MqttService mqttService)
         {
             _lockerRepository = lockerRepository;
             _branchRepository = branchRepository;
             _userRepository = userRepository;
+            _mqttService = mqttService;
         }
         /// <summary>
         /// Each user in the group should have access to same editingLockers in the lockerGroup. <br></br>
@@ -410,16 +416,16 @@ namespace FurchaAdminApi.Services
 
         }
 
-        public void OpenLockers(List<int> lockerIds)
+        public async void OpenLockers(List<int> lockerIds)
         {
-            // make isactive to 0, or 1
-            foreach (var id in lockerIds)
+            var mqttRequest = new MqttBaseRequest<int>
             {
-                var locker = _lockerRepository.GetLockerByIdOrDefault(id);
-                if (locker.IsOpen == 2) locker.IsOpen = 1;
+                Command = (int)CommandTypes.OpenLockersFromAdmin,
+                ReceivedDate = DateTime.Now,
+                Data = lockerIds
+            };
 
-                locker = _lockerRepository.UpdateLocker(locker);
-            }
+            await _mqttService.SendToBrainAsync<int>(mqttRequest, "6", "1");
         }
 
         public void SetUser(List<int> lockerIds, int userId)

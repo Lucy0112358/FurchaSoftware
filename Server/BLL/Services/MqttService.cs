@@ -88,7 +88,7 @@ namespace BLL.Services
 
         }
 
-        public async Task SendBrainCommandAsync(MqttBaseRequest<List<Locker>> command, string companyUID, string brainUID)
+        public async Task SendToBrainAsync<T>(MqttBaseRequest<T> command, string companyUID, string brainUID)
         {
             try
             {

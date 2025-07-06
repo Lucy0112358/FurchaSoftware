@@ -3,6 +3,8 @@ using FurchaAdminApi.Infrustructures;
 using FurchaAdminApi.Middlewares;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using MQTTnet.Client;
+using MQTTnet;
 using Npgsql;
 
 namespace FurchaAdminApi
@@ -54,7 +56,11 @@ namespace FurchaAdminApi
             EncryptionSettings.Issuer = encryptionSettings["Issuer"];
             EncryptionSettings.Audience = encryptionSettings["Audience"];
 
-
+            builder.Services.AddSingleton<IMqttClient>(sp =>
+            {
+                var factory = new MqttFactory();
+                return factory.CreateMqttClient();
+            });
             // Setup JWT Authentication
             JwtConfiguration.SetupJwtAuthentication(builder, EncryptionSettings.EncryptionKey, EncryptionSettings.Issuer, EncryptionSettings.Audience);
             builder.Services.GenerateInjectionAdmin();

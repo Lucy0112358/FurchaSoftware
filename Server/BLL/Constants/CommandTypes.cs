@@ -5,6 +5,7 @@
         OpenLockerStatusUpdate = 1,
         CloseLockerStatusUpdate,
         OpenLockersFromAdminStatusUpdate,
-        SynchronizeUsers
+        SynchronizeUsers,
+        OpenLockersFromAdmin
     }
 }

@@ -203,8 +203,8 @@ namespace FurchaAdminApi.Controllers
         {
         }
 
-        [Authorize]
-        [RequiresPermission("ManageLocker")]
+      /*  [Authorize]
+        [RequiresPermission("ManageLocker")]*/
         [HttpPost("open-lockers")]
         public IActionResult OpenLockers([FromBody] List<int> lockerIds)
         {
