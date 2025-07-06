@@ -1,7 +1,6 @@
 ﻿using Domain.Configuration;
 using FurchaAdminApi.Infrustructures;
 using FurchaAdminApi.Middlewares;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using MQTTnet.Client;
 using MQTTnet;
@@ -95,23 +94,20 @@ namespace FurchaAdminApi
         }
     });
             });
-            var app = builder.Build();
-/*            app.UseExceptionHandler(errorApp =>
+
+            builder.Services.AddSingleton<MqttClientOptions>(sp =>
             {
-                errorApp.Run(async context =>
-                {
-                    context.Response.StatusCode = 500;
-                    context.Response.ContentType = "application/json";
+                var config = sp.GetRequiredService<IConfiguration>().GetSection("MqttSettings");
 
-                    var exceptionFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-                    var error = exceptionFeature?.Error;
+                return new MqttClientOptionsBuilder()
+                    .WithClientId(config["ClientId"])
+                    .WithTcpServer(config["Server"], int.Parse(config["Port"]))
+                    .WithCredentials(config["Username"], config["Password"])
+                    .Build();
+            });
 
-                    Console.WriteLine($"🔥 ERROR: {error?.Message}");
-                    Console.WriteLine(error?.StackTrace);
+            var app = builder.Build();
 
-                    await context.Response.WriteAsync($"{{\"error\":\"{error?.Message}\"}}");
-                });
-            });*/
 
             app.UseSwagger();
             app.UseSwaggerUI();
