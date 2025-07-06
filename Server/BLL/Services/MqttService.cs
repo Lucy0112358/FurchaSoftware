@@ -12,10 +12,13 @@ namespace BLL.Services
 {
     public class MqttService
     {
-        private IMqttClient _mqttClient;
-        public MqttService(IMqttClient mqttClient)
+        private readonly IMqttClient _mqttClient;
+        private readonly MqttClientOptions _mqttOptions;
+
+        public MqttService(IMqttClient mqttClient, MqttClientOptions mqttOptions)
         {
             _mqttClient = mqttClient;
+            _mqttOptions = mqttOptions;
         }
         public async Task InitializeClient()
         {
