@@ -95,6 +95,11 @@ namespace BLL.Services
         {
             try
             {
+                if (!_mqttClient.IsConnected)
+                {
+                    await _mqttClient.ConnectAsync(_mqttOptions, CancellationToken.None);
+                }
+
                 var payload = JsonSerializer.Serialize(command);
                 var topic = $"controller/{companyUID}/{brainUID}/commands";
                 var message = new MqttApplicationMessageBuilder()
