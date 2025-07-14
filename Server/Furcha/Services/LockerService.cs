@@ -6,6 +6,7 @@ using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
 using FurchaBLL.Constants;
+using FurchaBLL.Interfaces;
 using FurchaBLL.MqttModels.Subscribe;
 using System.Security.Cryptography.X509Certificates;
 using System.Transactions;
@@ -17,9 +18,9 @@ namespace FurchaAdminApi.Services
         private readonly LockerRepository _lockerRepository;
         private readonly BranchRepository _branchRepository;
         private readonly UserRepository _userRepository;
-        private readonly MqttService _mqttService;
+        private readonly IMqttApiService _mqttService;
 
-        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository, MqttService mqttService)
+        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository, IMqttApiService mqttService)
         {
             _lockerRepository = lockerRepository;
             _branchRepository = branchRepository;
@@ -425,7 +426,7 @@ namespace FurchaAdminApi.Services
                 Data = lockerIds
             };
 
-            await _mqttService.SendToBrainAsync<int>(mqttRequest, "6", "1");
+            await _mqttService.PublishAsync<int>(mqttRequest, "6", "1");
         }
 
         public void SetUser(List<int> lockerIds, int userId)

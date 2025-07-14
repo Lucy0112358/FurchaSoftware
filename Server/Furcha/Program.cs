@@ -5,6 +5,9 @@ using Microsoft.OpenApi.Models;
 using MQTTnet.Client;
 using MQTTnet;
 using Npgsql;
+using BLL.Services;
+using FurchaBLL.Services;
+using FurchaBLL.Interfaces;
 
 namespace FurchaAdminApi
 {
@@ -80,25 +83,29 @@ namespace FurchaAdminApi
                 });
 
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] { }
-        }
-    });
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] { }
+                    }
+                });
             });
+
+            builder.Services.AddSingleton<IMqttApiService, MqttApiService>();
+            builder.Services.AddHostedService<MqttHostedService>();
+
+            builder.Services.AddSingleton<IMqttClient>(new MqttFactory().CreateMqttClient());
 
             builder.Services.AddSingleton<MqttClientOptions>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>().GetSection("MqttSettings");
-
                 return new MqttClientOptionsBuilder()
                     .WithClientId(config["ClientId"])
                     .WithTcpServer(config["Server"], int.Parse(config["Port"]))
@@ -107,7 +114,6 @@ namespace FurchaAdminApi
             });
 
             var app = builder.Build();
-
 
             app.UseSwagger();
             app.UseSwaggerUI();
