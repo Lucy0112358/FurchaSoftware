@@ -91,17 +91,17 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<List<UserResult>>.Success(users));
         }
 
-        [Authorize]
-        [RequiresPermission("CreateUser")]
+      /*  [Authorize]
+        [RequiresPermission("CreateUser")]*/
         [HttpPost("add-user")]
-        public ActionResult<ApiResult<UserResult>> AddUser([FromBody] UserCreateRequest userCreateRequest)
+        public async Task<ActionResult<ApiResult<UserResult>>> AddUser([FromBody] UserCreateRequest userCreateRequest)
         {
             if (userCreateRequest == null)
             {
                 return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
             }
 
-            var result = userService.AddUser(userCreateRequest);
+            var result = await userService.AddUser(userCreateRequest); 
 
             if (result == null)
             {

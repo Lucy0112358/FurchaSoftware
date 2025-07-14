@@ -1,5 +1,4 @@
-﻿using BLL.Services;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
@@ -8,8 +7,6 @@ using FurchaAdminApi.Repos;
 using FurchaBLL.Constants;
 using FurchaBLL.Interfaces;
 using FurchaBLL.MqttModels.Subscribe;
-using System.Security.Cryptography.X509Certificates;
-using System.Transactions;
 
 namespace FurchaAdminApi.Services
 {
@@ -426,7 +423,7 @@ namespace FurchaAdminApi.Services
                 Data = lockerIds
             };
 
-            await _mqttService.PublishAsync<int>(mqttRequest, "6", "1");
+            await _mqttService.PublishAsync<int>(mqttRequest, "6", "1"); // take from claims
         }
 
         public void SetUser(List<int> lockerIds, int userId)

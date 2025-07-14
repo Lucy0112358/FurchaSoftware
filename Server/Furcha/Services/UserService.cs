@@ -1,9 +1,13 @@
-﻿using Domain.Entities;
+﻿using BLL.Services;
+using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
+using FurchaBLL.Constants;
+using FurchaBLL.Interfaces;
+using FurchaBLL.MqttModels.Subscribe;
 
 namespace FurchaAdminApi.Services
 {
@@ -14,15 +18,16 @@ namespace FurchaAdminApi.Services
         private readonly LockerService _lockerService;
         private readonly LockerRepository _lockerRepository;
         private readonly BranchRepository _branchRepository;
+        private readonly IMqttApiService _mqttService;
 
-
-        public UserService(UserRepository userRepository, AdminRepository adminRepository, LockerService lockerService, LockerRepository lockerRepository, BranchRepository branchRepository)
+        public UserService(UserRepository userRepository, AdminRepository adminRepository, LockerService lockerService, LockerRepository lockerRepository, BranchRepository branchRepository, IMqttApiService mqttService)
         {
             _userRepository = userRepository;
             _adminRepository = adminRepository;
             _lockerService = lockerService;
             _lockerRepository = lockerRepository;
             _branchRepository = branchRepository;
+            _mqttService = mqttService;
         }
 
         private UserResult MapUserToUserResult(User user)
@@ -283,20 +288,29 @@ namespace FurchaAdminApi.Services
             return filteredUsers;
         }
 
-        public UserResult AddUser(UserCreateRequest newUser)
+        public async Task<UserResult> AddUser(UserCreateRequest newUser)
         {
             if (newUser.IsPinRequired == true)
             {
-                // generate a 4-number pin unique within a branch
+                // TODO: Generate a 4-digit PIN unique within the branch
             }
 
-#warning add columns in db for activeTo and activeFrom, decide user STATE based on that, add this logic into GetAllUsersOfAdmin methode, where it identifies user's state based on active period
+#warning Add columns in DB for ActiveTo and ActiveFrom. Determine user STATE based on that. Include this logic in GetAllUsersOfAdmin.
 
             var result = _userRepository.AddUser(newUser);
 
-            return result;
+            var mqttRequest = new MqttBaseRequest<UserResult>
+            {
+                Command = (int)CommandTypes.CreateUserFromAdmin,
+                ReceivedDate = DateTime.Now,
+                Data = new List<UserResult> { result }
+            };
 
+            await _mqttService.PublishAsync(mqttRequest, "6", "1"); // Use claims or context for real companyId and branchId
+
+            return result;
         }
+
 
         public UserGroupResult AddUserGroup(UserGroupRequest userGroupRequest)
         {

@@ -6,6 +6,7 @@
         CloseLockerStatusUpdate,
         OpenLockersFromAdminStatusUpdate,
         SynchronizeUsers,
-        OpenLockersFromAdmin
+        OpenLockersFromAdmin,
+        CreateUserFromAdmin
     }
 }
