@@ -14,6 +14,7 @@ namespace BLL.Services
     {
         private readonly IMqttClient _mqttClient;
         private readonly MqttClientOptions _mqttOptions;
+        // inject dbcontext
 
         public MqttService(IMqttClient mqttClient, MqttClientOptions mqttOptions)
         {
@@ -87,33 +88,14 @@ namespace BLL.Services
                     // iterate through them 
                     // save them in the db
                 }
-            }
-
-        }
-
-        public async Task SendToBrainAsync<T>(MqttBaseRequest<T> command, string companyUID, string brainUID)
-        {
-            try
-            {
-                if (!_mqttClient.IsConnected)
+                if (message.Command == (int)CommandTypes.CreateUserFromAdmin)
                 {
-                    await _mqttClient.ConnectAsync(_mqttOptions, CancellationToken.None);
+                    var userPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<Locker>>>(responseMessage);
+
+                    // take user and mark if is added
                 }
-
-                var payload = JsonSerializer.Serialize(command);
-                var topic = $"controller/{companyUID}/{brainUID}/commands";
-                var message = new MqttApplicationMessageBuilder()
-                    .WithTopic(topic)
-                    .WithPayload(payload)
-                    .WithRetainFlag(true)
-                    .Build();
-
-                var result = await _mqttClient.PublishAsync(message, CancellationToken.None);
             }
-            catch (Exception ex)
-            {
-                // to log  $"Error while publishing message: {ex.Message}"; companyid, brainid
-            }
+
         }
 
 
