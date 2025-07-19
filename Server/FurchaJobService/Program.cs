@@ -32,6 +32,7 @@ namespace FurchaJobService
                 var mqttSettings = sp.GetRequiredService<IOptions<MqttSettings>>().Value;
 
                 return new MqttClientOptionsBuilder()
+                .WithClientId(mqttSettings.ClientId)
                     .WithTcpServer(mqttSettings.Host, mqttSettings.Port)
                     .WithCredentials(mqttSettings.Username, mqttSettings.Password)
                     .WithCleanSession()
