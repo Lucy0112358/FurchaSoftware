@@ -21,24 +21,16 @@ namespace BLL.Services
             _mqttClient = mqttClient;
             _mqttOptions = mqttOptions;
         }
+
         public async Task InitializeClient()
         {
-            var factory = new MqttFactory();
-            var mqttClient = factory.CreateMqttClient();
 
-            var options = new MqttClientOptionsBuilder()
-              .WithClientId(Constants.MqttClientId)
-              .WithTcpServer(Constants.MqttServer, Constants.MqttPort)
-              .WithCredentials(Constants.MqttUsername, Constants.MqttPassword)
-              .WithTlsOptions(new MqttClientTlsOptions() { UseTls = false })
-              .Build();
-
-            mqttClient.ConnectedAsync += async e =>
+            _mqttClient.ConnectedAsync += async e =>
             {
-                await mqttClient.SubscribeAsync("$CONTROL/dynamic-security/#");
-                await mqttClient.SubscribeAsync("$SYS/broker/clients/connected");
-                await mqttClient.SubscribeAsync("webserver/#");
-                await mqttClient.SubscribeAsync("server/status/will");
+                await _mqttClient.SubscribeAsync("$CONTROL/dynamic-security/#");
+                await _mqttClient.SubscribeAsync("$SYS/broker/clients/connected");
+                await _mqttClient.SubscribeAsync("webserver/#");
+                await _mqttClient.SubscribeAsync("server/status/will");
                 var topic = "controller/status/will";
                 var mqttMessage = new MqttApplicationMessageBuilder()
                     .WithTopic(topic)
@@ -46,14 +38,14 @@ namespace BLL.Services
                     .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
                     .Build();
 
-                await mqttClient.PublishAsync(mqttMessage);
+                await _mqttClient.PublishAsync(mqttMessage);
             };
 
-            mqttClient.ApplicationMessageReceivedAsync += HandleRequest;
+            _mqttClient.ApplicationMessageReceivedAsync += HandleRequest;
 
             try
             {
-                var connectResult = await mqttClient.ConnectAsync(options).ConfigureAwait(false);
+                var connectResult = await _mqttClient.ConnectAsync(_mqttOptions).ConfigureAwait(false);
 
                 if (connectResult.ResultCode != MqttClientConnectResultCode.Success)
                 {
