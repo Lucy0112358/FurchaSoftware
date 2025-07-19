@@ -1,6 +1,6 @@
 ﻿namespace FurchaBLL.Models
 {
-    public class MqttSettings
+    public class MqttSettings // to use
     {
         public string Host { get; set; }
         public int Port { get; set; }

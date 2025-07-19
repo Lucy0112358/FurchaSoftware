@@ -4,7 +4,6 @@ using FurchaJobService.Workers;
 using Microsoft.EntityFrameworkCore;
 using MQTTnet;
 using MQTTnet.Client;
-using Microsoft.Extensions.Options;
 using FurchaBLL.Models;
 
 namespace FurchaJobService
