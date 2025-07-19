@@ -20,22 +20,14 @@ namespace FurchaJobService
 
             builder.Services.AddDbContextFactory<furchaContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
-
-            builder.Services.AddSingleton<IMqttClient>(sp =>
-            {
-                var factory = new MqttFactory();
-                return factory.CreateMqttClient();
-            });
-
+            builder.Services.AddSingleton<IMqttClient>(new MqttFactory().CreateMqttClient());
             builder.Services.AddSingleton<MqttClientOptions>(sp =>
             {
-                var mqttSettings = sp.GetRequiredService<IOptions<MqttSettings>>().Value;
-
+                var config = sp.GetRequiredService<IConfiguration>().GetSection("MqttSettings");
                 return new MqttClientOptionsBuilder()
-                .WithClientId(mqttSettings.ClientId)
-                    .WithTcpServer(mqttSettings.Host, mqttSettings.Port)
-                    .WithCredentials(mqttSettings.Username, mqttSettings.Password)
-                    .WithCleanSession()
+                    .WithClientId(config["ClientId"])
+                    .WithTcpServer(config["Server"], int.Parse(config["Port"]))
+                    .WithCredentials(config["Username"], config["Password"])
                     .Build();
             });
 
