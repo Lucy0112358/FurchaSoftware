@@ -1,6 +1,6 @@
 ﻿using Domain.Entities;
-using Domain.Enums;
 using FurchaBLL.Constants;
+using FurchaBLL.MqttModels.Publish;
 using FurchaBLL.MqttModels.Subscribe;
 using MQTTnet;
 using MQTTnet.Client;
@@ -66,16 +66,15 @@ namespace BLL.Services
 
             if (topic.StartsWith("webserver/"))
             {
-                if (message.Command == (int)CommandTypes.OpenLockerStatusUpdate)
+                if (message.Command == (int)CommandTypes.OpenLocker)
                 {
                     var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<Locker>>(responseMessage);
 
                     // db update
                 }
-                if (message.Command == (int)CommandTypes.OpenLockersFromAdminStatusUpdate)
+                if (message.Command == (int)CommandTypes.OpenLockersFromAdmin)
                 {
-                    var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<Locker>>>(responseMessage);
-
+                    var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<int>>>(responseMessage);
                     // take lockers id-s
                     // iterate through them 
                     // save them in the db
@@ -90,6 +89,34 @@ namespace BLL.Services
 
         }
 
+        public async Task CompanyRegistration(AddCompanyMqtt company)
+        {
+            var payload = JsonSerializer.Serialize(company);
+            var message = new MqttApplicationMessageBuilder()
+                .WithTopic("$CONTROL/dynamic-security/v1")
+                .WithPayload(payload)
+                .WithRetainFlag(true)
+                .Build();
 
+            var result = await _mqttClient.PublishAsync(message, CancellationToken.None);
+        }
+
+
+/*        public async Task AddAutorazationMqttClientAsync(Guid accountUID, string brainPass)
+        {
+
+            var createClientCommand = new MqttBaseRequest<AddCompanyMqtt>
+            {
+                Username = accountUID.ToString(),
+                Password = brainPass,
+                Roles = new List<CreateClientCommand.Role>
+                    {
+                        new CreateClientCommand.Role { RoleName = "user", Priority = 1 }
+                    }
+            };
+            string batch_number = "1";
+            await SendCommandAsync(createClientCommand);
+
+        }*/
     }
 }

@@ -20,4 +20,6 @@ public partial class BrainModule
     public string MacAddress { get; set; }
 
     public int Status { get; set; }
+
+    public Guid? BrainUid { get; set; }
 }

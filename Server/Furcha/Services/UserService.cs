@@ -1,5 +1,4 @@
-﻿using Domain.Entities;
-using Domain.Enums;
+﻿using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
@@ -7,6 +6,9 @@ using FurchaAdminApi.Repos;
 using FurchaBLL.Constants;
 using FurchaBLL.Interfaces;
 using FurchaBLL.MqttModels.Subscribe;
+using FurchaDAL.Models;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace FurchaAdminApi.Services
 {
@@ -18,8 +20,10 @@ namespace FurchaAdminApi.Services
         private readonly LockerRepository _lockerRepository;
         private readonly BranchRepository _branchRepository;
         private readonly IMqttApiService _mqttService;
+        private readonly furchaContext db;
+        
 
-        public UserService(UserRepository userRepository, AdminRepository adminRepository, LockerService lockerService, LockerRepository lockerRepository, BranchRepository branchRepository, IMqttApiService mqttService)
+        public UserService(UserRepository userRepository, AdminRepository adminRepository, LockerService lockerService, LockerRepository lockerRepository, BranchRepository branchRepository, IMqttApiService mqttService, furchaContext db)
         {
             _userRepository = userRepository;
             _adminRepository = adminRepository;
@@ -27,9 +31,10 @@ namespace FurchaAdminApi.Services
             _lockerRepository = lockerRepository;
             _branchRepository = branchRepository;
             _mqttService = mqttService;
+            this.db = db;
         }
 
-        private UserResult MapUserToUserResult(User user)
+        private UserResult MapUserToUserResult(Domain.Entities.User user)
         {
             var roleName = user.Role.ToString();
 
@@ -95,7 +100,7 @@ namespace FurchaAdminApi.Services
             return branchFilterResults;
         }
 
-        public List<User> GetCompanyUsers(int companyId)
+        public List<Domain.Entities.User> GetCompanyUsers(int companyId)
         {
             var users = _userRepository.GetCompanyUsers(companyId);
 
@@ -111,20 +116,20 @@ namespace FurchaAdminApi.Services
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
 
-            var users = new List<User>();
+            var users = new List<Domain.Entities.User>();
 
             if (admin.Role == RoleEnum.LVL5_MasterAdmin)
             {
                 users = GetUsersForLVL5Admin(admin.CompanyId);
             }
-            else if (admin.Role == RoleEnum.LVL4_SuperAdmin)
+/*            else if (admin.Role == RoleEnum.LVL4_SuperAdmin)
             {
                 users = GetUsersForLVL4Admin(admin);
             }
             else if (admin.Role != RoleEnum.user)
             {
                 users = GetUsersForCommonAdmin(admin);
-            }
+            }*/
             else
             {
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
@@ -133,12 +138,12 @@ namespace FurchaAdminApi.Services
             return users.Select(user => MapUserToUserResult(user)).ToList();
         }
 
-        public List<User> GetUsersForLVL5Admin(int companyId)
+        public List<Domain.Entities.User> GetUsersForLVL5Admin(int companyId)
         {
             return _userRepository.GetCompanyUsers(companyId);
         }
 
-        public List<User> GetUsersForLVL4Admin(Administrator admin)
+        public List<Domain.Entities.User> GetUsersForLVL4Admin(Domain.Entities.Administrator admin)
         {
             var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
 
@@ -152,7 +157,7 @@ namespace FurchaAdminApi.Services
             return users;
         }
 
-        public List<User> GetUsersForCommonAdmin(Administrator admin)
+        public List<Domain.Entities.User> GetUsersForCommonAdmin(Domain.Entities.Administrator admin)
         {
             var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
 
@@ -178,7 +183,7 @@ namespace FurchaAdminApi.Services
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
 
-            var groups = new List<UserGroup>();
+            var groups = new List<Domain.Entities.UserGroup>();
 
             if (admin.Role == RoleEnum.LVL5_MasterAdmin)
             {
@@ -274,13 +279,13 @@ namespace FurchaAdminApi.Services
             return filteredUsers;
         }
 
-        public async Task<UserResult> AddUser(UserCreateRequest newUser)
+        public async Task<UserResult> AddUser(UserCreateRequest newUser, int adminId)
         {
             if (newUser.IsPinRequired == true)
             {
                 // TODO: Generate a 4-digit PIN unique within the branch
             }
-
+            var companyUid = db.Administrators.Include(a => a.Company).FirstOrDefault(x => x.Id == adminId).Company.Id;
 #warning Add columns in DB for ActiveTo and ActiveFrom. Determine user STATE based on that. Include this logic in GetAllUsersOfAdmin.
 
             var result = _userRepository.AddUser(newUser);
@@ -292,7 +297,7 @@ namespace FurchaAdminApi.Services
                 Data = new List<UserResult> { result }
             };
 
-            await _mqttService.PublishAsync(mqttRequest, "6", "1"); // Use claims or context for real companyId and branchId
+            await _mqttService.PublishAsync(mqttRequest, companyUid.ToString(), "1"); // Use claims or context for real companyId and branchId
 
             return result;
         }

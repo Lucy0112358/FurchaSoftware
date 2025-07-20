@@ -96,12 +96,14 @@ namespace FurchaAdminApi.Controllers
         [HttpPost("add-user")]
         public async Task<ActionResult<ApiResult<UserResult>>> AddUser([FromBody] UserCreateRequest userCreateRequest)
         {
+            var adminId = GetClaimValue("AdminId");
+
             if (userCreateRequest == null)
             {
                 return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
             }
 
-            var result = await userService.AddUser(userCreateRequest); 
+            var result = await userService.AddUser(userCreateRequest, int.Parse(adminId)); 
 
             if (result == null)
             {

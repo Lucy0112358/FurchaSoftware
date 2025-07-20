@@ -23,5 +23,7 @@ public partial class Company
 
     public string CountryCode { get; set; }
 
+    public Guid? AccountUid { get; set; }
+
     public virtual ICollection<Administrator> Administrators { get; set; } = new List<Administrator>();
 }
