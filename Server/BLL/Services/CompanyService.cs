@@ -10,7 +10,7 @@ namespace FurchaBLL.Services
         private readonly MqttService _mqttService;
         public CompanyService(furchaContext db, MqttService mqttService)
         {
-            Db = db;.
+            Db = db;
             _mqttService = mqttService;
         }
 
@@ -32,7 +32,7 @@ namespace FurchaBLL.Services
 
             if (dbCompany != null)
             {
-                await _mqttService.AddAccount(dbCompany.AccountUid, "123456789"); // to add pass hashing
+                await _mqttService.AddAccount(dbCompany.Entity.AccountUid, "123456789"); // to add pass hashing
             }
         }
     }

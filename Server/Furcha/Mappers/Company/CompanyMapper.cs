@@ -19,7 +19,7 @@ namespace FurchaAdminApi.Mappers.Company
                 Email = company.Email,
                 Phone = company.Phone,
                 CountryCode = company.CountryCode
-            }
+            };
         }
     }
 }

@@ -90,7 +90,7 @@ namespace BLL.Services
 
         }
 
-        public async Task AddAccount(Guid accountUID, string brainPass)
+        public async Task AddAccount(Guid? accountUID, string brainPass)
         {
             var mqttCompany = new MqttBaseRequest<MqttCreateCompany>
             {
