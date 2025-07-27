@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using FurchaBLL.Constants;
+using FurchaBLL.MqttModels;
 using FurchaBLL.MqttModels.Publish;
 using FurchaBLL.MqttModels.Subscribe;
 using MQTTnet;
@@ -89,34 +90,47 @@ namespace BLL.Services
 
         }
 
-        public async Task CompanyRegistration(AddCompanyMqtt company)
+        public async Task AddAccount(Guid accountUID, string brainPass)
         {
-            var payload = JsonSerializer.Serialize(company);
-            var message = new MqttApplicationMessageBuilder()
-                .WithTopic("$CONTROL/dynamic-security/v1")
-                .WithPayload(payload)
-                .WithRetainFlag(true)
-                .Build();
+            var mqttCompany = new MqttBaseRequest<MqttCreateCompany>
+            {
+                Command = (int)CommandTypes.CreateAccount,
+                Data = new MqttCreateCompany
+                {
+                    Username = accountUID.ToString(),
+                    Password = brainPass,
+                    Roles = new List<MqttRole>
+                    {
+                        new MqttRole { RoleName = "user", Priority = 1 }
+                    }
+                },
+                ReceivedDate = DateTime.UtcNow
+            };
 
-            var result = await _mqttClient.PublishAsync(message, CancellationToken.None);
+            await PublishToMqtt<MqttCreateCompany>(mqttCompany, "$CONTROL/dynamic-security/v1");
         }
 
-
-/*        public async Task AddAutorazationMqttClientAsync(Guid accountUID, string brainPass)
+        private async Task PublishToMqtt<T>(MqttBaseRequest<T> request, string topic)
         {
+            if (!_mqttClient.IsConnected)
+                await _mqttClient.ConnectAsync(_mqttOptions);
 
-            var createClientCommand = new MqttBaseRequest<AddCompanyMqtt>
+            try
             {
-                Username = accountUID.ToString(),
-                Password = brainPass,
-                Roles = new List<CreateClientCommand.Role>
-                    {
-                        new CreateClientCommand.Role { RoleName = "user", Priority = 1 }
-                    }
-            };
-            string batch_number = "1";
-            await SendCommandAsync(createClientCommand);
+                var payload = JsonSerializer.Serialize(request);
+                var message = new MqttApplicationMessageBuilder()
+                    .WithTopic(topic)
+                    .WithPayload(payload)
+                    .WithRetainFlag(true)
+                    .Build();
 
-        }*/
+                var result = await _mqttClient.PublishAsync(message, CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                #warning todo log
+            }
+
+        }
     }
 }

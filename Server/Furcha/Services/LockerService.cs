@@ -416,14 +416,14 @@ namespace FurchaAdminApi.Services
 
         public async void OpenLockers(List<int> lockerIds)
         {
-            var mqttRequest = new MqttBaseRequest<int>
+            var mqttRequest = new MqttBaseRequest<List<int>>
             {
                 Command = (int)CommandTypes.OpenLockersFromAdmin,
                 ReceivedDate = DateTime.Now,
                 Data = lockerIds
             };
 
-            await _mqttService.PublishAsync<int>(mqttRequest, "6", "1"); // take from claims
+            await _mqttService.PublishMqttCommands<List<int>>(mqttRequest, "6", "1"); // take from claims
         }
 
         public void SetUser(List<int> lockerIds, int userId)

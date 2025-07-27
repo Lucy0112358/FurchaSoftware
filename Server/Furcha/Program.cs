@@ -5,9 +5,10 @@ using Microsoft.OpenApi.Models;
 using MQTTnet.Client;
 using MQTTnet;
 using Npgsql;
-using BLL.Services;
 using FurchaBLL.Services;
 using FurchaBLL.Interfaces;
+using FurchaDAL.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace FurchaAdminApi
 {
@@ -52,6 +53,8 @@ namespace FurchaAdminApi
                 var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
                 return new NpgsqlConnection(connectionString);
             });
+            builder.Services.AddDbContext<furchaContext>(options =>
+             options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
 
             var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
             EncryptionSettings.EncryptionKey = encryptionSettings["EncryptionKey"];
@@ -63,6 +66,7 @@ namespace FurchaAdminApi
                 var factory = new MqttFactory();
                 return factory.CreateMqttClient();
             });
+
             // Setup JWT Authentication
             JwtConfiguration.SetupJwtAuthentication(builder, EncryptionSettings.EncryptionKey, EncryptionSettings.Issuer, EncryptionSettings.Audience);
             builder.Services.GenerateInjectionAdmin();

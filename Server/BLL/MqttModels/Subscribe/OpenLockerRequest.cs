@@ -1,6 +1,6 @@
 ﻿namespace FurchaBLL.MqttModels.Subscribe
 {
-    public class OpenLockerMqtt
+    public class OpenLockerRequest
     {
         public int Status {  get; set; }   
         

@@ -1,9 +1,11 @@
 ﻿using Domain.Attributes;
 using Domain.Configuration;
 using Domain.Entities;
+using FurchaAdminApi.Mappers.Company;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
+using FurchaBLL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -15,9 +17,12 @@ namespace FurchaAdminApi.Controllers
     public class AuthController : BaseController
     {
         private readonly AuthenticationService authenticationService;
-        public AuthController(AuthenticationService authenticationService)
+        private readonly CompanyService _companyService;
+
+        public AuthController(AuthenticationService authenticationService, CompanyService companyService)
         {
             this.authenticationService = authenticationService;
+            _companyService = companyService;
         }
 
         [HttpGet("getAuthUser")]
@@ -95,5 +100,21 @@ namespace FurchaAdminApi.Controllers
 
             return authUser;
         }
+
+        [HttpPost("add-company")]
+        public IActionResult RegisterCompany([FromBody] CreateCompanyRequest company)
+        {
+            try
+            {
+                _companyService.RegisterCompany(company.ToBllCompany());
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        
     }
 }

@@ -294,10 +294,10 @@ namespace FurchaAdminApi.Services
             {
                 Command = (int)CommandTypes.CreateUserFromAdmin,
                 ReceivedDate = DateTime.Now,
-                Data = new List<UserResult> { result }
+                Data = result
             };
 
-            await _mqttService.PublishAsync(mqttRequest, companyUid.ToString(), "1"); // Use claims or context for real companyId and branchId
+            await _mqttService.PublishMqttCommands(mqttRequest, companyUid.ToString(), "1"); // Use claims or context for real companyId and branchId
 
             return result;
         }

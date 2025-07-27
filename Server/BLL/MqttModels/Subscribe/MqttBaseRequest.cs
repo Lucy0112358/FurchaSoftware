@@ -6,7 +6,7 @@
 
         public int Operation { get; set;  }
 
-        public List<T> Data { get; set;  }
+        public T Data { get; set;  }
 
         public DateTime ReceivedDate { get; set; }
     }

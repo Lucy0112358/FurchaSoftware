@@ -19,13 +19,13 @@ namespace FurchaBLL.Services
             _options = options;
         }
 
-        public async Task ConnectAsync()
+        public async Task ConnectToMqtt()
         {
             if (!_mqttClient.IsConnected)
                 await _mqttClient.ConnectAsync(_options);
         }
 
-        public async Task PublishAsync<T>(MqttBaseRequest<T> command, string companyUID, string brainUID)
+        public async Task PublishMqttCommands<T>(MqttBaseRequest<T> command, string companyUID, string brainUID)
         {
             if (!_mqttClient.IsConnected)
                 await _mqttClient.ConnectAsync(_options);

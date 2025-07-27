@@ -12,10 +12,7 @@ namespace FurchaJobService
     {
         public static void Main(string[] args)
         {
-            var builder = Host.CreateApplicationBuilder(args);
-
-            builder.Services.Configure<MqttSettings>(
-                builder.Configuration.GetSection("Mqtt"));
+            var builder = Host.CreateApplicationBuilder(args);        
 
             builder.Services.AddDbContextFactory<furchaContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));

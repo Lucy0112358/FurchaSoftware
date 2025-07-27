@@ -20,7 +20,7 @@ namespace FurchaBLL.Services
                 {
                     if (!_mqttService.IsConnected)
                     {
-                        await _mqttService.ConnectAsync();
+                        await _mqttService.ConnectToMqtt();
                     }
                 }
                 catch (Exception ex)
