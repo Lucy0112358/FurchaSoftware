@@ -1,20 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import '../menu.css';
-import { RiAddBoxLine } from "react-icons/ri";
 import { assets } from '../../../assets/assets';
-import CustomSelect from '../../select/CustomSelect';
 import { useDispatch, useSelector } from 'react-redux';
-import { filterUserByName, getBranches, getUserGroups, userFilter } from '../../../redux/api/menuApi';
-import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter } from '../../../redux/slice/menuSlice';
-import AddUserModal from '../../modals/addUser/AddUserModal';
-import { getAllUsers } from '../../../redux/api/userApi';
-import { getAllGroups } from '../../../redux/api/groupApi';
-import GeneralAddModal from '../../modals/GeneralAddModal';
 import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive'
-import LockerTypes from '../locker/components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
-import ModulesModal from '../../modals/modules/ModulesModal';
 import BranchModal from '../../modals/branch/BranchModal';
 import { getAllBranches } from '../../../redux/api/branchApi';
 import UserInfoModal from '../../userInfo/UserInfoModal';

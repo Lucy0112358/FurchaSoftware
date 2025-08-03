@@ -38,13 +38,8 @@ function UserMenu() {
     };
 
     useEffect(() => {
-        const storedValue = localStorage.getItem('userGroupEnabled');
-        if (storedValue !== null) {
-            const parsedValue = storedValue === 'true';
-            dispatch(setUserGroupSelect(parsedValue));
-            parsedValue ? dispatch(getAllGroups()) : dispatch(getAllUsers());
-        }
-    }, [dispatch]);
+        userGroupEnabled ? dispatch(getAllGroups()) : dispatch(getAllUsers());
+    }, [userGroupEnabled]);
 
     const addFilters = (selectedOption, key) => {
         setFilters((prevFilters) => {

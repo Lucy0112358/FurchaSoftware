@@ -5,7 +5,6 @@ import CustomSelect from '../../select/CustomSelect';
 import { useDispatch, useSelector } from 'react-redux';
 import { filterUserByName, getBranches, userFilter } from '../../../redux/api/menuApi';
 import {
-  getSelectGroupSelect,
   getBranchesData,
   getUserGroupsData
 } from '../../../redux/slice/menuSlice';
@@ -30,7 +29,6 @@ function ModulesMenu() {
   const fileInputRef = useRef(null);
   const { hasPermission } = useHasPermission();
 
-  const userGroupEnabled = useSelector(getSelectGroupSelect);
   const userBranches = useSelector(getBranchesData) || [];
   const userGroups = useSelector(getUserGroupsData) || [];
 
