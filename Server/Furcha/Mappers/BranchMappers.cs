@@ -5,7 +5,7 @@ namespace FurchaAdminApi.Mappers
 {
     public static class BranchMappers
     {
-        public static AllBranchResult ToAllBranchResult(this Branch branch, string address, List<string> lockerTypes, int count)
+/*        public static AllBranchResult ToAllBranchResult(this Branch branch, string address, List<string> lockerTypes, int count)
         {
             return new AllBranchResult
             {
@@ -16,6 +16,20 @@ namespace FurchaAdminApi.Mappers
                 Comment = branch.Comment,
                 LockersCount = count,
                 Mode = branch.Mode,
+            };
+        }*/
+
+        public static AllBranchResult ToAllBranchResult(this FurchaDAL.Models.Branch branch, string address, List<string> lockerTypes, int count)
+        {
+            return new AllBranchResult
+            {
+                Id = branch.Id,
+                Name = branch.Name,
+                Address = address,
+                LockerTypes = lockerTypes,
+                Comment = branch.Comment,
+                LockersCount = count,
+                Mode = (int)branch.Mode,
             };
         }
     }

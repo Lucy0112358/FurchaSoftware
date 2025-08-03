@@ -1,4 +1,5 @@
-﻿using Domain.Enums;
+﻿using Domain.Entities;
+using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
@@ -7,7 +8,12 @@ using FurchaBLL.Constants;
 using FurchaBLL.Interfaces;
 using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.ComponentModel.Design;
+using System.Linq;
+using User = FurchaDAL.Models.User;
 
 
 namespace FurchaAdminApi.Services
@@ -20,8 +26,7 @@ namespace FurchaAdminApi.Services
         private readonly LockerRepository _lockerRepository;
         private readonly BranchRepository _branchRepository;
         private readonly IMqttApiService _mqttService;
-        private readonly furchaContext db;
-        
+        private readonly furchaContext Db;
 
         public UserService(UserRepository userRepository, AdminRepository adminRepository, LockerService lockerService, LockerRepository lockerRepository, BranchRepository branchRepository, IMqttApiService mqttService, furchaContext db)
         {
@@ -31,16 +36,56 @@ namespace FurchaAdminApi.Services
             _lockerRepository = lockerRepository;
             _branchRepository = branchRepository;
             _mqttService = mqttService;
-            this.db = db;
+            Db = db;
+        }
+        private List<User> GetUsersByIdsBranchAndGroup(List<int> userIds, int? branchId, int? groupId)
+        {
+            var query = Db.Users
+                .Where(u => userIds.Contains(u.Id));
+
+            if (branchId.HasValue)
+            {
+                query = query.Where(u => u.UserBranches.Any(ub => ub.BranchId == branchId.Value));
+            }
+
+            if (groupId.HasValue)
+            {
+                query = query.Where(u => u.UserGroups.Any(ug => ug.Id == groupId.Value));
+            }
+
+            return query.ToList();
         }
 
-        private UserResult MapUserToUserResult(Domain.Entities.User user)
+        private UserResult MapUserToUserResult(User user)
         {
-            var roleName = user.Role.ToString();
+            var roles = Db.Roles.ToList();
+            var userRole = Db.Administrators.Where(a => a.UserId == user.Id).FirstOrDefault();
+            string roleName;
 
-            var cards = _userRepository.GetUserCards(user.Id);
-            var groups = _userRepository.GetUserGroupsByUserId(user.Id);
-            var branches = _userRepository.GetUserBranchesByUserId(user.Id);
+            if (userRole != null)
+            {
+                 roleName = roles.Where(r => r.Id == userRole.RoleId).First().Name;
+            }
+            else
+            {
+                roleName = roles.Where(r => r.Id == (long)RoleEnum.user).First().Name;
+            }
+
+            var cards = Db.Cards
+                .Where(c => c.UserId == user.Id)
+                .ToList(); // _userRepository.GetUserCards(user.Id);
+
+            var userWithGroups = Db.Users
+                 .Include(u => u.UserGroups)
+                 .FirstOrDefault(u => u.Id == user.Id);
+
+            var groups = userWithGroups?.UserGroups.ToList();
+            // _userRepository.GetUserGroupsByUserId(user.Id);
+            //  var branches = _userRepository.GetUserBranchesByUserId(user.Id);
+            var branches = Db.UserBranches
+                .Where(ub => ub.UserId == user.Id)
+                .Select(ub => ub.Branch)
+                .ToList();
 
             return new UserResult
             {
@@ -61,15 +106,21 @@ namespace FurchaAdminApi.Services
 
             var userIds = users.Select(x => x.Id).ToList();
 
-            var filteredUsers = _userRepository.GetUsersByBranchGroupAndUserIds(userIds, filterByBranchId, filterByGroupId);
+            var filteredUsers = GetUsersByIdsBranchAndGroup(userIds, filterByBranchId, filterByGroupId); // _userRepository.GetUsersByBranchGroupAndUserIds(userIds, filterByBranchId, filterByGroupId);
 
             var pagedUsers = filteredUsers.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
 
             var userResults = pagedUsers.Select(user =>
             {
-                var cards = _userRepository.GetUserCards(user.Id);
-                var groups = _userRepository.GetUserGroupsByUserId(user.Id);
-                var branches = _userRepository.GetUserBranchesByUserId(user.Id);
+                var cards = Db.Cards
+                    .Where(c => c.UserId == user.Id)
+                    .ToList();// _userRepository.GetUserCards(user.Id);
+                var groups = Db.UserGroups
+                    .Where(ug => ug.Users.Any(u => u.Id == user.Id))
+                    .ToList(); // _userRepository.GetUserGroupsByUserId(user.Id);
+                var branches = Db.Branches
+                    .Where(b => b.UserBranches.Any(ub => ub.UserId == user.Id))
+                    .ToList(); // _userRepository.GetUserBranchesByUserId(user.Id);
 
                 return new UserResult
                 {
@@ -89,7 +140,9 @@ namespace FurchaAdminApi.Services
 
         public List<BranchFilterResult> GetAdminBranches(int adminId)
         {
-            var branches = _userRepository.GetAllBranchesOfAdmin(adminId);
+            var branches = Db.Branches
+        .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
+        .ToList(); //  _userRepository.GetAllBranchesOfAdmin(adminId);
 
             var branchFilterResults = branches.Select(branch => new BranchFilterResult
             {
@@ -100,36 +153,36 @@ namespace FurchaAdminApi.Services
             return branchFilterResults;
         }
 
-        public List<Domain.Entities.User> GetCompanyUsers(int companyId)
+        public List<User> GetCompanyUsers(int companyId)
         {
-            var users = _userRepository.GetCompanyUsers(companyId);
+            var users = Db.Users.Where(u => u.CompanyId == companyId).ToList(); //_userRepository.GetCompanyUsers(companyId);
 
             return users;
         }
 
         public List<UserResult> GetUsersForAdminBasedOnRole(int adminId)
         {
-            var admin = _userRepository.GetAdminById(adminId);
-
+            var admin = Db.Administrators.First(a => a.Id == adminId); // _userRepository.GetAdminById(adminId);
+            
             if (admin == null)
             {
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
 
-            var users = new List<Domain.Entities.User>();
+            var users = new List<User>();
 
-            if (admin.Role == RoleEnum.LVL5_MasterAdmin)
+            if (admin.RoleId == (int)RoleEnum.LVL5_MasterAdmin)
             {
                 users = GetUsersForLVL5Admin(admin.CompanyId);
             }
-/*            else if (admin.Role == RoleEnum.LVL4_SuperAdmin)
-            {
-                users = GetUsersForLVL4Admin(admin);
-            }
-            else if (admin.Role != RoleEnum.user)
-            {
-                users = GetUsersForCommonAdmin(admin);
-            }*/
+            /*            else if (admin.Role == RoleEnum.LVL4_SuperAdmin)
+                        {
+                            users = GetUsersForLVL4Admin(admin);
+                        }
+                        else if (admin.Role != RoleEnum.user)
+                        {
+                            users = GetUsersForCommonAdmin(admin);
+                        }*/
             else
             {
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
@@ -138,28 +191,39 @@ namespace FurchaAdminApi.Services
             return users.Select(user => MapUserToUserResult(user)).ToList();
         }
 
-        public List<Domain.Entities.User> GetUsersForLVL5Admin(int companyId)
+        public List<User> GetUsersForLVL5Admin(int companyId)
         {
-            return _userRepository.GetCompanyUsers(companyId);
+            return Db.Users.Where(u => u.CompanyId == companyId).ToList();//_userRepository.GetCompanyUsers(companyId);
         }
 
-        public List<Domain.Entities.User> GetUsersForLVL4Admin(Domain.Entities.Administrator admin)
+        public List<User> GetUsersForLVL4Admin(FurchaDAL.Models.Administrator admin)
         {
-            var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
+            var adminBranches =  Db.AdminBranches
+                        .Where(ab => ab.AdministratorId == admin.Id)
+                        .Include(ab => ab.Branch)
+                        .Select(ab => ab.Branch)
+                        .ToList();//_userRepository.GetAdminBranchesByAdminId(admin.Id);
 
             var distinctBranchIds = adminBranches
                              .Select(ub => ub.Id)
                              .Distinct()
                              .ToList();
 
-            var users = _userRepository.GetUsersByBranches(distinctBranchIds);
+            var users = Db.UserBranches
+                        .Where(ub => distinctBranchIds.Contains(ub.BranchId))
+                        .Select(ub => ub.User)
+                        .Distinct()
+                        .ToList();
+            //_userRepository.GetUsersByBranches(distinctBranchIds);
 
             return users;
         }
 
-        public List<Domain.Entities.User> GetUsersForCommonAdmin(Domain.Entities.Administrator admin)
+        public List<User> GetUsersForCommonAdmin(FurchaDAL.Models.Administrator admin)
         {
-            var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
+            var adminBranches = Db.Branches
+                    .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == admin.Id))
+                    .ToList();// _userRepository.GetAdminBranchesByAdminId(admin.Id);
 
             var distinctBranchIds = adminBranches
                              .Select(ub => ub.Id)
@@ -169,40 +233,55 @@ namespace FurchaAdminApi.Services
             {
                 throw new BaseException(ErrorCodeEnum.AdminHasMoreBranchesThanPermitted);
             }
-            var users = _userRepository.GetAllUsersOfBranch(distinctBranchIds[0]);
+            var users = Db.Users
+             .Where(u => u.UserBranches.Any(ub => ub.BranchId == distinctBranchIds[0]))
+             .ToList(); //_userRepository.GetAllUsersOfBranch(distinctBranchIds[0]);
 
             return users;
         }
 
         public List<UserGroupResult>? GetUserGroupsForAdminBasedOnRole(int adminId)
         {
-            var admin = _userRepository.GetAdminById(adminId);
+            var admin = Db.Administrators.Where(a => a.Id == adminId).FirstOrDefault();// _userRepository.GetAdminById(adminId);
 
             if (admin == null)
             {
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
 
-            var groups = new List<Domain.Entities.UserGroup>();
+            var groups = new List<FurchaDAL.Models.UserGroup>();
 
-            if (admin.Role == RoleEnum.LVL5_MasterAdmin)
+            if (admin.RoleId == (long)RoleEnum.LVL5_MasterAdmin)
             {
-                groups = _userRepository.GetUserGroupsByCompanyId(admin.CompanyId);
+                groups = Db.UserGroups
+                     .Where(ug => ug.CompanyId == admin.CompanyId)
+                     .ToList();  //_userRepository.GetUserGroupsByCompanyId(admin.CompanyId);
             }
-            else if (admin.Role == RoleEnum.LVL4_SuperAdmin)
+            else if (admin.RoleId == (long)RoleEnum.LVL4_SuperAdmin)
             {
-                var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
+                var adminBranches = Db.AdminBranches
+                     .Where(ab => ab.AdministratorId == admin.Id)
+                     .Select(ab => ab.Branch)
+                     .ToList(); //_userRepository.GetAdminBranchesByAdminId(admin.Id);
 
                 var distinctBranchIds = adminBranches
                                  .Select(ub => ub.Id)
                                  .Distinct()
                                  .ToList();
 
-                groups = _userRepository.GetUserGroupsByBranchIds(distinctBranchIds);
+                groups = Db.UserGroups
+                     .Where(ug => ug.UserGroupBranches
+                         .Any(ugb => distinctBranchIds.Contains(ugb.BranchId)))
+                     .Distinct()
+                     .ToList();  //_userRepository.GetUserGroupsByBranchIds(distinctBranchIds);
             }
-            else if (admin.Role != RoleEnum.user) //if a role is added this condition may change
+            else if (admin.RoleId != (long)RoleEnum.user) //if a role is added this condition may change
             {
-                var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
+               var adminBranches = Db.Branches
+                    .Include(b => b.AdminBranches)
+                    .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == admin.Id))
+                    .ToList();
+                //_userRepository.GetAdminBranchesByAdminId(admin.Id);
 
                 var distinctBranchIds = adminBranches
                                  .Select(ub => ub.Id)
@@ -214,7 +293,10 @@ namespace FurchaAdminApi.Services
                     throw new BaseException(ErrorCodeEnum.AdminHasMoreBranchesThanPermitted);
                 }
 
-                groups = _userRepository.GetUserGroupsByBranchIds(distinctBranchIds);
+                groups = Db.UserGroups
+                    .Where(ug => ug.UserGroupBranches.Any(ugb => distinctBranchIds.Contains(ugb.BranchId)))
+                    .Distinct()
+                    .ToList(); //_userRepository.GetUserGroupsByBranchIds(distinctBranchIds);
             }
             else
             {
@@ -225,8 +307,15 @@ namespace FurchaAdminApi.Services
 
             foreach (var group in groups)
             {
-                var companyName = _branchRepository.GetCompanyById(group.CompanyId).Name;
-                var groupBranches = _branchRepository.GetBranchesOfUserGroup(group.Id);
+                var userGroupId = group.Id;
+                var companyName = Db.Companies.Where(c => c.Id == group.CompanyId).First(); // _branchRepository.GetCompanyById(group.CompanyId).Name;
+                var groupBranches = (from b in Db.Branches
+                                     join ugb in Db.UserGroupBranches on b.Id equals ugb.BranchId
+                                     where ugb.UserGroupId == userGroupId
+                                     select b)
+                   .Distinct()
+                   .ToList();
+                // _branchRepository.GetBranchesOfUserGroup(group.Id);
                 var permittedLockers = _lockerService.GetPermittedLockersOfUserGroup(ugId: group.Id);
                 var permittedLockerResults = new List<PermittedLockerResult>();
                 foreach (var permittedLocker in permittedLockers)
@@ -234,13 +323,22 @@ namespace FurchaAdminApi.Services
                     var permittedLockerResult = new PermittedLockerResult()
                     {
                         LockerId = permittedLocker.Id,
-                        LockerNumber = permittedLocker.number
+                        LockerNumber = (int)permittedLocker.Number
                     };
 
                     permittedLockerResults.Add(permittedLockerResult);
                 }
 
-                var lockerGroups = _lockerRepository.GetLockerGroupsByUserGroup(group.Id);
+                var lockerGroups = Db.LockerGroups
+        .Where(lg => Db.Lockers
+            .Where(l => l.GroupId == lg.Id)
+            .Join(Db.UserGroupLockers,
+                  locker => locker.Id,
+                  ugl => ugl.LockerId,
+                  (locker, ugl) => ugl)
+            .Any(ugl => ugl.UserGroupId == group.Id))
+        .Distinct()
+        .ToList();  //_lockerRepository.GetLockerGroupsByUserGroup(group.Id);
                 var lockerGroupResults = new List<LockerGroupResult>();
                 foreach (var item in lockerGroups)
                 {
@@ -285,7 +383,7 @@ namespace FurchaAdminApi.Services
             {
                 // TODO: Generate a 4-digit PIN unique within the branch
             }
-            var companyUid = db.Administrators.Include(a => a.Company).FirstOrDefault(x => x.Id == adminId).Company.Id;
+            var companyUid = Db.Administrators.Include(a => a.Company).FirstOrDefault(x => x.Id == adminId).Company.Id;
 #warning Add columns in DB for ActiveTo and ActiveFrom. Determine user STATE based on that. Include this logic in GetAllUsersOfAdmin.
 
             var result = _userRepository.AddUser(newUser);
@@ -302,7 +400,6 @@ namespace FurchaAdminApi.Services
             return result;
         }
 
-
         public UserGroupResult AddUserGroup(UserGroupRequest userGroupRequest)
         {
             var group = _userRepository.AddUserGroup(userGroupRequest);
@@ -318,7 +415,6 @@ namespace FurchaAdminApi.Services
 
             return result;
         }
-
 
     }
 }

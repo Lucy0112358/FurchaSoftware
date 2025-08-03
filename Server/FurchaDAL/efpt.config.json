@@ -75,6 +75,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[furcha].[User_UserGroup]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[furcha].[UserBranch]",
          "ObjectType": 0
       },
@@ -88,6 +92,14 @@
       },
       {
          "Name": "[furcha].[UserGroup_Branch]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[UserGroup_Locker]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[furcha].[UserLocker]",
          "ObjectType": 0
       }
    ],

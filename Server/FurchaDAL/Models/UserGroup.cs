@@ -18,4 +18,8 @@ public partial class UserGroup
     public int? State { get; set; }
 
     public virtual ICollection<UserGroupBranch> UserGroupBranches { get; set; } = new List<UserGroupBranch>();
+
+    public virtual ICollection<UserGroupLocker> UserGroupLockers { get; set; } = new List<UserGroupLocker>();
+
+    public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

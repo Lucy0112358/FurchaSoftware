@@ -99,18 +99,15 @@ namespace FurchaAdminApi.Repos
 #warning add auth adminId
         public List<Branch> SearchBranchByAdminId(string name, int adminId)
         {
-            var sql = $@"
-                    SELECT b.* 
-                    FROM furcha.""Branch"" b
-                    WHERE (b.""Name"" ILIKE @name)";
+            var companyId = Db.Administrators
+                .Where(a => a.Id == adminId)
+                .Select(a => a.CompanyId)
+                .FirstOrDefault();
 
-            var branches = Query<Branch>(
-                sql: sql,
-                param: new
-                {
-                    name = $"%{name}%",
-                }
-            ).ToList();
+            var branches = Db.Branches
+                .Where(b => b.CompanyId == companyId &&
+                            b.Name.ToLower().Contains(name.ToLower()))
+                .ToList();
 
             return branches;
         }
@@ -131,12 +128,12 @@ namespace FurchaAdminApi.Repos
         public List<string> GetLockerTypesByBranch(int branchId)
         {
             var sql = @"
-    SELECT 
-        ARRAY_AGG(DISTINCT ""LockerType"") AS ""LockerTypes""
-    FROM 
-        furcha.""Locker""
-    WHERE 
-        ""BranchId"" = @BranchId";
+                SELECT 
+                    ARRAY_AGG(DISTINCT ""LockerType"") AS ""LockerTypes""
+                FROM 
+                    furcha.""Locker""
+                WHERE 
+                    ""BranchId"" = @BranchId";
 
             var result = Query<string[]>(
                 sql: sql,

@@ -1,8 +1,5 @@
 ﻿using FurchaAdminApi.Models.Request;
 using FurchaBLL.Models;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
-using System.Diagnostics.Metrics;
-using System.IO;
 
 namespace FurchaAdminApi.Mappers.Company
 {

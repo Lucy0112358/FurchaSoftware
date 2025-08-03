@@ -32,12 +32,15 @@ namespace FurchaAdminApi.Controllers
             string? userName = null
           )
         {
+            var adminId = GetClaimValue("AdminId");
+
             var lockers = _lockerService.GetLockersByFilters(
                 branchId,
                 lockerType,
                 lockerGroupId,
                 isOpen,
-                userName
+                userName,
+                int.Parse(adminId)
             );
 
             /* if (lockers == null || !lockers.Any())
@@ -118,7 +121,8 @@ namespace FurchaAdminApi.Controllers
         [HttpGet("GetModules")]
         public ActionResult<ApiResult<List<ModuleResult>>> GetModules()
         {
-            var modules = _lockerService.GetModules();
+            var adminId = GetClaimValue("AdminId");
+            var modules = _lockerService.GetModules(int.Parse(adminId));
 
             return Ok(ApiResult<List<ModuleResult>>.Success(modules));
         }

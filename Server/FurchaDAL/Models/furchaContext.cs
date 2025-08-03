@@ -51,6 +51,8 @@ public partial class furchaContext : DbContext
 
     public virtual DbSet<UserGroupBranch> UserGroupBranches { get; set; }
 
+    public virtual DbSet<UserGroupLocker> UserGroupLockers { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AdminBranch>(entity =>
@@ -156,6 +158,10 @@ public partial class furchaContext : DbContext
             entity.Property(e => e.Street)
                 .IsRequired()
                 .HasMaxLength(255);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.BranchAddresses)
+                .HasForeignKey(d => d.BranchId)
+                .HasConstraintName("FK_BranchAddress_Branch");
         });
 
         modelBuilder.Entity<Card>(entity =>
@@ -246,6 +252,36 @@ public partial class furchaContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__User__3214EC073C522500");
 
             entity.ToTable("User", "furcha");
+
+            entity.HasMany(d => d.Lockers).WithMany(p => p.Users)
+                .UsingEntity<Dictionary<string, object>>(
+                    "UserLocker",
+                    r => r.HasOne<Locker>().WithMany()
+                        .HasForeignKey("LockerId")
+                        .HasConstraintName("FK__UserLocke__Locke__2A164134"),
+                    l => l.HasOne<User>().WithMany()
+                        .HasForeignKey("UserId")
+                        .HasConstraintName("FK__UserLocke__UserI__29221CFB"),
+                    j =>
+                    {
+                        j.HasKey("UserId", "LockerId").HasName("PK__UserLock__92838BF99D844136");
+                        j.ToTable("UserLocker", "furcha");
+                    });
+
+            entity.HasMany(d => d.UserGroups).WithMany(p => p.Users)
+                .UsingEntity<Dictionary<string, object>>(
+                    "UserUserGroup",
+                    r => r.HasOne<UserGroup>().WithMany()
+                        .HasForeignKey("UserGroupId")
+                        .HasConstraintName("FK__User_User__UserG__2DE6D218"),
+                    l => l.HasOne<User>().WithMany()
+                        .HasForeignKey("UserId")
+                        .HasConstraintName("FK__User_User__UserI__2CF2ADDF"),
+                    j =>
+                    {
+                        j.HasKey("UserId", "UserGroupId").HasName("PK__User_Use__082D6A50C028EA0D");
+                        j.ToTable("User_UserGroup", "furcha");
+                    });
         });
 
         modelBuilder.Entity<UserBranch>(entity =>
@@ -294,6 +330,23 @@ public partial class furchaContext : DbContext
                 .HasForeignKey(d => d.UserGroupId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserGroupBranch_UserGroup");
+        });
+
+        modelBuilder.Entity<UserGroupLocker>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__UserGrou__3214EC07CEDD27BE");
+
+            entity.ToTable("UserGroup_Locker", "furcha");
+
+            entity.HasOne(d => d.Locker).WithMany(p => p.UserGroupLockers)
+                .HasForeignKey(d => d.LockerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserGroupLocker_Locker");
+
+            entity.HasOne(d => d.UserGroup).WithMany(p => p.UserGroupLockers)
+                .HasForeignKey(d => d.UserGroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserGroupLocker_UserGroup");
         });
 
         OnModelCreatingPartial(modelBuilder);
