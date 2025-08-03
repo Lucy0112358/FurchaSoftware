@@ -1,4 +1,5 @@
-﻿using Domain.Configuration;
+﻿using BLL.Services;
+using Domain.Configuration;
 using FurchaAdminApi.Middlewares;
 using FurchaAdminApi.Repos;
 using FurchaAdminApi.Services;
@@ -22,6 +23,8 @@ namespace FurchaAdminApi.Infrustructures
             services.AddScoped(typeof(LockerService));
             services.AddScoped(typeof(ISanitizer), typeof(Sanitizer));
             services.AddScoped(typeof(IPermissionService), typeof(PermissionService));
+            services.AddScoped(typeof(MqttService));
+
             return services;
         }
     }

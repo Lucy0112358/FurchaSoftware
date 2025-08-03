@@ -439,7 +439,7 @@ namespace FurchaAdminApi.Repos
             {
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
-            // add columns in db for activeTo and activeFrom
+            // add columns in Db for activeTo and activeFrom
             if (newUser.ActiveFrom != null && newUser.ActiveFrom > DateTime.Now)
             {
                 state = StateEnum.active;

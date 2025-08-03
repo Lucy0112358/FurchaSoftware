@@ -1,7 +1,4 @@
-﻿using Domain.Entities;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace FurchaAdminApi.Models.Result
+﻿namespace FurchaAdminApi.Models.Result
 {
     public class LockersResult
     {

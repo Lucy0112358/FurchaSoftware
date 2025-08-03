@@ -1,9 +1,11 @@
 ﻿using Domain.Attributes;
 using Domain.Configuration;
-using Domain.Entities;
+using FurchaAdminApi.Mappers.Company;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
+using FurchaBLL.Services;
+using FurchaDAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -15,9 +17,12 @@ namespace FurchaAdminApi.Controllers
     public class AuthController : BaseController
     {
         private readonly AuthenticationService authenticationService;
-        public AuthController(AuthenticationService authenticationService)
+        private readonly CompanyService _companyService;
+
+        public AuthController(AuthenticationService authenticationService, CompanyService companyService)
         {
             this.authenticationService = authenticationService;
+            _companyService = companyService;
         }
 
         [HttpGet("getAuthUser")]
@@ -59,17 +64,19 @@ namespace FurchaAdminApi.Controllers
         [Authorize]
         [RequiresPermission("ManageAdmins")]        
         [HttpPost("create-admin")]
-        public ActionResult<ApiResult<Administrators>> CreateAdmin([FromBody] CreateAdminRequest request)
+        public ActionResult<ApiResult<Administrator>> CreateAdmin([FromBody] CreateAdminRequest request)
         {
             try
             {
+                var adminId = GetClaimValue("AdminId");
+                request.ModifiedBy = int.Parse(adminId);
                 var newAdmin = authenticationService.CreateAdmin(request);
-                return Ok(ApiResult<Administrators>.Success(newAdmin));
+                return Ok(ApiResult<Administrator>.Success(newAdmin));
             }
             catch (Exception ex)
             {
                // return Ok(ApiResult<Administrators>.Success());
-                  return NotFound(ApiResult<Administrators>.ErrorResult(ex.Message));
+                  return NotFound(ApiResult<Administrator>.ErrorResult(ex.Message));
             }
         }
 
@@ -95,5 +102,21 @@ namespace FurchaAdminApi.Controllers
 
             return authUser;
         }
+
+        [HttpPost("add-company")]
+        public IActionResult RegisterCompany([FromBody] CreateCompanyRequest company)
+        {
+            try
+            {
+                _companyService.RegisterCompany(company.ToBllCompany());
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        
     }
 }

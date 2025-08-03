@@ -12,6 +12,7 @@ namespace FurchaAdminApi.Repos
     {
         private readonly NpgsqlConnection _dbConnection;
 
+
         public LockerRepository(NpgsqlConnection dbConnection, ISanitizer sanitizer) : base(dbConnection, sanitizer)
         {
             _dbConnection = dbConnection;

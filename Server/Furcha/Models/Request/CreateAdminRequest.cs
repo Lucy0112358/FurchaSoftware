@@ -17,5 +17,7 @@
         public List<int>? LockerIds { get; set; }
 
         public List<int>? Branches { get; set; }
+
+        public int? ModifiedBy { get; set; }
     }
 }
