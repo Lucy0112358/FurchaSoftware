@@ -13,7 +13,11 @@ public partial class Permission
 
     public string Description { get; set; }
 
+    public int? ObjectTypeId { get; set; }
+
     public virtual ICollection<AdminPermission> AdminPermissions { get; set; } = new List<AdminPermission>();
+
+    public virtual ObjectType ObjectType { get; set; }
 
     public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
 }

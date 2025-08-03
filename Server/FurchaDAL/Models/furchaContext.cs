@@ -35,6 +35,8 @@ public partial class furchaContext : DbContext
 
     public virtual DbSet<LockerGroup> LockerGroups { get; set; }
 
+    public virtual DbSet<ObjectType> ObjectTypes { get; set; }
+
     public virtual DbSet<Permission> Permissions { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
@@ -208,6 +210,20 @@ public partial class furchaContext : DbContext
                 .IsUnicode(false);
         });
 
+        modelBuilder.Entity<ObjectType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ObjectTy__3214EC07404AEC1E");
+
+            entity.ToTable("ObjectType", "furcha");
+
+            entity.HasIndex(e => e.Name, "UQ__ObjectTy__737584F628B1E9DE").IsUnique();
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100)
+                .IsUnicode(false);
+        });
+
         modelBuilder.Entity<Permission>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Permissi__3214EC0700803616");
@@ -218,6 +234,10 @@ public partial class furchaContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.ObjectType).WithMany(p => p.Permissions)
+                .HasForeignKey(d => d.ObjectTypeId)
+                .HasConstraintName("FK_Permission_ObjectType");
         });
 
         modelBuilder.Entity<Role>(entity =>

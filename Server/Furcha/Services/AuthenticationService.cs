@@ -1,10 +1,11 @@
 ﻿using Domain.Configuration;
-using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
+using FurchaDAL.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -18,11 +19,13 @@ namespace FurchaAdminApi.Services
     {
         private readonly UserRepository _userRepository;
         private readonly AdminRepository _adminRepository;
+        private readonly furchaContext Db;
 
-        public AuthenticationService(UserRepository userRepository, AdminRepository adminRepository)
+        public AuthenticationService(UserRepository userRepository, AdminRepository adminRepository, furchaContext db)
         {
             _userRepository = userRepository;
             _adminRepository = adminRepository;
+            Db = db;
         }
 
         private string EncodePassword(string password, string salt)
@@ -42,11 +45,12 @@ namespace FurchaAdminApi.Services
             }
         }
 
-        public Administrators CreateAdmin(CreateAdminRequest request)
+        public Administrator CreateAdmin(CreateAdminRequest request)
         {
             // admin branch
             // admin lockers
-            var admin = new Administrators
+            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == request.ModifiedBy).CompanyId;
+            var admin = new Administrator
             {
                 UserId = request.UserId,
                 PasswordHash = "b33f9a399e11b3c36f3d3b338668c41214d8256a95594664166af9fb8b9b72d5",
@@ -55,30 +59,25 @@ namespace FurchaAdminApi.Services
                 IsActive = true,
                 CreatedDate = DateTime.UtcNow,
                 IsDeleted = true,
-                ModifiedBy = 8,
+                ModifiedBy = request.ModifiedBy,
                 LastPasswordChangeDate = DateTime.UtcNow,
                 ForcePasswordReset = true,
-                CompanyId = 5,
-
-
+                CompanyId = companyId
             };
 
-            admin = _adminRepository.CreateAdmin(admin);
-
-            _userRepository.UpdateUser(new Dictionary<string, object>
-                    {
-                        { nameof(User.Id), request.UserId },
-                        { nameof(User.Role), request.RoleId },
-                    });
+            Db.Administrators.Add(admin); //_adminRepository.CreateAdmin(admin);
+            Db.SaveChanges();
 
             foreach (var permission in request.Permissions)
             {
-                var a = new AdminPermissions
+                var a = new AdminPermission
                 {
                     AdministratorId = admin.Id,
                     PermissionId = permission
                 };
-                _adminRepository.CreateAdminPermissions(a);
+
+                Db.AdminPermissions.Add(a);// _adminRepository.CreateAdminPermissions(a);
+                Db.SaveChanges();
             }
 
             return admin;
@@ -86,14 +85,20 @@ namespace FurchaAdminApi.Services
 
         public List<AdminResult> GetCompanyAdmins(int companyId)
         {
-            var admins = _adminRepository.GetAdminsByCompanyId(companyId);
+            var admins = Db.Administrators.Where(a => a.CompanyId == companyId).ToList(); // _adminRepository.GetAdminsByCompanyId(companyId);
             var result = new List<AdminResult>();
 
             foreach (var admin in admins)
             {
-                var user = _userRepository.GetUserByAdminId(admin.Id);
+                var user = Db.Administrators
+                    .Where(a => a.Id == admin.Id)
+                    .Select(a => a.User)
+                    .FirstOrDefault();  //_userRepository.GetUserByAdminId(admin.Id);
 
-                var adminBranches = _userRepository.GetAdminBranchesByAdminId(admin.Id);
+                var adminBranches = Db.AdminBranches
+                    .Where(ab => ab.AdministratorId == admin.Id)
+                    .Select(ab => ab.Branch)
+                    .ToList();  //_userRepository.GetAdminBranchesByAdminId(admin.Id);
 
                 var adminResult = new AdminResult
                 {
@@ -102,7 +107,7 @@ namespace FurchaAdminApi.Services
                     Surname = user.Surname,
                     Branches = adminBranches.Select(b => b.Name).ToList(),
                     IsActive = admin.IsActive,
-                    Role = _adminRepository.GetRoles().Where(r => (int)r.Id == admin.RoleId).FirstOrDefault().Name,
+                    Role = Db.Roles.Where(r => (int)r.Id == admin.RoleId).FirstOrDefault().Name,
                 };
 
                 result.Add(adminResult);
@@ -113,8 +118,18 @@ namespace FurchaAdminApi.Services
 
         public List<PermissionResult> GetRolePermissions(long roleId)
         {
-            var permissions = _userRepository.GetRolePermissions(roleId);
-            var objectTypes = _userRepository.GetAllObjectTypes();
+            var permissions = Db.RolePermissions.Include(a => a.Role).Include(p => p.Permission)
+        .Where(rp => rp.RoleId == roleId)
+        .Select(rp => new RolePermissionResult
+        {
+            Id = rp.Permission.Id,
+            Name = rp.Permission.Name,
+            Description = rp.Permission.Description,
+            ObjectTypeId = rp.Permission.ObjectTypeId,
+          /*  IsOptional = rp.IsOptional*/
+        })
+        .ToList(); // _userRepository.GetRolePermissions(roleId);
+            var objectTypes = Db.ObjectTypes.ToList(); // _userRepository.GetAllObjectTypes();
 
             var grouped = permissions
                 .GroupBy(p => p.ObjectTypeId)
@@ -123,7 +138,7 @@ namespace FurchaAdminApi.Services
                     var type = objectTypes.FirstOrDefault(t => t.Id == group.Key);
                     return new PermissionResult
                     {
-                        TypeId = group.Key,
+                        TypeId = (int)group.Key,
                         TypeName = type?.Name ?? "Unknown",
                         Permissions = group.ToList()
                     };
@@ -133,16 +148,17 @@ namespace FurchaAdminApi.Services
             return grouped;
         }
 
-        public List<Roles> GetRoles()
+        public List<Role> GetRoles()
         {
-            return _adminRepository.GetRoles();
+            return Db.Roles.ToList();//_adminRepository.GetRoles();
         }
 
         public LoginResult LoginToGetJwtToken(AuthenticateRequest authenticateRequest)
         {
             // test authenticateRequest.email = null case with Swagger
-            var adminUser = _userRepository.GetAdminByEmail(authenticateRequest.Email);
-            var admin = _userRepository.GetAdminByUserId(adminUser.Id);
+            var adminUser = Db.Users.Where(a => a.Email == authenticateRequest.Email).First(); //_userRepository.GetAdminByEmail(authenticateRequest.Email);
+
+            var admin = Db.Administrators.FirstOrDefault(a => a.Id == adminUser.Id); //_userRepository.GetAdminByUserId(adminUser.Id);
 
             if (adminUser == null || admin?.Salt == null || admin?.PasswordHash == null || authenticateRequest?.Password == null)
             {
