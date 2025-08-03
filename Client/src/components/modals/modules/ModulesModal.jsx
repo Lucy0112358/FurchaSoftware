@@ -178,7 +178,7 @@ const ModulesModal = ({ onClose }) => {
                       <div className="text-red-500">{formik.errors.branchId}</div>
                     )}
                   </div>
-                  <div className="flex w-1/6">
+                  <div className="flex">
                     <button
                       onClick={() => setAddBranchModalSwitch(true)}
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
@@ -207,7 +207,7 @@ const ModulesModal = ({ onClose }) => {
                       onChange={handleLockerGroupChange}
                     />
                   </div>
-                  <div className="flex w-1/6">
+                  <div className="flex">
                     <button
                       onClick={() => setAddGroupModalSwitch(true)}
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"

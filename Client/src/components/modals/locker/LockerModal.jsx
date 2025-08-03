@@ -86,7 +86,7 @@ const LockerModal = ({ onClose }) => {
                     <ShowFormikError message={formik.errors.branchId} />
                   )}
                 </div>
-                <div className="flex w-1/6">
+                <div className="flex">
                   <button
                     type="button"
                     onClick={() => setAddBranchModalSwitch(true)}

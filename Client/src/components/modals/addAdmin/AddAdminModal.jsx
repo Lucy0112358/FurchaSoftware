@@ -64,7 +64,7 @@ const AddAdminModal = ({ onClose, children }) => {
     setRoleOptions(options);
   }, [roles]);
 
-   useEffect(() => {
+  useEffect(() => {
     const allPermissions = permissions.flatMap(type => type.permissions);
     const initialPermissions = allPermissions.reduce((acc, permission) => {
       acc[permission.id] = true;
@@ -366,8 +366,8 @@ const AddAdminModal = ({ onClose, children }) => {
                   <textarea
                     className="w-full p-1 border rounded h-24"
                     readOnly
-                    defaultValue={formatUserRightText()}
-                  ></textarea>
+                    value={formatUserRightText()}
+                  />
                 </div>
               </div>
             </div>

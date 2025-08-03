@@ -48,48 +48,48 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
   };
 
   const sendLockerIds = () => {
-  
-      setSelectedLockerAddId((prev) => ({
-        ...prev,
-        [Object.keys(selectedBranch)]: selectedLockerId,
-      }));
-      
-      const selectedLockers = {...selectedLockerAddId, [Object.keys(selectedBranch)]: selectedLockerId};
-  
-      const generalInfo = Object.entries(selectedLockers)
+
+    setSelectedLockerAddId((prev) => ({
+      ...prev,
+      [Object.keys(selectedBranch)]: selectedLockerId,
+    }));
+
+    const selectedLockers = { ...selectedLockerAddId, [Object.keys(selectedBranch)]: selectedLockerId };
+
+    const generalInfo = Object.entries(selectedLockers)
       .filter(([branchIdString, lockerIds]) => lockerIds.length > 0)
-        .map(([branchIdString, lockerIds]) => {
-          const branchId = Number(branchIdString);
-          const branch = branches.find(b => b.id === branchId);
-          const branchName = branch ? branch.name : "Unknown";
-          const lockerIdsString = lockerIds.join(",");
-          return `${branchName}: ${lockerIdsString}`;
-        })
-        .join("; ");
-  
-        dispatch(
-          setAddUserInfo({
-            'Locker': {
-              ...userInfo['Locker'],
-              ['lockers']: Object.values(selectedLockers).flat(),
-            },
-          })
-        );
-    
-        setSentGeneralInfo((prev) => ({
-          ...prev,
-          'lockerIds': Object.values(selectedLockers).flat(),
-        }));
-    
-        setGroupRight((prev) => ({
-          ...prev,
-          'Locker': {
-            ...(prev['Locker'] || {}),
-            'lockers': generalInfo,
-          },
-        }));
-      toast.success("Lockers added successfully");
-    };
+      .map(([branchIdString, lockerIds]) => {
+        const branchId = Number(branchIdString);
+        const branch = branches.find(b => b.id === branchId);
+        const branchName = branch ? branch.name : "Unknown";
+        const lockerIdsString = lockerIds.join(",");
+        return `${branchName}: ${lockerIdsString}`;
+      })
+      .join("; ");
+
+    dispatch(
+      setAddUserInfo({
+        'Locker': {
+          ...userInfo['Locker'],
+          ['lockers']: Object.values(selectedLockers).flat(),
+        },
+      })
+    );
+
+    setSentGeneralInfo((prev) => ({
+      ...prev,
+      'lockerIds': Object.values(selectedLockers).flat(),
+    }));
+
+    setGroupRight((prev) => ({
+      ...prev,
+      'Locker': {
+        ...(prev['Locker'] || {}),
+        'lockers': generalInfo,
+      },
+    }));
+    toast.success("Lockers added successfully");
+  };
 
   const formatUserRightText = () => {
     const userRightsEntries = Object.entries(groupRight);
@@ -149,7 +149,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
   const handleBranchSelectRemove = (itemId) => {
     setSelectedLockerId((prevSelected) => {
       if (prevSelected.includes(itemId)) {
-       return prevSelected.filter((id) => id !== itemId);
+        return prevSelected.filter((id) => id !== itemId);
       }
       return prevSelected;
     });
@@ -256,13 +256,13 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
                               ? 'selected__branch__id'
                               : ''
                               }`}
-                              onMouseOver={(event) => {
-                                if (event.buttons === 1 && event.ctrlKey) {
-                                  handleBranchSelectRemove(item.id);
-                                } else if (event.buttons === 1) {
-                                  handleBranchSelectAdd(item.id);
-                                }
-                              }}
+                            onMouseOver={(event) => {
+                              if (event.buttons === 1 && event.ctrlKey) {
+                                handleBranchSelectRemove(item.id);
+                              } else if (event.buttons === 1) {
+                                handleBranchSelectAdd(item.id);
+                              }
+                            }}
                             onClick={() => handleClickBranchSelect(item.id)}
                           >
                             <GenerateLocker item={item} index={itemIndex} />
@@ -301,9 +301,9 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
               <label className="block text-gray-300">Group rights details</label>
               <textarea
                 className="w-full p-1 border rounded h-24"
-                value={formatUserRightText()}
                 readOnly
-              ></textarea>
+                value={formatUserRightText()}
+              />
             </div>
           </div>
         </div>

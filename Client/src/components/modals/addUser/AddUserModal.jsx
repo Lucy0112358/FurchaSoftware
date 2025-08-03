@@ -115,7 +115,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     }
     return errors;
   };
-console.log(userInfo, "userInfo");
+  console.log(userInfo, "userInfo");
 
   const addUser = () => {
     const errors = validateForm();
@@ -223,7 +223,7 @@ console.log(userInfo, "userInfo");
   const handleBranchSelectRemove = (itemId) => {
     setSelectedLockerId((prevSelected) => {
       if (prevSelected.includes(itemId)) {
-       return prevSelected.filter((id) => id !== itemId);
+        return prevSelected.filter((id) => id !== itemId);
       }
       return prevSelected;
     });
@@ -245,11 +245,11 @@ console.log(userInfo, "userInfo");
       ...prev,
       [Object.keys(selectedBranch)]: selectedLockerId,
     }));
-    
-    const selectedLockers = {...selectedLockerAddId, [Object.keys(selectedBranch)]: selectedLockerId};
+
+    const selectedLockers = { ...selectedLockerAddId, [Object.keys(selectedBranch)]: selectedLockerId };
 
     const generalInfo = Object.entries(selectedLockers)
-    .filter(([branchIdString, lockerIds]) => lockerIds.length > 0)
+      .filter(([branchIdString, lockerIds]) => lockerIds.length > 0)
       .map(([branchIdString, lockerIds]) => {
         const branchId = Number(branchIdString);
         const branch = branches.find(b => b.id === branchId);
@@ -259,27 +259,27 @@ console.log(userInfo, "userInfo");
       })
       .join("; ");
 
-      dispatch(
-        setAddUserInfo({
-          'Locker': {
-            ...userInfo['Locker'],
-            ['lockers']: Object.values(selectedLockers).flat(),
-          },
-        })
-      );
-  
-      setSentGeneralInfo((prev) => ({
-        ...prev,
-        'lockerIds': Object.values(selectedLockers).flat(),
-      }));
-  
-      setUserRight((prev) => ({
-        ...prev,
+    dispatch(
+      setAddUserInfo({
         'Locker': {
-          ...(prev['Locker'] || {}),
-          'lockers': generalInfo,
+          ...userInfo['Locker'],
+          ['lockers']: Object.values(selectedLockers).flat(),
         },
-      }));
+      })
+    );
+
+    setSentGeneralInfo((prev) => ({
+      ...prev,
+      'lockerIds': Object.values(selectedLockers).flat(),
+    }));
+
+    setUserRight((prev) => ({
+      ...prev,
+      'Locker': {
+        ...(prev['Locker'] || {}),
+        'lockers': generalInfo,
+      },
+    }));
 
     // sendGroupInfo('Locker', 'lockers', generalInfo)
 
@@ -519,8 +519,8 @@ console.log(userInfo, "userInfo");
                   <textarea
                     className="w-full p-1 border rounded h-24"
                     readOnly
-                    defaultValue={formatUserRightText()}
-                  ></textarea>
+                    value={formatUserRightText()}
+                  />
                 </div>
               </div>
             </div>
