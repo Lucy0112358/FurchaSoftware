@@ -99,13 +99,23 @@ namespace FurchaAdminApi.Services
             var branch = Db.Branches.Add(new FurchaDAL.Models.Branch
             {
                 Name = newBranch.Name,
-                CompanyId = _userRepository.GetCompanyIdByAdminId(adminId),
+                CompanyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId, //_userRepository.GetCompanyIdByAdminId(adminId),
                 AddressId = address.Entity.Id,
                 Comment = newBranch.Comment,
                 Mode = (int)StateEnum.active
             });
 
             var res = Db.SaveChanges();
+
+            var adminBranch = new AdminBranch
+            {
+                AdministratorId = adminId,
+                BranchId = branch.Entity.Id
+            };
+
+            Db.AdminBranches.Add(adminBranch);
+            Db.SaveChanges();
+
             return res > 0;
         }
 

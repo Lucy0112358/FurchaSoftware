@@ -54,12 +54,14 @@ namespace FurchaAdminApi
                 return new NpgsqlConnection(connectionString);
             });
             builder.Services.AddDbContext<furchaContext>(options =>
-             options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
+
 
             var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
             EncryptionSettings.EncryptionKey = encryptionSettings["EncryptionKey"];
             EncryptionSettings.Issuer = encryptionSettings["Issuer"];
             EncryptionSettings.Audience = encryptionSettings["Audience"];
+            builder.Services.AddScoped<CompanyService>();
 
             builder.Services.AddSingleton<IMqttClient>(sp =>
             {

@@ -1,9 +1,11 @@
 ﻿using Domain.Configuration;
+using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
+using FurchaBLL.Models;
 using FurchaDAL.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -45,12 +47,12 @@ namespace FurchaAdminApi.Services
             }
         }
 
-        public Administrator CreateAdmin(CreateAdminRequest request)
+        public FurchaDAL.Models.Administrator CreateAdmin(CreateAdminRequest request)
         {
             // admin branch
             // admin lockers
             var companyId = Db.Administrators.FirstOrDefault(a => a.Id == request.ModifiedBy).CompanyId;
-            var admin = new Administrator
+            var admin = new FurchaDAL.Models.Administrator
             {
                 UserId = request.UserId,
                 PasswordHash = "b33f9a399e11b3c36f3d3b338668c41214d8256a95594664166af9fb8b9b72d5",
@@ -158,15 +160,20 @@ namespace FurchaAdminApi.Services
             // test authenticateRequest.email = null case with Swagger
             var adminUser = Db.Users.Where(a => a.Email == authenticateRequest.Email).First(); //_userRepository.GetAdminByEmail(authenticateRequest.Email);
 
-            var admin = Db.Administrators.FirstOrDefault(a => a.Id == adminUser.Id); //_userRepository.GetAdminByUserId(adminUser.Id);
+            var admin = Db.Administrators.FirstOrDefault(a => a.UserId == adminUser.Id); //_userRepository.GetAdminByUserId(adminUser.Id);
 
             if (adminUser == null || admin?.Salt == null || admin?.PasswordHash == null || authenticateRequest?.Password == null)
             {
                 throw new BaseException(ErrorCodeEnum.WrongUsernameOrPassword);
             }
-            admin.Name = adminUser.Name;
-            admin.Role = adminUser.Role;
-            admin.Email = adminUser.Email;
+
+            var a = new AdminDto();
+
+            a.Id = admin.Id;
+            a.Name = adminUser.Name;
+            a.Surname = adminUser.Surname; ;
+            a.Role = admin.RoleId.ToString();
+            a.Email = adminUser.Email;
             var hashedPassword = EncodePassword(password: authenticateRequest.Password, salt: admin.Salt);
             // var hashedPassword = authenticateRequest.Password;
 
@@ -176,12 +183,12 @@ namespace FurchaAdminApi.Services
             {
                 throw new BaseException(ErrorCodeEnum.WrongUsernameOrPassword);
             }
-            var loginResult = GetLoginResult(admin);
+            var loginResult = GetLoginResult(a);
 
             return loginResult;
         }
 
-        private LoginResult GetLoginResult(Administrator administrator)
+        private LoginResult GetLoginResult(AdminDto administrator)
         {
             //don't forget to add the log table data here as well
             var jwtToken = GenerateJwtToken(administrator);
@@ -195,11 +202,23 @@ namespace FurchaAdminApi.Services
             };
         }
 
-        private string GenerateJwtToken(Administrator admin)
+        private string GenerateJwtToken(AdminDto admin)
         {
+            var rol = Db.Administrators.Where(a => a.Id == admin.Id).FirstOrDefault().RoleId;
             var tokenHandler = new JwtSecurityTokenHandler();
-            var permissionNames = _userRepository
-                    .GetRolePermissions((long)admin.Role)
+            var permissionNames = Db.RolePermissions
+        .Where(rp => rp.RoleId == rol)
+        .Select(rp => new RolePermissionResult
+        {
+            Id = rp.Permission.Id,
+            Name = rp.Permission.Name,
+            Description = rp.Permission.Description,
+          /*  IsOptional = rp.IsOptional,
+            ObjectTypeId = rp.ObjectTypeId*/
+        })
+        .ToList()
+//_userRepository
+                    //.GetRolePermissions((long)admin.Role)
                     .Select(p => p.Name)
                     .ToList();
 
@@ -210,11 +229,11 @@ namespace FurchaAdminApi.Services
                 throw new ArgumentNullException(nameof(EncryptionSettings.EncryptionKey));
             }
 
-            var adminDetails = _userRepository.GetAdminById(admin.Id);
+            var adminDetails = Db.Administrators.Where(a => a.Id == admin.Id).FirstOrDefault(); //_userRepository.GetAdminById(admin.Id);
 
             var key = Encoding.ASCII.GetBytes(EncryptionSettings.EncryptionKey);
-            var roles = _adminRepository.GetRoles().ToList();
-            var r = roles.Where(r => (long)r.Id == (long)admin.Role).FirstOrDefault().Name;
+            var roles = Db.Roles.ToList(); //_adminRepository.GetRoles().ToList();
+            var r = roles.Where(r => (long)r.Id == rol).FirstOrDefault().Name;
             var claims = new[]
             {
             new Claim(ClaimTypes.Name, admin.Name),
