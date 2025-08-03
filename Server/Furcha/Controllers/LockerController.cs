@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Domain.Entities;
 using FurchaAdminApi.Services;
 using Domain.Configuration;
 using FurchaAdminApi.Models.Result;
 using Microsoft.AspNetCore.Authorization;
 using FurchaAdminApi.Models.Request;
 using Domain.Attributes;
+using FurchaDAL.Models;
 
 namespace FurchaAdminApi.Controllers
 {

@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Transactions;
 using User = FurchaDAL.Models.User;
 
 
@@ -386,7 +387,7 @@ namespace FurchaAdminApi.Services
             var companyUid = Db.Administrators.Include(a => a.Company).FirstOrDefault(x => x.Id == adminId).Company.Id;
 #warning Add columns in DB for ActiveTo and ActiveFrom. Determine user STATE based on that. Include this logic in GetAllUsersOfAdmin.
 
-            var result = _userRepository.AddUser(newUser);
+            var result = AddUser(newUser);
 
             var mqttRequest = new MqttBaseRequest<UserResult>
             {
@@ -402,7 +403,7 @@ namespace FurchaAdminApi.Services
 
         public UserGroupResult AddUserGroup(UserGroupRequest userGroupRequest)
         {
-            var group = _userRepository.AddUserGroup(userGroupRequest);
+            var group = AddUserGroupToDb(userGroupRequest);
 
             var result = new UserGroupResult
             {
@@ -415,6 +416,170 @@ namespace FurchaAdminApi.Services
 
             return result;
         }
+
+        private FurchaDAL.Models.UserGroup AddUserGroupToDb(UserGroupRequest userGroupRequest)
+        {
+            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == userGroupRequest.adminId).CompanyId;
+
+            if (companyId == null)
+            {
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "Company not found for admin.");
+            }
+
+            var group = new FurchaDAL.Models.UserGroup
+            {
+                State = (int)StateEnum.active,
+                CompanyId = (int)companyId,
+                Name = userGroupRequest.Name,
+                Description = string.Empty
+            };
+
+            Db.Add(group);
+            Db.SaveChanges();
+
+            return group;
+        }
+
+
+        private UserResult AddUser(UserCreateRequest newUser)
+        {
+            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == newUser.adminId).CompanyId; 
+            var state = StateEnum.active;
+
+            if (companyId == null)
+            {
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
+            }
+
+            if (newUser.ActiveFrom != null && newUser.ActiveFrom > DateTime.Now)
+            {
+                state = StateEnum.active;
+            }
+            else if (newUser.ActiveTo < DateTime.Now)
+            {
+                state = StateEnum.expanded;
+            }
+
+            try
+            {
+                using (var transactionScope = new TransactionScope(TransactionScopeOption.Required,
+                    new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                    TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    var user = new User
+                    {
+                        Name = newUser.Name,
+                        Surname = newUser.Surname,
+                        Email = newUser.Email,
+                        Phone = newUser.Phone,
+                        CreatedDate = DateOnly.FromDayNumber(1),
+                        State = (int)state,
+                        CompanyId = (int)companyId,
+                    };
+
+                    Db.Add(user);
+                    Db.SaveChanges();
+
+                    AddCardsByNumbers(newUser.Cards, user.Id);
+                    AssignLockersToUser(newUser.LockerIds, user.Id);
+                    AssignUserGroupsToUser(newUser.UserGroups, user.Id);
+
+                    transactionScope.Complete();
+
+                    return new UserResult
+                    {
+                        Id = user.Id,
+                        Name = user.Name,
+                        Surname = user.Surname,
+                        Role = RoleEnum.user.ToString(),
+                        State = user.State.ToString()
+                    };
+                }
+            }
+            catch (BaseException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
+            }
+        }
+
+        private void AssignUserGroupsToUser(List<int> groupIds, int userId)
+        {
+            try
+            {
+                foreach (var id in groupIds)
+                {
+                    var userUserGroup = new User_UserGroup
+                    {
+                        UserId = userId,
+                        UserGroupId = id
+                    };
+
+                    Db.Add(userUserGroup);
+                }
+
+                Db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
+            }
+        }
+
+        private void AssignLockersToUser(List<int> lockerIds, int userId)
+        {
+            try
+            {
+                foreach (var id in lockerIds)
+                {
+                    var userLocker = new UserLocker
+                    {
+                        UserId = userId,
+                        LockerId = id
+                    };
+
+                    Db.Add(userLocker);
+                }
+
+                Db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
+            }
+        }
+
+        private List<FurchaDAL.Models.Card> AddCardsByNumbers(List<string> cardNumbers, int userId)
+        {
+            var result = new List<FurchaDAL.Models.Card>();
+
+            try
+            {
+                foreach (var cardNumber in cardNumbers)
+                {
+                    var card = new FurchaDAL.Models.Card
+                    {
+                        CardNumber = cardNumber,
+                        UserId = userId
+                    };
+
+                    result.Add(card);
+                    Db.Add(card);
+                }
+
+                Db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
+            }
+
+            return result;
+        }
+
 
     }
 }

@@ -97,7 +97,7 @@ namespace FurchaAdminApi.Repos
         }
 
 #warning add auth adminId
-        public List<Branch> SearchBranchByAdminId(string name, int adminId)
+/*        public List<Branch> SearchBranchByAdminId(string name, int adminId)
         {
             var companyId = Db.Administrators
                 .Where(a => a.Id == adminId)
@@ -111,7 +111,7 @@ namespace FurchaAdminApi.Repos
 
             return branches;
         }
-
+*/
         public BranchAddress GetBranchAddressById(int id)
         {
             var res = GetSingle<BranchAddress>(where: $"\"Id\" = @id", whereParam: new { id });
