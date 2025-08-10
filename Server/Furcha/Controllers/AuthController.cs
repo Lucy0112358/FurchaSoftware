@@ -34,15 +34,25 @@ namespace FurchaAdminApi.Controllers
             var uname = GetClaimValue("UName");
             var role = GetClaimValue("URole");
             var permissionsJson = User.FindFirst("Permissions")?.Value;
-            var permissions = JsonSerializer.Deserialize<List<string>>(permissionsJson);
+
+            List<string>? permissions = null;
+            if (!string.IsNullOrEmpty(permissionsJson))
+            {
+                permissions = JsonSerializer.Deserialize<List<string>>(permissionsJson);
+            }
+            else
+            {
+                permissions = new List<string>(); // or leave null if you prefer
+            }
 
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("User ID claim is missing");
             }
 
-            return Ok(new { UserId = userId, Email = email, Name = uname, Role = role, Permissions = permissions});
+            return Ok(new { UserId = userId, Email = email, Name = uname, Role = role, Permissions = permissions });
         }
+
 
         [Authorize]
         [HttpGet("roles")]
