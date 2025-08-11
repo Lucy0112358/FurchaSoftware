@@ -23,9 +23,9 @@ namespace FurchaAdminApi.Services
         private readonly BranchRepository _branchRepository;
         private readonly UserRepository _userRepository;
         private readonly furchaContext Db;
-        private readonly IMqttApiService _mqttService;
+        private readonly MqttService _mqttService;
 
-        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository, IMqttApiService mqttService, furchaContext db)
+        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository, MqttService mqttService, furchaContext db)
         {
             _lockerRepository = lockerRepository;
             _branchRepository = branchRepository;
@@ -517,7 +517,7 @@ namespace FurchaAdminApi.Services
                 Data = lockerIds
             };
 
-            await _mqttService.PublishMqttCommands<List<int>>(mqttRequest, "6", "1"); // take from claims
+            await _mqttService.PublishToMqtt<List<int>>(mqttRequest, "1"); // take from claims
         }
 
         public void SetUser(List<int> lockerIds, int userId)

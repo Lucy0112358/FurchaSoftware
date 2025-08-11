@@ -1,5 +1,4 @@
-﻿using BLL.Services;
-using Domain.Configuration;
+﻿using Domain.Configuration;
 using FurchaAdminApi.Middlewares;
 using FurchaAdminApi.Repos;
 using FurchaAdminApi.Services;

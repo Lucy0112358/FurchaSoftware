@@ -1,5 +1,4 @@
-﻿using BLL.Services;
-using FurchaBLL.Models;
+﻿using FurchaBLL.Models;
 using FurchaDAL.Models;
 
 namespace FurchaBLL.Services

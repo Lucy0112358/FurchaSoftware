@@ -1,5 +1,4 @@
-﻿using BLL.Services;
-using FurchaDAL.Models;
+﻿using FurchaDAL.Models;
 using FurchaJobService.Workers;
 using Microsoft.EntityFrameworkCore;
 using MQTTnet;

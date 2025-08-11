@@ -105,10 +105,6 @@ namespace FurchaAdminApi
             });
 
             builder.Services.AddSingleton<IMqttApiService, MqttApiService>();
-            builder.Services.AddHostedService<MqttHostedService>();
-
-            builder.Services.AddSingleton<IMqttClient>(new MqttFactory().CreateMqttClient());
-
             builder.Services.AddSingleton<MqttClientOptions>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>().GetSection("MqttSettings");
@@ -118,6 +114,8 @@ namespace FurchaAdminApi
                     .WithCredentials(config["Username"], config["Password"])
                     .Build();
             });
+
+            builder.Services.AddSingleton<MqttService>();
 
             var app = builder.Build();
 

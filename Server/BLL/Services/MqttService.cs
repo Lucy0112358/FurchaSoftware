@@ -1,136 +1,179 @@
-﻿using Domain.Entities;
-using FurchaBLL.Constants;
-using FurchaBLL.MqttModels;
+﻿using FurchaBLL.Constants;
 using FurchaBLL.MqttModels.Publish;
 using FurchaBLL.MqttModels.Subscribe;
-using MQTTnet;
+using FurchaBLL.MqttModels;
+using Microsoft.Extensions.Logging;
 using MQTTnet.Client;
-using MQTTnet.Server;
-using System.Text;
+using MQTTnet;
 using System.Text.Json;
+using System.Text;
+using FurchaDAL.Models;
 
-namespace BLL.Services
+public class MqttService
 {
-    public class MqttService
+    private readonly IMqttClient _mqttClient;
+    private readonly MqttClientOptions _mqttOptions;
+    private readonly ILogger<MqttService> _logger;
+
+    public MqttService(IMqttClient mqttClient, MqttClientOptions mqttOptions, ILogger<MqttService> logger)
     {
-        private readonly IMqttClient _mqttClient;
-        private readonly MqttClientOptions _mqttOptions;
-        // inject dbcontext
+        _mqttClient = mqttClient;
+        _mqttOptions = mqttOptions;
+        _logger = logger;
+    }
 
-        public MqttService(IMqttClient mqttClient, MqttClientOptions mqttOptions)
+    public async Task InitializeClient(CancellationToken stoppingToken)
+    {
+        _mqttClient.ConnectedAsync += async e =>
         {
-            _mqttClient = mqttClient;
-            _mqttOptions = mqttOptions;
-        }
+            _logger.LogInformation("Connected to MQTT broker. Subscribing to topics...");
 
-        public async Task InitializeClient()
+            await _mqttClient.SubscribeAsync("$CONTROL/dynamic-security/#");
+            await _mqttClient.SubscribeAsync("$SYS/broker/clients/connected");
+            await _mqttClient.SubscribeAsync("webserver/#");
+            await _mqttClient.SubscribeAsync("server/status/will");
+
+            var topic = "controller/status/will";
+            var mqttMessage = new MqttApplicationMessageBuilder()
+                .WithTopic(topic)
+                .WithPayload("{\"Status\":\"Online\"}")
+                .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+                .Build();
+
+            await _mqttClient.PublishAsync(mqttMessage);
+        };
+
+        _mqttClient.DisconnectedAsync += async e =>
         {
+            if (stoppingToken.IsCancellationRequested) return;
 
-            _mqttClient.ConnectedAsync += async e =>
-            {
-                await _mqttClient.SubscribeAsync("$CONTROL/dynamic-security/#");
-                await _mqttClient.SubscribeAsync("$SYS/broker/clients/connected");
-                await _mqttClient.SubscribeAsync("webserver/#");
-                await _mqttClient.SubscribeAsync("server/status/will");
-                var topic = "controller/status/will";
-                var mqttMessage = new MqttApplicationMessageBuilder()
-                    .WithTopic(topic)
-                    .WithPayload(Encoding.UTF8.GetBytes("{\"Status\":\"Online\"}"))
-                    .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
-                    .Build();
-
-                await _mqttClient.PublishAsync(mqttMessage);
-            };
-
-            _mqttClient.ApplicationMessageReceivedAsync += HandleRequest;
+            _logger.LogWarning("MQTT disconnected. Reason: {Reason}", e.Reason);
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
 
             try
             {
-                var connectResult = await _mqttClient.ConnectAsync(_mqttOptions).ConfigureAwait(false);
-
-                if (connectResult.ResultCode != MqttClientConnectResultCode.Success)
-                {
-                    Environment.Exit(-1);
-                }
+                await _mqttClient.ConnectAsync(_mqttOptions, stoppingToken);
             }
             catch (Exception ex)
             {
-                Environment.Exit(-1);
+                _logger.LogError(ex, "Reconnection attempt failed.");
             }
-        }
+        };
 
-        private async Task HandleRequest(MqttApplicationMessageReceivedEventArgs e)
+        _mqttClient.ApplicationMessageReceivedAsync += HandleRequest;
+
+        await ConnectWithRetry(stoppingToken);
+    }
+
+    private async Task ConnectWithRetry(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
         {
-            var topic = e.ApplicationMessage.Topic;
-            var responseMessage = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-            var message = JsonSerializer.Deserialize<MqttBaseRequest<object>>(responseMessage);
+            try
+            {
+                var result = await _mqttClient.ConnectAsync(_mqttOptions, stoppingToken);
+                if (result.ResultCode == MqttClientConnectResultCode.Success)
+                {
+                    _logger.LogInformation("MQTT connected successfully.");
+                    break;
+                }
+
+                _logger.LogWarning("MQTT connection failed: {Result}. Retrying...", result.ResultCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "MQTT connection failed. Retrying in 5 seconds...");
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+        }
+    }
+
+    private async Task HandleRequest(MqttApplicationMessageReceivedEventArgs e)
+  {
+        var topic = e.ApplicationMessage.Topic;
+        var responseMessage = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+
+        _logger.LogInformation("Received MQTT message on topic {Topic}", topic);
+
+        try
+        {    
 
             if (topic.StartsWith("webserver/"))
             {
-                if (message.Command == (int)CommandTypes.OpenLocker)
+                var message = JsonSerializer.Deserialize<MqttBaseRequest<object>>(responseMessage);
+                switch ((CommandTypes)message.Command)
                 {
-                    var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<Locker>>(responseMessage);
+                    case CommandTypes.OpenLocker:
+                        var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<object>>(responseMessage);
+                        // db update logic
+                        break;
 
-                    // db update
-                }
-                if (message.Command == (int)CommandTypes.OpenLockersFromAdmin)
-                {
-                    var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<int>>>(responseMessage);
-                    // take lockers id-s
-                    // iterate through them 
-                    // save them in the db
-                }
-                if (message.Command == (int)CommandTypes.CreateUserFromAdmin)
-                {
-                    var userPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<Locker>>>(responseMessage);
+                    case CommandTypes.OpenLockersFromAdmin:
+                        var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<int>>>(responseMessage);
+                        // process locker IDs
+                        break;
 
-                    // take user and mark if is added
+                    case CommandTypes.CreateUserFromAdmin:
+                        var userPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<Locker>>>(responseMessage);
+                        // handle user creation
+                        break;
                 }
             }
-
         }
-
-        public async Task AddAccount(Guid? accountUID, string brainPass)
+        catch (JsonException ex)
         {
-            var mqttCompany = new MqttBaseRequest<MqttCreateCompany>
-            {
-                Command = (int)CommandTypes.CreateAccount,
-                Data = new MqttCreateCompany
-                {
-                    Username = accountUID.ToString(),
-                    Password = brainPass,
-                    Roles = new List<MqttRole>
-                    {
-                        new MqttRole { RoleName = "user", Priority = 1 }
-                    }
-                },
-                ReceivedDate = DateTime.UtcNow
-            };
+            _logger.LogInformation("Raw MQTT payload (topic: {Topic}): {Payload}",
+                       e.ApplicationMessage.Topic,
+                       Encoding.UTF8.GetString(e.ApplicationMessage.Payload));
 
-            await PublishToMqtt<MqttCreateCompany>(mqttCompany, "$CONTROL/dynamic-security/v1");
+            _logger.LogError(ex, "Failed to deserialize MQTT payload from topic {Topic}: {Payload}", topic, responseMessage);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling MQTT message from topic {Topic}", topic);
+        }
+    }
 
-        private async Task PublishToMqtt<T>(MqttBaseRequest<T> request, string topic)
+    public async Task AddAccount(Guid? accountUID, string brainPass)
+    {
+        var mqttCompany = new MqttBaseRequest<MqttCreateCompany>
+        {
+            Command = (int)CommandTypes.CreateAccount,
+            Data = new MqttCreateCompany
+            {
+                Username = accountUID.ToString(),
+                Password = brainPass,
+                Roles = new List<MqttRole>
+                {
+                    new MqttRole { RoleName = "user", Priority = 1 }
+                }
+            },
+            ReceivedDate = DateTime.UtcNow
+        };
+
+        await PublishToMqtt(mqttCompany, "$CONTROL/dynamic-security/v1");
+    }
+
+    public async Task PublishToMqtt<T>(MqttBaseRequest<T> request, string topic)
+    {
+        try
         {
             if (!_mqttClient.IsConnected)
                 await _mqttClient.ConnectAsync(_mqttOptions);
 
-            try
-            {
-                var payload = JsonSerializer.Serialize(request);
-                var message = new MqttApplicationMessageBuilder()
-                    .WithTopic(topic)
-                    .WithPayload(payload)
-                    .WithRetainFlag(true)
-                    .Build();
+            var payload = JsonSerializer.Serialize(request);
+            var message = new MqttApplicationMessageBuilder()
+                .WithTopic(topic)
+                .WithPayload(payload)
+                .WithRetainFlag(true)
+                .Build();
 
-                var result = await _mqttClient.PublishAsync(message, CancellationToken.None);
-            }
-            catch (Exception ex)
-            {
-                #warning todo log
-            }
-
+            await _mqttClient.PublishAsync(message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to publish MQTT message to topic {Topic}", topic);
         }
     }
 }

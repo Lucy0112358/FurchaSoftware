@@ -1,4 +1,3 @@
-using BLL.Services;
 
 namespace FurchaJobService.Workers
 {
@@ -17,7 +16,8 @@ namespace FurchaJobService.Workers
         {
             try
             {
-                await _mqttService.InitializeClient();
+                await _mqttService.InitializeClient(stoppingToken);
+
                 _logger.LogInformation("MQTT client initialized.");
 
                 await Task.Delay(Timeout.Infinite, stoppingToken);
