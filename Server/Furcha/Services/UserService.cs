@@ -510,15 +510,17 @@ namespace FurchaAdminApi.Services
         {
             try
             {
-                foreach (var id in groupIds)
-                {
-                    var userUserGroup = new User_UserGroup
-                    {
-                        UserId = userId,
-                        UserGroupId = id
-                    };
+                var user = Db.Users.Include(u => u.UserGroups).FirstOrDefault(u => u.Id == userId);
+                if (user == null)
+                    throw new Exception($"User with Id {userId} not found");
 
-                    Db.Add(userUserGroup);
+                foreach (var groupId in groupIds)
+                {
+                    var group = Db.UserGroups.Find(groupId);
+                    if (group != null && !user.UserGroups.Contains(group))
+                    {
+                        user.UserGroups.Add(group);
+                    }
                 }
 
                 Db.SaveChanges();
@@ -528,6 +530,7 @@ namespace FurchaAdminApi.Services
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
             }
         }
+
 
         private void AssignLockersToUser(List<int> lockerIds, int userId)
         {
