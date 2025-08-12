@@ -97,10 +97,10 @@ namespace FurchaAdminApi.Repos
         }
 
 #warning add auth adminId
-/*        public List<Branch> SearchBranchByAdminId(string name, int adminId)
+/*        public List<Branch> SearchBranchByAdminId(string name, int AdminId)
         {
             var companyId = Db.Administrators
-                .Where(a => a.Id == adminId)
+                .Where(a => a.Id == AdminId)
                 .Select(a => a.CompanyId)
                 .FirstOrDefault();
 

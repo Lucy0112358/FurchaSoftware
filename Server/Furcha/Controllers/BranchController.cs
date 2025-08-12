@@ -29,14 +29,14 @@ namespace FurchaAdminApi.Controllers
 
             if (branches == null || !branches.Any())
             {
-                return NotFound(ApiResult<List<BranchFilterResult>>.ErrorResult("No branches found for the provided admin ID."));
+                return Ok(ApiResult<List<BranchFilterResult>>.ErrorResult("No branches found for the provided admin ID."));
             }
 
             return Ok(ApiResult<List<BranchFilterResult>>.Success(branches));
         }
 
         [Authorize]
-      //  [RequiresPermission("CreateBranch")]
+        [RequiresPermission("CreateBranch")]
         [HttpPost("create-branch")]
         public ActionResult<ApiResult<bool>> CreateBranch([FromBody] CreateBranchRequest request)
         {
@@ -72,7 +72,7 @@ namespace FurchaAdminApi.Controllers
         [HttpPut("branches")]
         public ActionResult<ApiResult<bool>> EditBranch([FromQuery] int id, [FromBody] CreateBranchRequest request)
         {
-           // var adminId = GetClaimValue("AdminId");
+           // var AdminId = GetClaimValue("AdminId");
             var branch = _branchService.EditBranch(request,  id);
 
             return Ok(ApiResult<bool>.Success(branch));
@@ -83,7 +83,7 @@ namespace FurchaAdminApi.Controllers
         [HttpDelete("branches/{id}")]
         public ActionResult<ApiResult<bool>> DeleteBranch(int id)
         {
-         //   var adminId = GetClaimValue("AdminId");
+         //   var AdminId = GetClaimValue("AdminId");
             _branchService.DeleteBranch(id);
 
       

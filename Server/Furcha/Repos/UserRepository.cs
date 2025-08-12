@@ -73,7 +73,7 @@ namespace FurchaAdminApi.Repos
                     SELECT a.*, u.*
                     FROM furcha.""Administrators"" a
                     JOIN furcha.""User"" u ON a.""UserId"" = u.""id""
-                    WHERE a.""id"" = @adminId
+                    WHERE a.""id"" = @AdminId
                     LIMIT 1";
 
             var admin = Query<Administrator, User>(
@@ -140,7 +140,7 @@ namespace FurchaAdminApi.Repos
                     ON B.""Id"" = AB.""BranchId""
                  INNER JOIN furcha.""Administrators"" A 
                     ON A.""id"" = AB.""AdministratorId""
-                 WHERE A.""id"" = @adminId";
+                 WHERE A.""id"" = @AdminId";
 
             var branches = Query<Branch>(
                 sql: sql,
@@ -357,7 +357,7 @@ namespace FurchaAdminApi.Repos
         SELECT u.* 
         FROM furcha.""User"" u
         INNER JOIN furcha.""Administrators"" a ON u.""id"" = a.""UserId""
-        WHERE a.""id"" = @adminId
+        WHERE a.""id"" = @AdminId
         LIMIT 1";
 
             var user = Query<User>(
@@ -379,7 +379,7 @@ namespace FurchaAdminApi.Repos
                 FROM furcha.""Branch"" B
                 INNER JOIN furcha.""AdminBranch"" UB 
                 ON B.""Id"" = UB.""BranchId""
-                WHERE UB.""AdministratorId"" = @adminId";
+                WHERE UB.""AdministratorId"" = @AdminId";
 
             var branches = Query<Branch>(
                 sql: sql,
@@ -417,7 +417,7 @@ namespace FurchaAdminApi.Repos
             var sql = $@"
                     SELECT a.""CompanyId""
                     FROM furcha.""Administrators"" a                   
-                    WHERE a.""id"" = @adminId
+                    WHERE a.""id"" = @AdminId
                     LIMIT 1";
 
             var companyId = QuerySingle<int?>(sql, new { adminId });
@@ -430,7 +430,7 @@ namespace FurchaAdminApi.Repos
         /// </summary>
         /// <param name="newUser">The user to be inserted.</param>
         /// <returns>The inserted user model.</returns>
-        public UserResult AddUser(UserCreateRequest newUser)
+      /*  public UserResult AddUser(UserCreateRequest newUser)
         {
             var companyId = GetCompanyIdByAdminId(newUser.adminId);
             var state = new StateEnum();
@@ -503,7 +503,7 @@ namespace FurchaAdminApi.Repos
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
             }
         }
-
+*/
         public void AssignUserGroupsToUser(List<int> groupIds, int userId)
         {
             try
@@ -600,7 +600,7 @@ namespace FurchaAdminApi.Repos
 
         public UserGroup AddUserGroup(UserGroupRequest userGroupRequest)
         {
-            var companyId = GetCompanyIdByAdminId(userGroupRequest.adminId);
+            var companyId = GetCompanyIdByAdminId(userGroupRequest.AdminId);
             var group = new UserGroup
             {
                 State = StateEnum.active,

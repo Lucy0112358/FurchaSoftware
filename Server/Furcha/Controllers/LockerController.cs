@@ -147,7 +147,7 @@ namespace FurchaAdminApi.Controllers
 
             if (lockerGroups == null || !lockerGroups.Any())
             {
-                return NotFound(ApiResult<List<LockerGroup>>.ErrorResult("No user groups found for the provided admin ID."));
+                return Ok(ApiResult<List<LockerGroup>>.ErrorResult("No user groups found for the provided admin ID."));
             }
 
             return Ok(ApiResult<List<LockerGroup>>.Success(lockerGroups));

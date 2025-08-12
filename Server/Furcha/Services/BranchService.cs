@@ -68,7 +68,7 @@ namespace FurchaAdminApi.Services
                             b.Name.ToLower().Contains(name.ToLower()))
                 .ToList();
 
-            return branches// _branchRepository.SearchBranchByAdminId(name, adminId)
+            return branches// _branchRepository.SearchBranchByAdminId(name, AdminId)
               .Select(x => x.ToAllBranchResult(
                     Db.BranchAddresses
                         .Where(a => a.Id == x.AddressId)
@@ -99,7 +99,7 @@ namespace FurchaAdminApi.Services
             var branch = Db.Branches.Add(new FurchaDAL.Models.Branch
             {
                 Name = newBranch.Name,
-                CompanyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId, //_userRepository.GetCompanyIdByAdminId(adminId),
+                CompanyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId, //_userRepository.GetCompanyIdByAdminId(AdminId),
                 AddressId = address.Entity.Id,
                 Comment = newBranch.Comment,
                 Mode = (int)StateEnum.active

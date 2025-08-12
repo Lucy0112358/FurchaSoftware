@@ -143,7 +143,7 @@ namespace FurchaAdminApi.Services
         {
             var branches = Db.Branches
         .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
-        .ToList(); //  _userRepository.GetAllBranchesOfAdmin(adminId);
+        .ToList(); //  _userRepository.GetAllBranchesOfAdmin(AdminId);
 
             var branchFilterResults = branches.Select(branch => new BranchFilterResult
             {
@@ -163,7 +163,7 @@ namespace FurchaAdminApi.Services
 
         public List<UserResult> GetUsersForAdminBasedOnRole(int adminId)
         {
-            var admin = Db.Administrators.First(a => a.Id == adminId); // _userRepository.GetAdminById(adminId);
+            var admin = Db.Administrators.First(a => a.Id == adminId); // _userRepository.GetAdminById(AdminId);
             
             if (admin == null)
             {
@@ -243,7 +243,7 @@ namespace FurchaAdminApi.Services
 
         public List<UserGroupResult>? GetUserGroupsForAdminBasedOnRole(int adminId)
         {
-            var admin = Db.Administrators.Where(a => a.Id == adminId).FirstOrDefault();// _userRepository.GetAdminById(adminId);
+            var admin = Db.Administrators.Where(a => a.Id == adminId).FirstOrDefault();// _userRepository.GetAdminById(AdminId);
 
             if (admin == null)
             {
@@ -387,7 +387,7 @@ namespace FurchaAdminApi.Services
             var companyUid = Db.Administrators.Include(a => a.Company).FirstOrDefault(x => x.Id == adminId).Company.Id;
 #warning Add columns in DB for ActiveTo and ActiveFrom. Determine user STATE based on that. Include this logic in GetAllUsersOfAdmin.
 
-            var result = AddUser(newUser);
+            var result = AddUserToDb(newUser, adminId);
 
             var mqttRequest = new MqttBaseRequest<UserResult>
             {
@@ -419,7 +419,7 @@ namespace FurchaAdminApi.Services
 
         private FurchaDAL.Models.UserGroup AddUserGroupToDb(UserGroupRequest userGroupRequest)
         {
-            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == userGroupRequest.adminId).CompanyId;
+            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == userGroupRequest.AdminId).CompanyId;
 
             if (companyId == null)
             {
@@ -441,9 +441,9 @@ namespace FurchaAdminApi.Services
         }
 
 
-        private UserResult AddUser(UserCreateRequest newUser)
+        private UserResult AddUserToDb(UserCreateRequest newUser, int adminId)
         {
-            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == newUser.adminId).CompanyId; 
+            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId; 
             var state = StateEnum.active;
 
             if (companyId == null)

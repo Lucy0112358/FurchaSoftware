@@ -99,7 +99,7 @@ namespace FurchaAdminApi.Controllers
 
             if (admins == null || !admins.Any())
             {
-                return NotFound(ApiResult<List<AdminResult>>.ErrorResult("No admins found for the provided company ID."));
+                return Ok(ApiResult<List<AdminResult>>.ErrorResult("No admins found for the provided company ID."));
             }
 
             return Ok(ApiResult<List<AdminResult>>.Success(admins));

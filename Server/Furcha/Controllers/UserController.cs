@@ -34,7 +34,7 @@ namespace FurchaAdminApi.Controllers
 
             if (users == null || !users.Any())
             {
-                return NotFound(ApiResult<List<BranchFilterResult>>.ErrorResult("No branches found for the provided admin ID."));
+                return Ok(ApiResult<List<BranchFilterResult>>.ErrorResult("No branches found for the provided admin ID."));
             }
 
             return Ok(ApiResult<List<UserResult>>.Success(users));
@@ -53,7 +53,7 @@ namespace FurchaAdminApi.Controllers
 
             if (users == null || !users.Any())
             {
-                return NotFound(ApiResult<List<UserResult>>.ErrorResult("No filtered users found for the given criteria."));
+                return Ok(ApiResult<List<UserResult>>.ErrorResult("No filtered users found for the given criteria."));
             }
 
             return Ok(ApiResult<List<UserResult>>.Success(users));
@@ -69,7 +69,7 @@ namespace FurchaAdminApi.Controllers
 
             if (userGroups == null)
             {
-                return NotFound(ApiResult<List<UserGroupResult>>.ErrorResult("No user groups found for the current admin permissions"));
+                return Ok(ApiResult<List<UserGroupResult>>.ErrorResult("No user groups found for the current admin permissions"));
             }
 
             return Ok(ApiResult<List<UserGroupResult>>.Success(userGroups));
@@ -122,6 +122,10 @@ namespace FurchaAdminApi.Controllers
             {
                 return BadRequest(ApiResult<UserGroupResult>.ErrorResult("Invalid data."));
             }
+
+            var adminId = GetClaimValue("AdminId");
+
+            userGroupRequest.AdminId = int.Parse(adminId);
 
             try
             {

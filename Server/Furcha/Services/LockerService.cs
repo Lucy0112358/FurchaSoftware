@@ -193,7 +193,7 @@ namespace FurchaAdminApi.Services
             var accountId = Db.Administrators
                 .Where(a => a.Id == adminId)
                 .Select(a => a.CompanyId)
-                .FirstOrDefault(); // _userRepository.GetCompanyIdByAdminId(adminId);
+                .FirstOrDefault(); // _userRepository.GetCompanyIdByAdminId(AdminId);
 
             // var lockerGroups = _lockerRepository.GetBrainModulesByBranchAndStatus(4, 1);
             var lockerGroups = Db.BrainModules
@@ -412,7 +412,7 @@ namespace FurchaAdminApi.Services
                 select lg
             ).ToList();
 
-            //_lockerRepository.GetLockerGroupsByAdminId(adminId);
+            //_lockerRepository.GetLockerGroupsByAdminId(AdminId);
             return lockerGroups;
         }
 
