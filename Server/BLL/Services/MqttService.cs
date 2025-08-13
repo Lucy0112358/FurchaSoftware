@@ -14,12 +14,14 @@ public class MqttService
     private readonly IMqttClient _mqttClient;
     private readonly MqttClientOptions _mqttOptions;
     private readonly ILogger<MqttService> _logger;
+    private readonly furchaContext Db;
 
-    public MqttService(IMqttClient mqttClient, MqttClientOptions mqttOptions, ILogger<MqttService> logger)
+    public MqttService(IMqttClient mqttClient, MqttClientOptions mqttOptions, ILogger<MqttService> logger, furchaContext db)
     {
         _mqttClient = mqttClient;
         _mqttOptions = mqttOptions;
         _logger = logger;
+        Db = db;
     }
 
     public async Task InitializeClient(CancellationToken stoppingToken)
@@ -90,33 +92,52 @@ public class MqttService
     }
 
     private async Task HandleRequest(MqttApplicationMessageReceivedEventArgs e)
-  {
+    {
         var topic = e.ApplicationMessage.Topic;
         var responseMessage = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
 
         _logger.LogInformation("Received MQTT message on topic {Topic}", topic);
 
         try
-        {    
-
+        {
             if (topic.StartsWith("webserver/"))
             {
                 var message = JsonSerializer.Deserialize<MqttBaseRequest<object>>(responseMessage);
                 switch ((CommandTypes)message.Command)
                 {
                     case CommandTypes.OpenLocker:
-                        var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<object>>(responseMessage);
-                        // db update logic
+                        var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<OpenLockerRequest>>(responseMessage);
+                        var dbLocker = Db.Lockers.Where(x => x.Id == lockerPayload.Data.LockerId).FirstOrDefault();
+                        dbLocker.LockerStatus = lockerPayload.Data.Status;
+                        Db.SaveChanges();
                         break;
 
                     case CommandTypes.OpenLockersFromAdmin:
-                        var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<int>>>(responseMessage);
-                        // process locker IDs
+                        object _lockerLock = new object();
+                        lock (_lockerLock)
+                        {
+                            var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<OpenLockerRequest>>>(responseMessage);
+                            foreach (var locker in lockersPayload.Data)
+                            {
+                                var l = Db.Lockers.FirstOrDefault(x => x.Id == locker.LockerId);
+                                if (l != null)
+                                {
+                                    l.LockerStatus = locker.Status;
+                                }
+                            }
+                            Db.SaveChanges();
+                        }
                         break;
 
                     case CommandTypes.CreateUserFromAdmin:
-                        var userPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<Locker>>>(responseMessage);
-                        // handle user creation
+                        object _userLock = new object();
+                        lock (_userLock)
+                        {
+                            var userPayload = JsonSerializer.Deserialize<MqttBaseRequest<MqttUserRequest>>(responseMessage); // send 1 for success and 0 otherwise
+                            var dbUser = Db.Users.FirstOrDefault(x => x.Id == userPayload.Data.UserId);
+                            dbUser.IsMqtt = userPayload.Data.Success;
+                            Db.SaveChanges();
+                        }
                         break;
                 }
             }

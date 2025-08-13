@@ -23,6 +23,8 @@ public partial class User
 
     public int State { get; set; }
 
+    public byte? IsMqtt { get; set; }
+
     public virtual ICollection<Administrator> Administrators { get; set; } = new List<Administrator>();
 
     public virtual ICollection<UserBranch> UserBranches { get; set; } = new List<UserBranch>();
