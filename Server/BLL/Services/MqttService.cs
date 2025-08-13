@@ -133,12 +133,17 @@ public class MqttService
                         object _userLock = new object();
                         lock (_userLock)
                         {
-                            var userPayload = JsonSerializer.Deserialize<MqttBaseRequest<MqttUserRequest>>(responseMessage); // send 1 for success and 0 otherwise
+                            var userPayload = JsonSerializer.Deserialize<MqttBaseRequest<MqttUserRequest>>(responseMessage);
                             var dbUser = Db.Users.FirstOrDefault(x => x.Id == userPayload.Data.UserId);
                             dbUser.IsMqtt = userPayload.Data.Success;
                             Db.SaveChanges();
                         }
                         break;
+
+                    case CommandTypes.CreateBrainModule:
+                        var modulePayload = JsonSerializer.Deserialize<MqttBaseRequest<MqttUserRequest>>(responseMessage);
+                        break;
+
                 }
             }
         }
