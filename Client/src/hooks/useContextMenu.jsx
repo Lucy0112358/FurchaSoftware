@@ -16,7 +16,7 @@ export function useContextMenu(selectedIds = []) {
   }, []);
 
   const handleRightClick = useCallback((e, target = null) => {
-    if (!manage) return;
+    // if (!manage) return;
     e.preventDefault();
     const popupX = e.clientX + window.scrollX;
     const popupY = e.clientY + window.scrollY;

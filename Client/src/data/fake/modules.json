@@ -1,29 +1,25 @@
 {
     "data": [
         {
-            "officeName": "Tallin office",
+            "branchName": "Tallin Branch",
             "modules": [
                 {
-                    "groupName": "LG1 - 1st floor Lockers",
-                    "groupModules": [
-                        {
-                            "firstLocker": 1,
-                            "lastLocker": 256
-                        },
-                        {
-                            "firstLocker": 257,
-                            "lastLocker": 512
-                        }
-                    ]
+                    "id": 1,
+                    "lockersRange": "",
+                    "accessControl": 20,
+                    "alarmSystem": 15
                 },
                 {
-                    "groupName": "LG1 - 2st floor Lockers",
-                    "groupModules": [
-                        {
-                            "firstLocker": 1,
-                            "lastLocker": 20
-                        }
-                    ]
+                    "id": 2,
+                    "lockersRange": "256-410",
+                    "accessControl": 9,
+                    "alarmSystem": null
+                },
+                {
+                    "id": 3,
+                    "lockersRange": "411-415",
+                    "accessControl": 17,
+                    "alarmSystem": 9
                 }
             ]
         }

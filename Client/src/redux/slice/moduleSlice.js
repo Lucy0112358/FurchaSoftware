@@ -1,18 +1,28 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getBranches, getLockerGroupsData} from "../api/menuApi";
+import { getBranches, getLockerGroupsData } from "../api/menuApi";
 import { userSlice } from "./userSlice";
-import { getLockerGroupRange, getModules, getNewBrains} from "../api/moduleApi";
+import { getLockerGroupRange, getModul, getModules, getNewBrains } from "../api/moduleApi";
+import { LockerTypes } from "../../enums/Locker/Types";
 
 const initialState = {
   modalBranches: [],
   allModules: {},
-  modalGroups: {},
-  modalGroupsCopy: {},
+  modalGroups: [],
+  modalGroupsCopy: [],
   newBrains: {},
   lockerGroupMinMax: {
     min: 1,
     max: 256,
   },
+  module: {
+    lockerType: 'personal',
+    lockerGroupId: 2,
+    lockerRange: {
+      start: 1,
+      end: 256
+    }
+  }
+
 };
 
 export const moduleSlice = createSlice({
@@ -42,14 +52,17 @@ export const moduleSlice = createSlice({
         moduleSlice.caseReducers.setLockerGroup(state, action.payload.data);
       })
       .addCase(getModules.fulfilled, (state, action) => {
-        state.allModules =  action.payload.data;
+        state.allModules = action.payload.data;
       })
       .addCase(getNewBrains.fulfilled, (state, action) => {
         state.newBrains = action.payload.data;
       })
+      .addCase(getModul.fulfilled, (state, action) => {
+        state.module = action.payload.data;
+      })
       .addCase(getLockerGroupRange.fulfilled, (state, action) => {
         state.lockerGroupMinMax = {
-          min: action.payload.data?.lastLocker?? 1,
+          min: action.payload.data?.lastLocker ?? 1,
           max: 256,
         };
       });
@@ -65,6 +78,7 @@ export const getModuleModalBranches = (state) => state.modules.modalBranches;
 export const getModulesData = (state) => state.modules.allModules;
 export const getNewBrainsData = (state) => state.modules.newBrains;
 export const getLockerGroupMinMax = (state) => state.modules.lockerGroupMinMax;
+export const getModule = (state) => state.modules.module;
 
 
 export default moduleSlice.reducer;

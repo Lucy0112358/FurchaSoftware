@@ -54,6 +54,23 @@ export const getModules = createAsyncThunk(
       }
   )
 
+  export const getModul = createAsyncThunk(
+    'modules/getModul',
+    async ({id}, thunkAPI) => {
+        try {
+          const config = {
+            method: "get",
+            url: 'Module/' + id,
+          };
+          
+          const response = await instance(config);
+          return response?.data;
+        } catch (error) {
+          return thunkAPI.rejectWithValue(error.response.data.error.both);
+        }
+      }
+  )
+
   export const getLockerGroupRange = createAsyncThunk(
     'modules/getLockerGroupRange',
     async ({brainId, groupId}, thunkAPI) => {

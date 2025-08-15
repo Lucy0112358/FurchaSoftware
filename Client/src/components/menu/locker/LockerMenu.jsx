@@ -40,11 +40,11 @@ function LockerMenu() {
   const { hasPermission } = useHasPermission();
 
   const branchOptions = Array.isArray(branches)
-    ? branches.map(branch => ({ label: branch.name, value: branch.id }))
+    ? branches?.map(branch => ({ label: branch.name, value: branch.id }))
     : [];
 
   const groupOptions = Array.isArray(lockerGroups)
-    ? lockerGroups.map(group => ({ label: group.name, value: group.id }))
+    ? lockerGroups?.map(group => ({ label: group.name, value: group.id }))
     : [];
 
   const handleSelectChange = (selectedOption) => {

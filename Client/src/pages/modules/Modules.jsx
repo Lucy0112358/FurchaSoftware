@@ -3,39 +3,36 @@ import axios from 'axios';
 import React, { useEffect, useRef, useState } from "react";
 import NoData from '../../components/no-data/NoData';
 import modules from '../../data/fake/modules.json'
+import './modules.css';
 import OfficeName from '../../components/headers/OfficeName';
 import GroupName from '../../components/headers/GroupName';
-import ModulesCard from '../../components/modules/ModulesCard';
+import ModuleChain from '../../components/modules/PhotoCreator/ModuleChain';
 import { useDispatch, useSelector } from 'react-redux';
 import { getModules } from '../../redux/api/moduleApi';
 import { getModulesData } from '../../redux/slice/moduleSlice';
-import ModulePopup from '../../components/popups/modules/ModulePopup';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import data from '../../data/fake/modules.json'; // Assuming this is the correct path to your fake data
+import LockerPhoto from '../../components/modules/PhotoCreator/LockerPhoto';
+import AccessControl from '../../components/modules/PhotoCreator/AccessControl';
+import AlarmSystem from '../../components/modules/PhotoCreator/AlarmSystem';
+import EditModulesModal from '../../components/modals/modules/EditModulesModal';
 
 const Modules = () => {
-    const allModules = useSelector(getModulesData);
+    // const allModules = useSelector(getModulesData);
+    const allModules = data.data;
+    const [editItemId, setEditItemId] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    console.log(allModules, 'allModules');
+
     const dispatch = useDispatch();
-    const {
-        popup,
-        handleRightClick,
-        handleGlobalClick,
-        closePopup,
-    } = useContextMenu();
 
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (popup.visible && popupRef.current && !popupRef.current.contains(e.target)) {
-                closePopup();
-            }
-        };
-
-        window.addEventListener('click', handleClickOutside);
-        return () => {
-            window.removeEventListener('click', handleClickOutside);
-        };
-    }, [popup.visible]);
-
-    const popupRef = useRef(null);
+    const handleRightClick = (e, target) => {
+        e.preventDefault();
+        setEditItemId(target.id);
+        setShowModal(true);
+        console.log('target', target);
+        
+    }
 
     useEffect(() => {
         dispatch(getModules())
@@ -44,42 +41,52 @@ const Modules = () => {
     return (
         <div
             className="select-none"
-            onClick={handleGlobalClick}>
+            onContextMenu={(e) => e.preventDefault()}
+        >
+            {showModal && <EditModulesModal id={editItemId} onClose={() => setShowModal(false)} />}
             {allModules.length ? (
-                allModules.map((moduleGroupe, index) => (
+                allModules.map((branch, index) => (
                     <React.Fragment key={index}>
-                        <OfficeName name={moduleGroupe.officeName} />
-                        <div className='pl-5'>
-                            {moduleGroupe.modules.map((groupModules, groupIndex) => (
-                                <React.Fragment key={groupIndex}>
-                                    <GroupName name={groupModules.groupName} />
-                                    <div className='mb-4 flex flex-col'>
-                                        {groupModules.groupModules.map((item, itemIndex) => (
-                                            <div
-                                                key={itemIndex}
-                                                className="mr-2 mb-2"
-                                                onContextMenu={(e) => handleRightClick(e, item)}>
-                                                <ModulesCard firstLocker={item.firstLocker} lastLocker={item.lastLocker} />
-                                            </div>
+                        <OfficeName name={branch.branchName} />
+                        <div className='modules-part'>
+                            <React.Fragment>
+                                <div className='mb-4 flex flex-col'>
+                                    <table className="">
+                                        <thead className="">
+                                            <tr>
+                                                <th className="py-3 px-4 text-left text-gray-300 border-none">Module Chain</th>
+                                                <th className="py-3 px-4 text-left text-gray-300  border-none">Lockers Range</th>
+                                                {/* <th className="py-3 px-4 text-left text-gray-300 border-none">Access Control</th> */}
+                                                {/* <th className="py-3 px-4 text-left text-gray-300">Alarm System</th> */}
+                                            </tr>
+                                        </thead>
+                                        {branch.modules.map((module) => (
+                                            <tbody
+                                                onContextMenu={(e) => handleRightClick(e, module)}>
+                                                <tr
+                                                    key={module.id}
+                                                    className=""
+                                                >
+                                                    <td className="py-3 px-4 border-none">
+                                                        <ModuleChain id={module.id} />
+                                                    </td>
+                                                    <td className="py-3 px-4 border-none">
+                                                        {module.lockersRange && <LockerPhoto lockerRange={module.lockersRange} />}
+                                                    </td>
+                                                    {/* <td className="py-3 px-4 border-none">
+                                                        <AccessControl accessControl={module.accessControl} />
+                                                    </td> */}
+                                                    {/* <td className="py-3 px-4 border-none">
+                                                        <AlarmSystem alarmSystem={module.alarmSystem} />
+                                                    </td> */}
+                                                </tr>
+                                            </tbody>
                                         ))}
-                                    </div>
-                                </React.Fragment>
-                            ))}
+                                    </table>
+                                </div>
+                            </React.Fragment>
                         </div>
-                        {popup.visible && (
-                            <div
-                                ref={popupRef}
-                                style={{
-                                    position: 'absolute',
-                                    top: popup.y,
-                                    left: popup.x,
-                                    zIndex: 999,
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <ModulePopup module={popup.target} onClose={closePopup} />
-                            </div>
-                        )}
+                        
                     </React.Fragment>
                 ))
             ) : (

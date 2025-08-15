@@ -44,7 +44,7 @@ const Signin = () => {
                 <div className="w-96">
                     <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
                     <Formik
-                        initialValues={{ email: 'user7@example.com', password: '123456' }}
+                        initialValues={{ email: 'lusinehsahakian@gmail.com', password: '123456' }}
                         validationSchema={validationSchema}
                         onSubmit={handleSubmit}
                     >
