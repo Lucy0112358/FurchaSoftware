@@ -36,7 +36,7 @@ namespace FurchaAdminApi.Controllers
         }
 
         [Authorize]
-        [RequiresPermission("CreateBranch")]
+      //  [RequiresPermission("CreateBranch")]
         [HttpPost("create-branch")]
         public ActionResult<ApiResult<bool>> CreateBranch([FromBody] CreateBranchRequest request)
         {

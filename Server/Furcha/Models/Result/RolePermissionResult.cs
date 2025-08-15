@@ -6,7 +6,7 @@
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
         public bool IsOptional { get; set; }
-        public int ObjectTypeId { get; set; }
+        public int? ObjectTypeId { get; set; }
     }
 
 }

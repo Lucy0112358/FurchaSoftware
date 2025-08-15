@@ -1,9 +1,14 @@
 ﻿using Domain.Configuration;
 using FurchaAdminApi.Infrustructures;
 using FurchaAdminApi.Middlewares;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using MQTTnet.Client;
+using MQTTnet;
 using Npgsql;
+using FurchaBLL.Services;
+using FurchaBLL.Interfaces;
+using FurchaDAL.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace FurchaAdminApi
 {
@@ -48,12 +53,21 @@ namespace FurchaAdminApi
                 var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
                 return new NpgsqlConnection(connectionString);
             });
+            builder.Services.AddDbContext<furchaContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
+
 
             var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
             EncryptionSettings.EncryptionKey = encryptionSettings["EncryptionKey"];
             EncryptionSettings.Issuer = encryptionSettings["Issuer"];
             EncryptionSettings.Audience = encryptionSettings["Audience"];
+            builder.Services.AddScoped<CompanyService>();
 
+            builder.Services.AddSingleton<IMqttClient>(sp =>
+            {
+                var factory = new MqttFactory();
+                return factory.CreateMqttClient();
+            });
 
             // Setup JWT Authentication
             JwtConfiguration.SetupJwtAuthentication(builder, EncryptionSettings.EncryptionKey, EncryptionSettings.Issuer, EncryptionSettings.Audience);
@@ -75,37 +89,37 @@ namespace FurchaAdminApi
                 });
 
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] { }
-        }
-    });
-            });
-            var app = builder.Build();
-/*            app.UseExceptionHandler(errorApp =>
-            {
-                errorApp.Run(async context =>
-                {
-                    context.Response.StatusCode = 500;
-                    context.Response.ContentType = "application/json";
-
-                    var exceptionFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-                    var error = exceptionFeature?.Error;
-
-                    Console.WriteLine($"🔥 ERROR: {error?.Message}");
-                    Console.WriteLine(error?.StackTrace);
-
-                    await context.Response.WriteAsync($"{{\"error\":\"{error?.Message}\"}}");
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] { }
+                    }
                 });
-            });*/
+            });
+
+            builder.Services.AddSingleton<IMqttApiService, MqttApiService>();
+            builder.Services.AddHostedService<MqttHostedService>();
+
+            builder.Services.AddSingleton<IMqttClient>(new MqttFactory().CreateMqttClient());
+
+            builder.Services.AddSingleton<MqttClientOptions>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>().GetSection("MqttSettings");
+                return new MqttClientOptionsBuilder()
+                    .WithClientId(config["ClientId"])
+                    .WithTcpServer(config["Server"], int.Parse(config["Port"]))
+                    .WithCredentials(config["Username"], config["Password"])
+                    .Build();
+            });
+
+            var app = builder.Build();
 
             app.UseSwagger();
             app.UseSwaggerUI();

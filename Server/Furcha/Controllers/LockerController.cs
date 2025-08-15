@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Domain.Entities;
 using FurchaAdminApi.Services;
 using Domain.Configuration;
 using FurchaAdminApi.Models.Result;
 using Microsoft.AspNetCore.Authorization;
 using FurchaAdminApi.Models.Request;
 using Domain.Attributes;
+using FurchaDAL.Models;
 
 namespace FurchaAdminApi.Controllers
 {
@@ -32,12 +32,15 @@ namespace FurchaAdminApi.Controllers
             string? userName = null
           )
         {
+            var adminId = GetClaimValue("AdminId");
+
             var lockers = _lockerService.GetLockersByFilters(
                 branchId,
                 lockerType,
                 lockerGroupId,
                 isOpen,
-                userName
+                userName,
+                int.Parse(adminId)
             );
 
             /* if (lockers == null || !lockers.Any())
@@ -118,17 +121,18 @@ namespace FurchaAdminApi.Controllers
         [HttpGet("GetModules")]
         public ActionResult<ApiResult<List<ModuleResult>>> GetModules()
         {
-            var modules = _lockerService.GetModules();
+            var adminId = GetClaimValue("AdminId");
+            var modules = _lockerService.GetModules(int.Parse(adminId));
 
             return Ok(ApiResult<List<ModuleResult>>.Success(modules));
         }
 
         [Authorize]
         [HttpGet("get-new-brains")]
-        public ActionResult<ApiResult<List<NewModulesResult>>> GetNewModules()
+        public ActionResult<ApiResult<List<NewModulesResult>>> GetNewModules([FromQuery] int branchId)
         {
             var adminId = GetClaimValue("AdminId");
-            var modules = _lockerService.GetNewModules(int.Parse(adminId));
+            var modules = _lockerService.GetNewModules(int.Parse(adminId), branchId);
 
             return Ok(ApiResult<List<NewModulesResult>>.Success(modules));
         }
@@ -203,8 +207,8 @@ namespace FurchaAdminApi.Controllers
         {
         }
 
-        [Authorize]
-        [RequiresPermission("ManageLocker")]
+      /*  [Authorize]
+        [RequiresPermission("ManageLocker")]*/
         [HttpPost("open-lockers")]
         public IActionResult OpenLockers([FromBody] List<int> lockerIds)
         {
