@@ -22,4 +22,8 @@ public partial class BrainModule
     public int Status { get; set; }
 
     public Guid? BrainUid { get; set; }
+
+    public int? CompanyId { get; set; }
+
+    public virtual Company Company { get; set; }
 }

@@ -26,4 +26,6 @@ public partial class Company
     public Guid? AccountUid { get; set; }
 
     public virtual ICollection<Administrator> Administrators { get; set; } = new List<Administrator>();
+
+    public virtual ICollection<BrainModule> BrainModules { get; set; } = new List<BrainModule>();
 }

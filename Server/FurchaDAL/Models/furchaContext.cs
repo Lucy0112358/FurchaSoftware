@@ -131,6 +131,10 @@ public partial class furchaContext : DbContext
 
             entity.Property(e => e.MacAddress).HasMaxLength(20);
             entity.Property(e => e.Status).HasDefaultValue(1);
+
+            entity.HasOne(d => d.Company).WithMany(p => p.BrainModules)
+                .HasForeignKey(d => d.CompanyId)
+                .HasConstraintName("FK_BrainModule_Company");
         });
 
         modelBuilder.Entity<Branch>(entity =>

@@ -141,9 +141,19 @@ public class MqttService
                         break;
 
                     case CommandTypes.CreateBrainModule:
-                        var modulePayload = JsonSerializer.Deserialize<MqttBaseRequest<MqttUserRequest>>(responseMessage);
+                        var mqttBrain = JsonSerializer.Deserialize<MqttBaseRequest<MqttCreateBrain>>(responseMessage);
+                        Db.BrainModules.Add(new BrainModule
+                        {
+                            Status = (int)BrainStatuses.New,
+                            CompanyId = mqttBrain.Data.AccountId,
+                            IpAddress = mqttBrain.Data.IpAddress,
+                            MacAddress = mqttBrain.Data.MacAddress,
+                            BrainUid = Guid.Parse(mqttBrain.Data.BrainUID),
+                            Description = mqttBrain.Data.Info,
+                            GroupId = null
+                        });
+                        Db.SaveChanges();
                         break;
-
                 }
             }
         }
