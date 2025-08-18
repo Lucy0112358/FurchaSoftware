@@ -8,7 +8,8 @@
         SynchronizeUsers,
         CreateUserFromAdmin,
         CreateAccount,
-        CreateBrainModule
+        CreateBrainModule,
+        AddLockersToBrain
        
     }
 }

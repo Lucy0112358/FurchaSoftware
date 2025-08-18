@@ -152,7 +152,38 @@ public class MqttService
                             Description = mqttBrain.Data.Info,
                             GroupId = null
                         });
-                        Db.SaveChanges();
+
+                        var added = Db.SaveChanges();
+                        if (added > 0)
+                        {
+                            PublishToMqtt<int>(new MqttBaseRequest<int>
+                            {
+                                Operation = (int)OperationTypes.Success,
+                                Command = (int)CommandTypes.CreateBrainModule
+                            }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933/connection");
+                        }
+                        break;
+
+                    case CommandTypes.AddLockersToBrain:
+                        var lockerCount = JsonSerializer.Deserialize<MqttBaseRequest<MqttLockerCount>>(responseMessage);
+                        for (int i = 0; i < lockerCount.Data.LockerCount; i++)
+                        {
+                            Db.Lockers.Add(new Locker
+                            {
+                                LockerType = "unassigned",
+                                PasswordHash = "test"
+                            });
+                        }
+
+                        var success = Db.SaveChanges();
+                        if (success > 0)
+                        {
+                            PublishToMqtt<int>(new MqttBaseRequest<int>
+                            {
+                                Operation = (int)OperationTypes.Success,
+                                Command = (int)CommandTypes.AddLockersToBrain
+                            }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933/connection");
+                        }
                         break;
                 }
             }
