@@ -21,7 +21,11 @@ public partial class Branch
 
     public virtual ICollection<AdminBranch> AdminBranches { get; set; } = new List<AdminBranch>();
 
+    public virtual ICollection<BrainModule> BrainModules { get; set; } = new List<BrainModule>();
+
     public virtual ICollection<BranchAddress> BranchAddresses { get; set; } = new List<BranchAddress>();
+
+    public virtual ICollection<LockerGroup> LockerGroups { get; set; } = new List<LockerGroup>();
 
     public virtual ICollection<UserBranch> UserBranches { get; set; } = new List<UserBranch>();
 }

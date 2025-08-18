@@ -132,9 +132,18 @@ public partial class furchaContext : DbContext
             entity.Property(e => e.MacAddress).HasMaxLength(20);
             entity.Property(e => e.Status).HasDefaultValue(1);
 
+            entity.HasOne(d => d.Branch).WithMany(p => p.BrainModules)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_BrainModule_Branch");
+
             entity.HasOne(d => d.Company).WithMany(p => p.BrainModules)
                 .HasForeignKey(d => d.CompanyId)
                 .HasConstraintName("FK_BrainModule_Company");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.BrainModules)
+                .HasForeignKey(d => d.GroupId)
+                .HasConstraintName("FK_BrainModule_LockerGroup");
         });
 
         modelBuilder.Entity<Branch>(entity =>
@@ -200,6 +209,10 @@ public partial class furchaContext : DbContext
 
             entity.Property(e => e.LockerType).IsRequired();
             entity.Property(e => e.Number).HasColumnType("numeric(18, 0)");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.Lockers)
+                .HasForeignKey(d => d.GroupId)
+                .HasConstraintName("FK_Locker_LockerGroup");
         });
 
         modelBuilder.Entity<LockerGroup>(entity =>
@@ -212,6 +225,11 @@ public partial class furchaContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.LockerGroups)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_LockerGroup_Branch");
         });
 
         modelBuilder.Entity<ObjectType>(entity =>

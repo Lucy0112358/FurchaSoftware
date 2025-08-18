@@ -10,6 +10,7 @@ using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using BrainModule = FurchaDAL.Models.BrainModule;
 using Locker = FurchaDAL.Models.Locker;
@@ -542,6 +543,22 @@ namespace FurchaAdminApi.Services
             Db.SaveChanges();
         }
 
+        public List<AllModulesResult> GetAllModules(int adminId)
+        {
+            var result = Db.Branches
+                 .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
+                 .Select(b => new AllModulesResult
+                 {
+                     BranchName = b.Name,
+                     Modules = b.BrainModules.Select(x => new BranchModules
+                     {
+                         Id = x.Id,
+                         LockerRange = "1-" + x.Group.Lockers.Count().ToString()
+                     }).ToList()
+                 }).ToList();
+
+            return result;
+        }
 
     }
 }

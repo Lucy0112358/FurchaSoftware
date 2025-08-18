@@ -25,5 +25,9 @@ public partial class BrainModule
 
     public int? CompanyId { get; set; }
 
+    public virtual Branch Branch { get; set; }
+
     public virtual Company Company { get; set; }
+
+    public virtual LockerGroup Group { get; set; }
 }

@@ -9,9 +9,15 @@ public partial class LockerGroup
 {
     public int Id { get; set; }
 
-    public int BranchId { get; set; }
+    public int? BranchId { get; set; }
 
     public string Name { get; set; }
 
     public string Description { get; set; }
+
+    public virtual ICollection<BrainModule> BrainModules { get; set; } = new List<BrainModule>();
+
+    public virtual Branch Branch { get; set; }
+
+    public virtual ICollection<Locker> Lockers { get; set; } = new List<Locker>();
 }
