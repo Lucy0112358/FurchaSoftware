@@ -4,7 +4,7 @@ export const userTable = [
     'Last Name',
     'Role',
     'Card No.',
-    'Site',
+    'Branch',
     'User Group',
     'State',
 ];

@@ -22,12 +22,14 @@ import UserInfoModal from '../../userInfo/UserInfoModal';
 import { useHasPermission } from '../../../hooks/useHasPermission';
 import ModalActionButton from '../../button/ModalActionButton';
 import Manage from '../../manage/Manage';
+import { getAllBranchesData } from '../../../redux/slice/branchSlice';
+import { getAllBranches } from '../../../redux/api/branchApi';
 
 
 function AdminMenu() {
   const dispatch = useDispatch();
 
-  const branches = useSelector(getBranchesData);
+  const branches = useSelector(getAllBranchesData);
   const userGroups = useSelector(getUserGroupsData);
 
   const [selectedBranch, setSelectedBranch] = useState(null);
@@ -39,7 +41,7 @@ function AdminMenu() {
   const { hasPermission } = useHasPermission();
 
   useEffect(() => {
-    dispatch(getBranches());
+    dispatch(getAllBranches());
     dispatch(getLockerGroupsData());
   }, [dispatch]);
 
@@ -105,7 +107,7 @@ function AdminMenu() {
         {/* Filters */}
         <div className="menu__filter flex space-x-4">
           <div className='flex flex-col'>
-            {renderSelect("Site", branchOptions, selectedBranch, (opt) => handleSelectChange(opt, 'branchId', setSelectedBranch))}
+            {renderSelect("Branch", branchOptions, selectedBranch, (opt) => handleSelectChange(opt, 'branchId', setSelectedBranch))}
             {renderSelect("User Group", groupOptions, selectedGroup, (opt) => handleSelectChange(opt, 'groupId', setSelectedGroup))}
           </div>
 
@@ -139,7 +141,7 @@ function AdminMenu() {
       {/* Mobile Filter */}
       <div className="menu__filter__mobile hidden">
         <div className='flex justify-between'>
-          {renderSelect("Site", branchOptions, selectedBranch, (opt) => handleSelectChange(opt, 'branchId', setSelectedBranch))}
+          {renderSelect("Branch", branchOptions, selectedBranch, (opt) => handleSelectChange(opt, 'branchId', setSelectedBranch))}
           {renderSelect("User Group", groupOptions, selectedGroup, (opt) => handleSelectChange(opt, 'groupId', setSelectedGroup))}
           <div className='menu__filter__search'>
             <input type="text" className="w-full p-2 rounded" />

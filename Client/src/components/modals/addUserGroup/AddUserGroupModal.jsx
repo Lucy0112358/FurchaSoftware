@@ -206,7 +206,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
           <div className="flex justify-between flex-col" onContextMenu={(e) => e.preventDefault()}>
             <div className="add__modal__content__part__select w-full">
               <span>Branches</span>
-              <div className="add__modal__content__part__group mb-4">
+              <div className="add__modal__content__part__group mb-4 overflow-x-auto">
                 <div className="flex mr-2">
                   {
                     branches.length > 0 && (

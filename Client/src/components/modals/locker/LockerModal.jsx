@@ -13,10 +13,11 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import CustomSelect from "../../select/CustomSelect";
 import ShowFormikError from "../../error/ShowFormikError";
+import { getAllBranchesData } from "../../../redux/slice/branchSlice";
 
 const LockerModal = ({ onClose }) => {
   const dispatch = useDispatch();
-  const branches = useSelector(getBranchesData);
+  const branches = useSelector(getAllBranchesData);
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
 
   const validationSchema = Yup.object({

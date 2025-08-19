@@ -148,7 +148,7 @@ function ModulesMenu() {
               value={selectedBranch}
               onChange={handleSelectChange}
             />
-            <label className="text-white block">Site</label>
+            <label className="text-white block">Branch</label>
           </div>
           <div className='menu__filter__select'>
             <CustomSelect

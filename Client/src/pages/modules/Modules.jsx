@@ -18,8 +18,8 @@ import AlarmSystem from '../../components/modules/PhotoCreator/AlarmSystem';
 import EditModulesModal from '../../components/modals/modules/EditModulesModal';
 
 const Modules = () => {
-    // const allModules = useSelector(getModulesData);
-    const allModules = data.data;
+    const allModules = useSelector(getModulesData);
+    // const allModules = data.data;
     const [editItemId, setEditItemId] = useState(null);
     const [showModal, setShowModal] = useState(false);
     console.log(allModules, 'allModules');

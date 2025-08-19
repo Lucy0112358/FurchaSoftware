@@ -15,12 +15,12 @@ const initialState = {
     max: 256,
   },
   module: {
-    lockerType: 'personal',
-    lockerGroupId: 2,
-    lockerRange: {
-      start: 1,
-      end: 256
-    }
+    // lockerType: 'personal',
+    // lockerGroupId: 1,
+    // lockerRange: {
+    //   start: 1,
+    //   end: 256
+    // }
   }
 
 };

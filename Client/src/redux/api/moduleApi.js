@@ -37,6 +37,25 @@ export const getModules = createAsyncThunk(
       }
   )
 
+    export const editModule = createAsyncThunk(
+    'modules/editModule',
+    async ({data, id}, thunkAPI) => {
+        try {
+          const config = {
+            method: "post",
+            url: 'modules/' + id,
+            data: data
+          };
+          
+          const response = await instance(config);
+          thunkAPI.dispatch(getModules());
+          return response?.data;
+        } catch (error) {
+          return thunkAPI.rejectWithValue(error.response.data.error.both);
+        }
+      }
+  )
+
   export const getNewBrains = createAsyncThunk(
     'modules/getNewBrains',
     async (_, thunkAPI) => {

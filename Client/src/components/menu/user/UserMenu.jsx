@@ -13,6 +13,8 @@ import Connection from '../../connection/Connection';
 import CustomSelect from '../../select/CustomSelect';
 import UserInfoModal from '../../userInfo/UserInfoModal';
 import Manage from '../../manage/Manage';
+import { getAllBranchesData } from '../../../redux/slice/branchSlice';
+import { getAllBranches } from '../../../redux/api/branchApi';
 
 
 function UserMenu() {
@@ -21,7 +23,7 @@ function UserMenu() {
     const [selectedGroups, setSelectedGroups] = useState(null);
     const userGroupEnabled = useSelector(getSelectGroupSelect);
     const [filters, setFilters] = useState({});
-    const branches = useSelector(getBranchesData);
+    const branches = useSelector(getAllBranchesData);
     const userGroups = useSelector(getUserGroupsData);
     const [inputValue, setInputValue] = useState('');
     const [debounceTimeout, setDebounceTimeout] = useState(null);
@@ -54,7 +56,7 @@ function UserMenu() {
     }
 
     useEffect(() => {
-        dispatch(getBranches());
+        dispatch(getAllBranches());
         dispatch(getLockerGroupsData());
     }, []);
 
@@ -128,7 +130,7 @@ function UserMenu() {
                                 value={selectedBranch}
                                 onChange={handleSelectChange}
                             />
-                            <label className="text-white block">Site</label>
+                            <label className="text-white block">Branch</label>
                         </div>
                         <div className='menu__filter__select'>
                             <CustomSelect
@@ -204,7 +206,7 @@ function UserMenu() {
                             value={selectedBranch}
                             onChange={handleSelectChange}
                         />
-                        <label className="text-white block">Site</label>
+                        <label className="text-white block">Branch</label>
                     </div>
                     <div className='menu__filter__select'>
                         <CustomSelect

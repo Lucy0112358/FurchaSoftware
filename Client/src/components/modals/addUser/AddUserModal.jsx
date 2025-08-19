@@ -413,7 +413,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
               {/* User group */}
               <div className="add__modal__content__part">
                 <span>User group</span>
-                <div className="add__modal__content__part__group mb-4 flex items-center">
+                <div className="add__modal__content__part__group mb-4 flex items-center overflow-x-auto ">
                   <div className="add__modal__group__select mr-4 w-full">
                     <CustomSelect
                       options={userGroups.map((group) => ({
@@ -544,7 +544,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
             <div className="flex justify-between flex-col" onContextMenu={(e) => e.preventDefault()}>
               <div className="add__modal__content__part__select w-full">
                 <span>Branches</span>
-                <div className="add__modal__content__part__group mb-4">
+                <div className="add__modal__content__part__group mb-4c overflow-x-auto">
                   <div className="flex mr-2">
                     {
                       branches.length > 0 && (

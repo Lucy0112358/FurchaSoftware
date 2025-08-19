@@ -24,6 +24,8 @@ import UserInfoModal from '../../userInfo/UserInfoModal';
 import { useHasPermission } from '../../../hooks/useHasPermission';
 import ModalActionButton from '../../button/ModalActionButton';
 import Manage from '../../manage/Manage';
+import { getAllBranchesData } from '../../../redux/slice/branchSlice';
+import { getAllBranches } from '../../../redux/api/branchApi';
 
 function LockerMenu() {
   const dispatch = useDispatch();
@@ -33,7 +35,7 @@ function LockerMenu() {
   const [inputValue, setInputValue] = useState('');
   const [debounceTimeout, setDebounceTimeout] = useState(null);
 
-  const branches = useSelector(getBranchesData);
+  const branches = useSelector(getAllBranchesData);
   const lockerGroups = useSelector(getLockerGroups);
   const lockerViewEnabled = useSelector(getLockerStatusSelect);
   const lockerFilters = useSelector(getLockerFilter);
