@@ -1,5 +1,4 @@
 ﻿using FurchaBLL.Constants;
-using FurchaBLL.MqttModels.Publish;
 using FurchaBLL.MqttModels.Subscribe;
 using FurchaBLL.MqttModels;
 using Microsoft.Extensions.Logging;

@@ -235,7 +235,7 @@ namespace FurchaAdminApi.Services
         .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
         .ToList(); //_branchRepository.GetBranchesByAdminId(8);
 
-            var result = new List<ModuleResult>();
+            var result = new List<Models.Result.ModuleResult>();
 
 
             foreach (var branch in adminBranches)
@@ -282,7 +282,7 @@ namespace FurchaAdminApi.Services
 
                 if (moduleInfos.Any())
                 {
-                    result.Add(new ModuleResult
+                    result.Add(new Models.Result.ModuleResult
                     {
                         OfficeName = branch.Name,
                         Modules = moduleInfos
@@ -576,8 +576,7 @@ namespace FurchaAdminApi.Services
                 }
             };
 
-
-            }
+        }
 
     }
 }
