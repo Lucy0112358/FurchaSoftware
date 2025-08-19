@@ -117,7 +117,7 @@ namespace FurchaAdminApi.Controllers
         }
 
 #warning When auth is done, this methode must return only modules accessible for the logged in admin
-        [Authorize]
+/*        [Authorize]
         [HttpGet("GetModules")]
         public ActionResult<ApiResult<List<ModuleResult>>> GetModules()
         {
@@ -125,7 +125,7 @@ namespace FurchaAdminApi.Controllers
             var modules = _lockerService.GetModules(int.Parse(adminId));
 
             return Ok(ApiResult<List<ModuleResult>>.Success(modules));
-        }
+        }*/
 
         [Authorize]
         [HttpGet("get-new-brains")]

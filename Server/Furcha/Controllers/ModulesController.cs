@@ -28,5 +28,17 @@ namespace FurchaAdminApi.Controllers
 
             return Ok(ApiResult<List<AllModulesResult>>.Success(modules));
         }
+
+        [Authorize]
+        [HttpGet("{id}")]
+        public ActionResult<ApiResult<List<AllModulesResult>>> GetModuleById(int id)
+        {
+            var adminId = GetClaimValue("AdminId");
+
+            var modules = _lockerService.GetAllModules(int.Parse(adminId));
+
+            return Ok(ApiResult<List<AllModulesResult>>.Success(modules));
+        }
+
     }
 }

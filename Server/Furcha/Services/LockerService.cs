@@ -6,6 +6,7 @@ using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
 using FurchaBLL.Constants;
 using FurchaBLL.Interfaces;
+using FurchaBLL.Models;
 using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
 using Microsoft.CodeAnalysis.Operations;
@@ -227,7 +228,7 @@ namespace FurchaAdminApi.Services
         /// <summary>
         /// Retrieves editingLockers based on specified filtering criteria.
         /// </summary>
-        public List<ModuleResult> GetModules(int adminId)
+        public List<Models.Result.ModuleResult> GetModules(int adminId)
         {
 #warning auth
             var adminBranches = Db.Branches
@@ -559,6 +560,24 @@ namespace FurchaAdminApi.Services
 
             return result;
         }
+
+        public FurchaBLL.Models.ModuleResult GetlockersById(int id)
+        {
+            var module = Db.BrainModules.Include(x => x.Group).ThenInclude(g => g.Lockers).Where(x => x.Id == id).FirstOrDefault();
+
+            return new FurchaBLL.Models.ModuleResult
+            {
+                LockerType = module.Group.Lockers.First().LockerType,
+                LockerGroup = module.Group.Id,
+                LockerRange = new LockerRange
+                {
+                    Start = 1,
+                    End = module.Group.Lockers.Count()
+                }
+            };
+
+
+            }
 
     }
 }
