@@ -1,8 +1,8 @@
 ﻿using Domain.Configuration;
-using FurchaAdminApi.Models.Result;
+using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Services;
+using FurchaBLL.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FurchaAdminApi.Controllers
@@ -20,24 +20,31 @@ namespace FurchaAdminApi.Controllers
 
         [Authorize]
         [HttpGet]
-        public ActionResult<ApiResult<List<AllModulesResult>>> Modules(int groupId)
+        public ActionResult<ApiResult<List<Models.Result.AllModulesResult>>> Modules(int groupId)
         {
             var adminId = GetClaimValue("AdminId");
 
             var modules = _lockerService.GetAllModules(int.Parse(adminId));
 
-            return Ok(ApiResult<List<AllModulesResult>>.Success(modules));
+            return Ok(ApiResult<List<Models.Result.AllModulesResult>>.Success(modules));
         }
 
         [Authorize]
         [HttpGet("{id}")]
-        public ActionResult<ApiResult<List<AllModulesResult>>> GetModuleById(int id)
+        public ActionResult<ModuleResult> GetModuleById(int id)
         {
-            var adminId = GetClaimValue("AdminId");
+            var locker = _lockerService.GetlockersById(id);
 
-            var modules = _lockerService.GetAllModules(int.Parse(adminId));
+            return Ok(ApiResult<ModuleResult>.Success(locker));
+        }
 
-            return Ok(ApiResult<List<AllModulesResult>>.Success(modules));
+        [Authorize]
+        [HttpPost("{id}")]
+        public ActionResult<bool> Update(int id, [FromBody] UpdateModuleRequest request)
+        {
+            var locker = _lockerService.UpdateModule(request.LockerType, request.LockerFrom, request.LockerTo, request.LockerGroupId);
+
+            return Ok(ApiResult<bool>.Success(locker));
         }
 
     }

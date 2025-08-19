@@ -7,6 +7,7 @@ using MQTTnet;
 using System.Text.Json;
 using System.Text;
 using FurchaDAL.Models;
+using FurchaBLL.MqttModels.Publish;
 
 public class MqttService
 {

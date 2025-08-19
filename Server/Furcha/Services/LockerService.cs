@@ -1,19 +1,13 @@
-﻿using Domain.Entities;
-using Domain.Enums;
+﻿using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
 using FurchaBLL.Constants;
-using FurchaBLL.Interfaces;
 using FurchaBLL.Models;
 using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using BrainModule = FurchaDAL.Models.BrainModule;
 using Locker = FurchaDAL.Models.Locker;
 using LockerGroup = FurchaDAL.Models.LockerGroup;
 
@@ -576,6 +570,13 @@ namespace FurchaAdminApi.Services
                 }
             };
 
+        }
+
+        public bool UpdateModule(string lockerType, int lockerFrom, int lockerTo, int lockerGroupId)
+        {
+
+
+            return true;
         }
 
     }
