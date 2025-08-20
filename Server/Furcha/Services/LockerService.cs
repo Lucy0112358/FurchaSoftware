@@ -184,7 +184,7 @@ namespace FurchaAdminApi.Services
         }
 
 
-        public List<NewModulesResult> GetNewModules(int adminId, int branchId)
+        public List<NewModulesResult> GetNewModules(int adminId)
         {
             var accountId = Db.Administrators
                 .Where(a => a.Id == adminId)
@@ -193,7 +193,7 @@ namespace FurchaAdminApi.Services
 
             // var lockerGroups = _lockerRepository.GetBrainModulesByBranchAndStatus(4, 1);
             var lockerGroups = Db.BrainModules
-              .Where(bm => bm.BranchId == branchId && bm.Status == 1)
+              .Where(bm => bm.Status == 1)
               .ToList();
 
             var results = lockerGroups.Select(l => new NewModulesResult
@@ -548,7 +548,7 @@ namespace FurchaAdminApi.Services
                      Modules = b.BrainModules.Select(x => new BranchModules
                      {
                          Id = x.Id,
-                         LockerRange = "1-" + x.Group.Lockers.Count().ToString()
+                         LockerRange = "1-" + x.Lockers.Count().ToString()
                      }).ToList()
                  }).ToList();
 
@@ -558,11 +558,17 @@ namespace FurchaAdminApi.Services
         public FurchaBLL.Models.ModuleResult GetlockersById(int id)
         {
             var module = Db.BrainModules.Include(x => x.Group).ThenInclude(g => g.Lockers).Where(x => x.Id == id).FirstOrDefault();
+            int groupId = 0;
+
+            if (module.Group != null)
+            {
+                groupId = module.Group.Id;
+            }
 
             return new FurchaBLL.Models.ModuleResult
             {
                 LockerType = module.Group.Lockers.First().LockerType,
-                LockerGroup = module.Group.Id,
+                LockerGroup = groupId,
                 LockerRange = new LockerRange
                 {
                     Start = 1,

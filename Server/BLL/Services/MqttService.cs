@@ -34,7 +34,7 @@ public class MqttService
             _logger.LogInformation("Connected to MQTT broker. Subscribing to topics...");
 
             await _mqttClient.SubscribeAsync("$CONTROL/dynamic-security/#");
-          /*  await _mqttClient.SubscribeAsync("$SYS/broker/clients/connected");*/
+            await _mqttClient.SubscribeAsync("$SYS/broker/clients/connected");
             await _mqttClient.SubscribeAsync("webserver/#");
             await _mqttClient.SubscribeAsync("server/status/will");
 
@@ -100,8 +100,7 @@ public class MqttService
         var responseMessage = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
 
         _logger.LogInformation("Received MQTT message on topic {Topic}", topic);
-        using var scope = _scopeFactory.CreateScope();
-        var Db = scope.ServiceProvider.GetRequiredService<furchaContext>();
+
         try
         {
             if (topic.StartsWith("webserver/"))
@@ -110,83 +109,99 @@ public class MqttService
                 switch ((CommandTypes)message.Command)
                 {
                     case CommandTypes.OpenLocker:
-                        var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<OpenLockerRequest>>(responseMessage);
-                        var dbLocker = Db.Lockers.Where(x => x.Id == lockerPayload.Data.LockerId).FirstOrDefault();
-                        dbLocker.LockerStatus = lockerPayload.Data.Status;
-                        Db.SaveChanges();
+                        using (var Db = furchaContext.Create())
+                        {
+                            var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<OpenLockerRequest>>(responseMessage);
+                            var dbLocker = Db.Lockers.Where(x => x.Id == lockerPayload.Data.LockerId).FirstOrDefault();
+                            dbLocker.LockerStatus = lockerPayload.Data.Status;
+                            Db.SaveChanges();
+                        }
                         break;
 
                     case CommandTypes.OpenLockersFromAdmin:
-                        object _lockerLock = new object();
-                        lock (_lockerLock)
+                        using (var Db = furchaContext.Create())
                         {
-                            var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<OpenLockerRequest>>>(responseMessage);
-                            foreach (var locker in lockersPayload.Data)
+                            object _lockerLock = new object();
+                            lock (_lockerLock)
                             {
-                                var l = Db.Lockers.FirstOrDefault(x => x.Id == locker.LockerId);
-                                if (l != null)
+                                var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<OpenLockerRequest>>>(responseMessage);
+                                foreach (var locker in lockersPayload.Data)
                                 {
-                                    l.LockerStatus = locker.Status;
+                                    var l = Db.Lockers.FirstOrDefault(x => x.Id == locker.LockerId);
+                                    if (l != null)
+                                    {
+                                        l.LockerStatus = locker.Status;
+                                    }
                                 }
+                                Db.SaveChanges();
                             }
-                            Db.SaveChanges();
                         }
                         break;
 
                     case CommandTypes.CreateUserFromAdmin:
-                        object _userLock = new object();
-                        lock (_userLock)
+                        using (var Db = furchaContext.Create())
                         {
-                            var userPayload = JsonSerializer.Deserialize<MqttBaseRequest<MqttUserRequest>>(responseMessage);
-                            var dbUser = Db.Users.FirstOrDefault(x => x.Id == userPayload.Data.UserId);
-                            dbUser.IsMqtt = userPayload.Data.Success;
-                            Db.SaveChanges();
+                            object _userLock = new object();
+                            lock (_userLock)
+                            {
+                                var userPayload = JsonSerializer.Deserialize<MqttBaseRequest<MqttUserRequest>>(responseMessage);
+                                var dbUser = Db.Users.FirstOrDefault(x => x.Id == userPayload.Data.UserId);
+                                dbUser.IsMqtt = userPayload.Data.Success;
+                                Db.SaveChanges();
+                            }
                         }
+
                         break;
 
                     case CommandTypes.CreateBrainModule:
-                        var mqttBrain = JsonSerializer.Deserialize<MqttBaseRequest<MqttCreateBrain>>(responseMessage);
-                        Db.BrainModules.Add(new BrainModule
+                        using (var Db = furchaContext.Create())
                         {
-                            Status = (int)BrainStatuses.New,
-                            CompanyId = mqttBrain.Data.AccountId,
-                            IpAddress = mqttBrain.Data.IpAddress,
-                            MacAddress = mqttBrain.Data.MacAddress,
-                            BrainUid = new Guid(),
-                            Description = mqttBrain.Data.Info,
-                            GroupId = null
-                        });
-
-                        var added = Db.SaveChanges();
-                        if (added > 0)
-                        {
-                            PublishToMqtt<int>(new MqttBaseRequest<int>
+                            var mqttBrain = JsonSerializer.Deserialize<MqttBaseRequest<MqttCreateBrain>>(responseMessage);
+                            Db.BrainModules.Add(new BrainModule
                             {
-                                Operation = (int)OperationTypes.Success,
-                                Command = (int)CommandTypes.CreateBrainModule
-                            }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933/connection");
+                                Status = (int)BrainStatuses.New,
+                                CompanyId = mqttBrain.Data.AccountId,
+                                IpAddress = mqttBrain.Data.IpAddress,
+                                MacAddress = mqttBrain.Data.MacAddress,
+                                BrainUid = Guid.Parse(mqttBrain.Data.BrainUID),
+                                Description = mqttBrain.Data.Info,
+                                GroupId = null
+                            });
+
+                            var added = Db.SaveChanges();
+                            if (added > 0)
+                            {
+                                PublishToMqtt<int>(new MqttBaseRequest<int>
+                                {
+                                    Operation = (int)OperationTypes.Success,
+                                    Command = (int)CommandTypes.CreateBrainModule
+                                }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933/connection");
+                            }
                         }
                         break;
 
                     case CommandTypes.AddLockersToBrain:
-                        var lockerCount = JsonSerializer.Deserialize<MqttBaseRequest<MqttLockerCount>>(responseMessage);
-                        for (int i = 0; i < lockerCount.Data.LockerCount; i++)
+                        using (var Db = furchaContext.Create())
                         {
-                            Db.Lockers.Add(new Locker
+                            var lockerCount = JsonSerializer.Deserialize<MqttBaseRequest<MqttLockerCount>>(responseMessage);
+                            for (int i = 0; i < lockerCount.Data.LockerCount; i++)
                             {
-                                LockerType = "unassigned",
-                                PasswordHash = "test"
-                            });
-                        }
+                                Db.Lockers.Add(new Locker
+                                {
+                                    LockerType = "unassigned",
+                                    PasswordHash = "test"
+                                });
+                            }
 
-                        var success = Db.SaveChanges();
-                        if (success > 0)
-                        {
-                            PublishToMqtt<int>(new MqttBaseRequest<int>
+                            var success = Db.SaveChanges();
+                            if (success > 0)
                             {
-                                Operation = (int)OperationTypes.Success,
-                                Command = (int)CommandTypes.AddLockersToBrain
-                            }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933/connection");
+                                PublishToMqtt<int>(new MqttBaseRequest<int>
+                                {
+                                    Operation = (int)OperationTypes.Success,
+                                    Command = (int)CommandTypes.AddLockersToBrain
+                                }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933/connection");
+                            }
                         }
                         break;
                 }

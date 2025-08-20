@@ -27,6 +27,8 @@ public partial class Locker
 
     public int? BrainId { get; set; }
 
+    public virtual BrainModule Brain { get; set; }
+
     public virtual LockerGroup Group { get; set; }
 
     public virtual ICollection<UserGroupLocker> UserGroupLockers { get; set; } = new List<UserGroupLocker>();
