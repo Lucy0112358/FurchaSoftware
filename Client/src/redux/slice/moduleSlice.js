@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getBranches, getLockerGroupsData } from "../api/menuApi";
 import { userSlice } from "./userSlice";
-import { getLockerGroupRange, getModul, getModules, getNewBrains } from "../api/moduleApi";
+import {  getModul, getModules, getNewBrains } from "../api/moduleApi";
 import { LockerTypes } from "../../enums/Locker/Types";
 
 const initialState = {
@@ -60,12 +60,12 @@ export const moduleSlice = createSlice({
       .addCase(getModul.fulfilled, (state, action) => {
         state.module = action.payload.data;
       })
-      .addCase(getLockerGroupRange.fulfilled, (state, action) => {
-        state.lockerGroupMinMax = {
-          min: action.payload.data?.lastLocker ?? 1,
-          max: 256,
-        };
-      });
+      // .addCase(getLockerGroupRange.fulfilled, (state, action) => {
+      //   state.lockerGroupMinMax = {
+      //     min: action.payload.data?.lastLocker ?? 1,
+      //     max: 256,
+      //   };
+      // });
   },
 });
 

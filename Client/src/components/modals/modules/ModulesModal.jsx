@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import * as Yup from "yup";
 import { IoMdAdd } from "react-icons/io";
 import { filterGroupByBranch, getModule, getModuleModalBranches, getNewBrainsData } from "../../../redux/slice/moduleSlice";
-import { addModuleFunc, getLockerGroupRange, getNewBrains } from "../../../redux/api/moduleApi";
+import { addModuleFunc, getNewBrains } from "../../../redux/api/moduleApi";
 import CloseButton from "../attributes/CloseButton";
 import BranchModal from "../branch/BranchModal";
 import { useFormik } from 'formik';
@@ -67,7 +67,7 @@ const ModulesModal = ({ onClose }) => {
 
   const handleNewBrainChange = (option) => {
     formik.setFieldValue('brainId', option?.value);
-    dispatch(getLockerGroupRange({ brainId: option.value }));
+    // dispatch(getLockerGroupRange({ brainId: option.value }));
   };
 
   return (

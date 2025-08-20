@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import * as Yup from "yup";
 import { IoMdAdd } from "react-icons/io";
 import { getLockerGroupMinMax, getModule, getModuleModalGroupes } from "../../../redux/slice/moduleSlice";
-import { editModule, getLockerGroupRange, getModul } from "../../../redux/api/moduleApi";
+import { editModule, getModul } from "../../../redux/api/moduleApi";
 import { getLockerOptions } from "../../../enums/Locker/Types";
 import CloseButton from "../attributes/CloseButton";
 import { useFormik } from 'formik';
@@ -75,9 +75,9 @@ const EditModulesModal = ({ id, onClose }) => {
 
   const handleLockerGroupChange = (selectedOption) => {
     formik.setFieldValue("lockerGroupId", selectedOption?.value || null);
-    if (selectedOption?.value) {
-      dispatch(getLockerGroupRange({ brainId: id, groupId: selectedOption.value }));
-    }
+    // if (selectedOption?.value) {
+    //   dispatch(getLockerGroupRange({ brainId: id, groupId: selectedOption.value }));
+    // }
   };
 
   return (

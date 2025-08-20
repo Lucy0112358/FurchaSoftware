@@ -1,28 +1,19 @@
 /* eslint-disable no-unused-vars */
-import axios from 'axios';
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from 'react-redux';
 import NoData from '../../components/no-data/NoData';
-import modules from '../../data/fake/modules.json'
 import './modules.css';
 import OfficeName from '../../components/headers/OfficeName';
-import GroupName from '../../components/headers/GroupName';
 import ModuleChain from '../../components/modules/PhotoCreator/ModuleChain';
-import { useDispatch, useSelector } from 'react-redux';
 import { getModules } from '../../redux/api/moduleApi';
 import { getModulesData } from '../../redux/slice/moduleSlice';
-import { useContextMenu } from '../../hooks/useContextMenu';
-import data from '../../data/fake/modules.json'; // Assuming this is the correct path to your fake data
 import LockerPhoto from '../../components/modules/PhotoCreator/LockerPhoto';
-import AccessControl from '../../components/modules/PhotoCreator/AccessControl';
-import AlarmSystem from '../../components/modules/PhotoCreator/AlarmSystem';
 import EditModulesModal from '../../components/modals/modules/EditModulesModal';
 
 const Modules = () => {
     const allModules = useSelector(getModulesData);
-    // const allModules = data.data;
     const [editItemId, setEditItemId] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    console.log(allModules, 'allModules');
 
     const dispatch = useDispatch();
 
@@ -30,13 +21,11 @@ const Modules = () => {
         e.preventDefault();
         setEditItemId(target.id);
         setShowModal(true);
-        console.log('target', target);
-        
-    }
+    };
 
     useEffect(() => {
-        dispatch(getModules())
-    }, []);
+        dispatch(getModules());
+    }, [dispatch]);
 
     return (
         <div
@@ -45,35 +34,34 @@ const Modules = () => {
         >
             {showModal && <EditModulesModal id={editItemId} onClose={() => setShowModal(false)} />}
             {allModules.length ? (
-                allModules.map((branch, index) => (
-                    <React.Fragment key={index}>
-                        <OfficeName name={branch.branchName} />
-                        <div className='modules-part'>
-                            <React.Fragment>
+                allModules.map((branch, index) =>
+                    branch.modules?.length > 0 && (
+                        <React.Fragment key={index}>
+                            <OfficeName name={branch.branchName} />
+                            <div className='modules-part'>
                                 <div className='mb-4 flex flex-col'>
-                                    <table className="">
-                                        <thead className="">
+                                    <table>
+                                        <thead>
                                             <tr>
                                                 <th className="py-3 px-4 text-left text-gray-300 border-none">Module Chain</th>
-                                                <th className="py-3 px-4 text-left text-gray-300  border-none">Lockers Range</th>
-                                                {/* <th className="py-3 px-4 text-left text-gray-300 border-none">Access Control</th> */}
+                                                <th className="py-3 px-4 text-left text-gray-300 border-none">Lockers Range</th>
+                                                  {/* <th className="py-3 px-4 text-left text-gray-300 border-none">Access Control</th> */}
                                                 {/* <th className="py-3 px-4 text-left text-gray-300">Alarm System</th> */}
                                             </tr>
                                         </thead>
                                         {branch.modules.map((module) => (
                                             <tbody
-                                                onContextMenu={(e) => handleRightClick(e, module)}>
-                                                <tr
-                                                    key={module.id}
-                                                    className=""
-                                                >
+                                                key={module.id}
+                                                onContextMenu={(e) => handleRightClick(e, module)}
+                                            >
+                                                <tr>
                                                     <td className="py-3 px-4 border-none">
                                                         <ModuleChain id={module.id} />
                                                     </td>
                                                     <td className="py-3 px-4 border-none">
-                                                        {module.lockersRange && <LockerPhoto lockerRange={module.lockersRange} />}
+                                                        {module.lockerRange && <LockerPhoto lockerRange={module.lockerRange} />}
                                                     </td>
-                                                    {/* <td className="py-3 px-4 border-none">
+                                                     {/* <td className="py-3 px-4 border-none">
                                                         <AccessControl accessControl={module.accessControl} />
                                                     </td> */}
                                                     {/* <td className="py-3 px-4 border-none">
@@ -84,11 +72,10 @@ const Modules = () => {
                                         ))}
                                     </table>
                                 </div>
-                            </React.Fragment>
-                        </div>
-                        
-                    </React.Fragment>
-                ))
+                            </div>
+                        </React.Fragment>
+                    )
+                )
             ) : (
                 <NoData text="No Modules" />
             )}
