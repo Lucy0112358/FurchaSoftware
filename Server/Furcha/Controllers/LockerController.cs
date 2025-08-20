@@ -132,7 +132,7 @@ namespace FurchaAdminApi.Controllers
         public ActionResult<ApiResult<List<NewModulesResult>>> GetNewModules([FromQuery] int branchId)
         {
             var adminId = GetClaimValue("AdminId");
-            var modules = _lockerService.GetNewModules(int.Parse(adminId), branchId);
+            var modules = _lockerService.GetNewModules(branchId);
 
             return Ok(ApiResult<List<NewModulesResult>>.Success(modules));
         }

@@ -4,7 +4,7 @@
     {
         public string LockerType { get; set; }
 
-        public int LockerGroup { get; set; }
+        public int? LockerGroup { get; set; }
 
         public LockerRange LockerRange { get; set; }
     }

@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+
 
 namespace FurchaDAL.Models;
 
@@ -12,7 +14,21 @@ public partial class furchaContext : DbContext
         : base(options)
     {
     }
+    public static furchaContext Create()
+    {
+        var config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
 
+        var connectionString = config.GetConnectionString("SqlConnection");
+
+        var options = new DbContextOptionsBuilder<furchaContext>()
+            .UseSqlServer(connectionString)
+            .Options;
+
+        return new furchaContext(options);
+    }
     public virtual DbSet<AdminBranch> AdminBranches { get; set; }
 
     public virtual DbSet<AdminPermission> AdminPermissions { get; set; }
@@ -209,6 +225,11 @@ public partial class furchaContext : DbContext
 
             entity.Property(e => e.LockerType).IsRequired();
             entity.Property(e => e.Number).HasColumnType("numeric(18, 0)");
+
+            entity.HasOne(d => d.Brain).WithMany(p => p.Lockers)
+                .HasForeignKey(d => d.BrainId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Locker_Brain");
 
             entity.HasOne(d => d.Group).WithMany(p => p.Lockers)
                 .HasForeignKey(d => d.GroupId)

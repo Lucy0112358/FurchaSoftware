@@ -30,4 +30,6 @@ public partial class BrainModule
     public virtual Company Company { get; set; }
 
     public virtual LockerGroup Group { get; set; }
+
+    public virtual ICollection<Locker> Lockers { get; set; } = new List<Locker>();
 }
