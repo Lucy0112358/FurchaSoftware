@@ -34,7 +34,7 @@ public class MqttService
             _logger.LogInformation("Connected to MQTT broker. Subscribing to topics...");
 
             await _mqttClient.SubscribeAsync("$CONTROL/dynamic-security/#");
-            await _mqttClient.SubscribeAsync("$SYS/broker/clients/connected");
+          /*  await _mqttClient.SubscribeAsync("$SYS/broker/clients/connected");*/
             await _mqttClient.SubscribeAsync("webserver/#");
             await _mqttClient.SubscribeAsync("server/status/will");
 
@@ -152,7 +152,7 @@ public class MqttService
                             CompanyId = mqttBrain.Data.AccountId,
                             IpAddress = mqttBrain.Data.IpAddress,
                             MacAddress = mqttBrain.Data.MacAddress,
-                            BrainUid = Guid.Parse(mqttBrain.Data.BrainUID),
+                            BrainUid = new Guid(),
                             Description = mqttBrain.Data.Info,
                             GroupId = null
                         });
