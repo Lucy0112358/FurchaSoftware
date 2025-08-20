@@ -8,20 +8,23 @@ using System.Text.Json;
 using System.Text;
 using FurchaDAL.Models;
 using FurchaBLL.MqttModels.Publish;
+using Microsoft.Extensions.DependencyInjection;
 
 public class MqttService
 {
     private readonly IMqttClient _mqttClient;
     private readonly MqttClientOptions _mqttOptions;
     private readonly ILogger<MqttService> _logger;
-    private readonly furchaContext Db;
+    // private readonly furchaContext Db;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public MqttService(IMqttClient mqttClient, MqttClientOptions mqttOptions, ILogger<MqttService> logger, furchaContext db)
+    public MqttService(IMqttClient mqttClient, MqttClientOptions mqttOptions, ILogger<MqttService> logger, /*furchaContext db,*/ IServiceScopeFactory scopeFactory)
     {
         _mqttClient = mqttClient;
         _mqttOptions = mqttOptions;
         _logger = logger;
-        Db = db;
+        // Db = db;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task InitializeClient(CancellationToken stoppingToken)
@@ -97,7 +100,8 @@ public class MqttService
         var responseMessage = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
 
         _logger.LogInformation("Received MQTT message on topic {Topic}", topic);
-
+        using var scope = _scopeFactory.CreateScope();
+        var Db = scope.ServiceProvider.GetRequiredService<furchaContext>();
         try
         {
             if (topic.StartsWith("webserver/"))

@@ -54,7 +54,17 @@ namespace FurchaAdminApi
                 return new NpgsqlConnection(connectionString);
             });
             builder.Services.AddDbContext<furchaContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("SqlConnection"),
+                    sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5,               // number of retries
+                            maxRetryDelay: TimeSpan.FromSeconds(10), // delay between retries
+                            errorNumbersToAdd: null         // you can pass custom SQL error codes if needed
+                        );
+                    }));
+
 
 
             var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
