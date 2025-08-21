@@ -14,6 +14,7 @@ import GenerateLocker from "../../lockers/GenerateLocker";
 import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
 import ShowFormikError from "../../error/ShowFormikError";
+import { getAllGroups } from "../../../redux/api/groupApi";
 
 
 const AddUserGroupModal = ({ isOpen, onClose, children }) => {
@@ -123,6 +124,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
     dispatch(setUserGroup(sentGeneralInfo))
       .then((response) => {
         if (response && response.payload.isSuccess) {
+          dispatch(getAllGroups());
           onClose()
         }
       })

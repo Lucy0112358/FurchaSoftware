@@ -21,6 +21,7 @@ import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
 import CustomSelect from "../../select/CustomSelect";
 import ShowFormikError from "../../error/ShowFormikError";
+import { getAllGroupsData } from "../../../redux/slice/groupSlice";
 
 const AddUserModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -32,7 +33,8 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
   const branches = useSelector(getBranchesData);
   const filteredBranchGroups = useSelector(getFilteredLockerGroups);
-  const userGroups = useSelector(getUserGroupsData);
+  // const userGroups = useSelector(getUserGroupsData);
+  const userGroups = useSelector(getAllGroupsData);
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [selectedGroups, setSelectedGroups] = useState(null);
   const [selectedLockerId, setSelectedLockerId] = useState([]);
@@ -413,7 +415,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
               {/* User group */}
               <div className="add__modal__content__part">
                 <span>User group</span>
-                <div className="add__modal__content__part__group mb-4 flex items-center overflow-x-auto ">
+                <div className="add__modal__content__part__group mb-4 flex items-top">
                   <div className="add__modal__group__select mr-4 w-full">
                     <CustomSelect
                       options={userGroups.map((group) => ({
@@ -431,7 +433,10 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                       onClick={() => setAddGroupModalSwitch(true)}
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                     >
-                      <IoMdAdd className="fill-current mr-2" />
+                      <IoMdAdd
+                        className="fill-current"
+                        style={{ fontSize: "xx-large" }}
+                      />
                       <AddUserGroupModal
                         isOpen={addGroupModalSwitch}
                         onClose={(e) => {

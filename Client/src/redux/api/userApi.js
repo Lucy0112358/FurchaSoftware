@@ -43,12 +43,12 @@ export const filterUserWithOutPaginte = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'User/filtered-users/',
+          url: 'User/filtered-users',
           params: { ...params },
         };
         
         const response = await instance(config);
-        return response?.data;
+        return response?.data?.data || [];
       } catch (error) {
         return thunkAPI.rejectWithValue(error.response.data.error.both);
       }

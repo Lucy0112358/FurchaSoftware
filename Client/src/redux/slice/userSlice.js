@@ -61,7 +61,7 @@ export const userSlice = createSlice({
         userSlice.caseReducers.setUser(state, action);
       })
       .addCase(filterUserWithOutPaginte.fulfilled, (state, action) => {
-        state.filteredUsers = action.payload.data;
+        state.filteredUsers = action.payload;
       })
       
   },
