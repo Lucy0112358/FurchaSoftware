@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { filterUserWithOutPaginte, getAllUsers, setUserInfo } from "../api/userApi";
+import { filterUserWithOutPaginte, getAllUsers, setUserInfo, userShow } from "../api/userApi";
 import { filterUserByName, userFilter } from "../api/menuApi";
 // import { getUserSites } from "../api/userApi";
 // import { APP_BASE_URL } from "../../config";
@@ -9,6 +9,7 @@ const initialState = {
   allUsers: [],
   userInfo: {},
   filteredUsers: [],
+  userShow: {},
 };
 
 export const userSlice = createSlice({
@@ -42,6 +43,9 @@ export const userSlice = createSlice({
         state.errorMessage = action.payload;
         state.loading = false;
       })
+      .addCase(userShow.fulfilled, (state, action) => {
+        state.userShow = action.payload.data;
+      })
       .addCase(setUserInfo.pending, (state) => {
         state.loading = true;
       })
@@ -63,7 +67,6 @@ export const userSlice = createSlice({
       .addCase(filterUserWithOutPaginte.fulfilled, (state, action) => {
         state.filteredUsers = action.payload;
       })
-      
   },
 });
 
@@ -73,6 +76,7 @@ export const {
 } = userSlice.actions;
 
 export const getLoadingNow = (state) => state.user.loading;
+export const getUser = (state) => state.user.userShow;
 export const getAllUsersData = (state) => state.user.allUsers;
 export const getAddUserInfo = (state) => state.user.userInfo;
 export const getFilteredUsers = (state) => state.user.filteredUsers;

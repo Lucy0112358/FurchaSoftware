@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { assets } from '../../assets/assets';
-import AddUserModal from './addUser/AddUserModal';
+import AddUserModal from './user/AddUserModal';
 import { useSelector } from 'react-redux';
 import { getSelectGroupSelect } from '../../redux/slice/menuSlice';
 import AddUserGroupModal from './addUserGroup/AddUserGroupModal';

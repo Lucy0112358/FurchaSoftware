@@ -74,7 +74,6 @@ const ModulesModal = ({ onClose }) => {
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
       <form onSubmit={formik.handleSubmit}>
         <div className="add__modal__content add__modal__content__addModules rounded-lg shadow-lg w-full max-w-4xl overflow-auto">
-          
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold text-white">Add brain modules</h2>
@@ -86,7 +85,6 @@ const ModulesModal = ({ onClose }) => {
             <div className="add__modal__content__part">
               <span>General</span>
               <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-                
                 {/* Brain Module */}
                 <label className="block text-gray-300">Brain Module</label>
                 <div className="w-5/6 mr-2">

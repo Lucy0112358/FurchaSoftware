@@ -93,10 +93,7 @@ const LockerModal = ({ onClose }) => {
                     onClick={() => setAddBranchModalSwitch(true)}
                     className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                   >
-                    <IoMdAdd
-                      className="fill-current"
-                      style={{ fontSize: "xx-large" }}
-                    />
+                    <IoMdAdd className="fill-current text-2xl" />
                     {addBranchModalSwitch && <BranchModal onClose={(e) => {
                       if (e?.stopPropagation) e.stopPropagation();
                       setAddBranchModalSwitch(false);

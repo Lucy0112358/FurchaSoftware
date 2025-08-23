@@ -106,9 +106,9 @@ const EditModulesModal = ({ id, onClose }) => {
                     }))}
                     value={lockerGroups.find(group => group.id === formik.values.lockerGroupId)
                       ? {
-                          label: lockerGroups.find(group => group.id === formik.values.lockerGroupId).name,
-                          value: formik.values.lockerGroupId
-                        }
+                        label: lockerGroups.find(group => group.id === formik.values.lockerGroupId).name,
+                        value: formik.values.lockerGroupId
+                      }
                       : null}
                     onChange={handleLockerGroupChange}
                   />
@@ -119,7 +119,7 @@ const EditModulesModal = ({ id, onClose }) => {
                     onClick={() => setAddGroupModalSwitch(true)}
                     className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                   >
-                    <IoMdAdd className="fill-current" style={{ fontSize: 'xx-large' }} />
+                    <IoMdAdd className="fill-current text-2xl" />
                   </button>
                   {addGroupModalSwitch && (
                     <LockerModal
@@ -143,9 +143,9 @@ const EditModulesModal = ({ id, onClose }) => {
                     }))}
                     value={lockerOptions.find(opt => opt.name === formik.values.lockerType)
                       ? {
-                          value: formik.values.lockerType,
-                          label: lockerOptions.find(opt => opt.name === formik.values.lockerType).label
-                        }
+                        value: formik.values.lockerType,
+                        label: lockerOptions.find(opt => opt.name === formik.values.lockerType).label
+                      }
                       : null}
                     onChange={(option) =>
                       formik.setFieldValue("lockerType", option?.value || "")

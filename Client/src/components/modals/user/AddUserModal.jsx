@@ -1,12 +1,12 @@
-import React, { useRef, useState } from "react";
-import './addUser.css';
+import React, { useEffect, useRef, useState } from "react";
+import './userModal.css';
 import '../modal.css';
 import CustomCheckbox from "../../checkbox/CustomCheckbox";
 import { useDispatch, useSelector } from 'react-redux';
 import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
+import { getBranchesData } from "../../../redux/slice/menuSlice";
 import { userFilter } from "../../../redux/api/menuApi";
 import { setUserInfo } from "../../../redux/api/userApi";
 import { IoMdAdd } from "react-icons/io";
@@ -22,6 +22,7 @@ import CloseButton from "../attributes/CloseButton";
 import CustomSelect from "../../select/CustomSelect";
 import ShowFormikError from "../../error/ShowFormikError";
 import { getAllGroupsData } from "../../../redux/slice/groupSlice";
+import { getAllGroups } from "../../../redux/api/groupApi";
 
 const AddUserModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -41,7 +42,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const [selectedLockerAddId, setSelectedLockerAddId] = useState({});
   const [userRight, setUserRight] = useState({});
   const [sentGeneralInfo, setSentGeneralInfo] = useState({
-    isPinRequired: true,
+    isPinRequired: false,
   });
   //Start change for SelectBranch
   const [selectedBranch, setSelectedBranch] = useState({});
@@ -71,6 +72,11 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       },
     }));
   };
+
+  useEffect(() => {
+    dispatch(getAllGroups())
+  }, [])
+
 
   const formatUserRightText = () => {
     const userRightsEntries = Object.entries(userRight);
@@ -148,6 +154,8 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   };
 
   const setCardNumbers = () => {
+    if (!cardRef.current) return;
+    
     const newCard = cardRef.current.value.trim();
 
     if (newCard) {
@@ -205,7 +213,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     dispatch(getLockerGroupsByBranchId(branch.id));
   };
 
-  const handePin = (value) => {
+  const handlePin = (value) => {
     setSentGeneralInfo((prev) => ({
       ...prev,
       isPinRequired: value,
@@ -433,10 +441,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                       onClick={() => setAddGroupModalSwitch(true)}
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                     >
-                      <IoMdAdd
-                        className="fill-current"
-                        style={{ fontSize: "xx-large" }}
-                      />
+                      <IoMdAdd className="fill-current text-2xl" />
                       <AddUserGroupModal
                         isOpen={addGroupModalSwitch}
                         onClose={(e) => {
@@ -456,12 +461,25 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                   <div className="add__modal__content__part__group crendentails mb-4">
                     <div className="col-span-2 flex items-center">
                       <div className="mr-2 w-full">
-                        <label className="block text-gray-300">Card no.</label>
-                        <input
-                          type="text"
-                          ref={cardRef}
-                          className="w-full p-1 border rounded"
-                        />
+                        <div className=" mb-4 flex items-end">
+                          <div className="add__modal__group__select mr-4 w-full">
+                            <label className="block text-gray-300">Card no.</label>
+                            <input
+                              type="text"
+                              ref={cardRef}
+                              className="w-full p-1 border rounded"
+                            />
+                          </div>
+                          <div className="section__add">
+                            <button
+                              style={{ height: "40px" }}
+                              onClick={setCardNumbers}
+                              className="text-white font-bold rounded"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
                         {cards.length > 0 && (
                           <div>
                             <label className="block text-gray-300">
@@ -495,19 +513,12 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                           <div className="generation__checkbox flex items-center">
                             <CustomCheckbox
                               id={'pin'}
-                              onChange={(checked) => handePin(checked)}
+                              checked={sentGeneralInfo.isPinRequired}
+                              onChange={(checked) => handlePin(checked)}
                             />
                             <span className="text-white">PIN</span>
                           </div>
                         </div>
-                      </div>
-                      <div className="section__add">
-                        <button
-                          onClick={setCardNumbers}
-                          className="text-white font-bold rounded"
-                        >
-                          Add
-                        </button>
                       </div>
                     </div>
                   </div>
