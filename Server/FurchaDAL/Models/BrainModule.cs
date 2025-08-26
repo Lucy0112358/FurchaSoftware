@@ -21,7 +21,7 @@ public partial class BrainModule
 
     public int Status { get; set; }
 
-    public Guid? BrainUid { get; set; }
+    public string BrainUid { get; set; }
 
     public int? CompanyId { get; set; }
 

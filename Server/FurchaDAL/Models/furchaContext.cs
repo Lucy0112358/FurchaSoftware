@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-
 namespace FurchaDAL.Models;
 
 public partial class furchaContext : DbContext
@@ -145,6 +144,9 @@ public partial class furchaContext : DbContext
 
             entity.ToTable("BrainModule", "furcha");
 
+            entity.Property(e => e.BrainUid)
+                .IsRequired()
+                .HasMaxLength(30);
             entity.Property(e => e.MacAddress).HasMaxLength(20);
             entity.Property(e => e.Status).HasDefaultValue(1);
 

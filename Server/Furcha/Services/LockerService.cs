@@ -291,7 +291,7 @@ namespace FurchaAdminApi.Services
         {
             /* using (var transaction = new TransactionScope())
              {*/
-            if (request.LockerGroupId == null)
+          /*  if (request.LockerGroupId == null)
             {
                 var newGroup = new LockerGroup
                 {
@@ -304,19 +304,18 @@ namespace FurchaAdminApi.Services
                 //_lockerRepository.CreateLockerGroup(newGroup);
 
                 request.LockerGroupId = unassignedGroup.Entity.Id;
-            }
+            }*/
 
-            var existingModule = Db.BrainModules.FirstOrDefault(m => m.Id == request.Id);
+            var existingModule = Db.BrainModules.FirstOrDefault(m => m.Id == request.BrainId);
             if (existingModule != null)
             {
                 existingModule.BranchId = request.BranchId;
-                existingModule.Status = 2;
-                existingModule.GroupId = request.LockerGroupId;
+                existingModule.Status = 2;               
 
                 Db.SaveChanges();
             }
 
-            int startIndex = 1;
+         /*   int startIndex = 1;
 
             var lockersWithNumber = Db.Lockers
                 .Where(l => l.GroupId == (int)request.LockerGroupId)
@@ -374,7 +373,7 @@ namespace FurchaAdminApi.Services
                 Db.Lockers.Add(locker);
                 Db.SaveChanges();
             }
-
+*/
             /*     }*/
             return true;
         }
@@ -538,49 +537,67 @@ namespace FurchaAdminApi.Services
             Db.SaveChanges();
         }
 
-        public List<AllModulesResult> GetAllModules(int adminId)
+        public List<AllModulesResult> GetAddedModules(int adminId)
         {
             var result = Db.Branches
-                 .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
-                 .Select(b => new AllModulesResult
-                 {
-                     BranchName = b.Name,
-                     Modules = b.BrainModules.Select(x => new BranchModules
-                     {
-                         Id = x.Id,
-                         LockerRange = "1-" + x.Lockers.Count().ToString()
-                     }).ToList()
-                 }).ToList();
+                .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
+                .Select(b => new AllModulesResult
+                {
+                    BranchName = b.Name,
+                    Modules = b.BrainModules
+                        .Where(x => x.Status == 2)
+                        .Select(x => new BranchModules
+                        {
+                            Id = x.Id,
+                            LockerRange = "1-" + x.Lockers.Count().ToString()
+                        }).ToList()
+                })
+                .ToList();
 
             return result;
         }
 
+
         public FurchaBLL.Models.ModuleResult GetlockersById(int id)
         {
-            var module = Db.BrainModules.Include(x => x.Group).ThenInclude(g => g.Lockers).Where(x => x.Id == id).FirstOrDefault();
-            int groupId = 0;
+            var module = Db.BrainModules
+                .Include(x => x.Group)
+                    .ThenInclude(g => g.Lockers)
+                .Include(x => x.Lockers) // ensure module.Lockers is loaded
+                .FirstOrDefault(x => x.Id == id);
 
-            if (module.Group != null)
-            {
-                groupId = module.Group.Id;
-            }
+            if (module == null)
+                throw new ArgumentException($"Module with Id {id} not found");
+
+            int groupId = module.Group?.Id ?? 0;
+
+            var firstLockerType = module.Group?.Lockers?.FirstOrDefault()?.LockerType;
 
             return new FurchaBLL.Models.ModuleResult
             {
-                LockerType = module.Group.Lockers.First().LockerType,
+                LockerType = firstLockerType,
                 LockerGroup = groupId,
                 LockerRange = new LockerRange
                 {
                     Start = 1,
-                    End = module.Group.Lockers.Count()
+                    End = module.Lockers?.Count() ?? 0
                 }
             };
-
         }
 
-        public bool UpdateModule(string lockerType, int lockerFrom, int lockerTo, int lockerGroupId)
+        public bool UpdateModule(string lockerType, int lockerFrom, int lockerTo, int lockerGroupId, int id)
         {
-
+            var module = Db.BrainModules.Include(m => m.Lockers).FirstOrDefault(x => x.Id == id);
+            module.GroupId = lockerGroupId;
+            foreach (var locker in module.Lockers)
+            {
+                locker.LockerType = lockerType;
+            }
+            Db.SaveChanges();
+         /*   if(module.Lockers.Count < lockerTo - lockerFrom)
+            {
+                Db.Lockers.Add()
+            }*/
 
             return true;
         }

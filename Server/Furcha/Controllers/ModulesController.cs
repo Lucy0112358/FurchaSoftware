@@ -18,18 +18,17 @@ namespace FurchaAdminApi.Controllers
             _lockerService = lockerService;
         }
 
-        [Authorize]
+      /*  [Authorize]*/
         [HttpGet]
         public ActionResult<ApiResult<List<Models.Result.AllModulesResult>>> Modules(int groupId)
         {
             var adminId = GetClaimValue("AdminId");
 
-            var modules = _lockerService.GetAllModules(int.Parse(adminId));
+            var modules = _lockerService.GetAddedModules(int.Parse(adminId));
 
             return Ok(ApiResult<List<Models.Result.AllModulesResult>>.Success(modules));
         }
 
-        [Authorize]
         [HttpGet("{id}")]
         public ActionResult<ModuleResult> GetModuleById(int id)
         {
@@ -38,11 +37,11 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<ModuleResult>.Success(locker));
         }
 
-        [Authorize]
+/*        [Authorize]*/
         [HttpPost("{id}")]
         public ActionResult<bool> Update(int id, [FromBody] UpdateModuleRequest request)
         {
-            var locker = _lockerService.UpdateModule(request.LockerType, request.LockerFrom, request.LockerTo, request.LockerGroupId);
+            var locker = _lockerService.UpdateModule(request.LockerType, request.LockerFrom, request.LockerTo, request.LockerGroupId, id);
 
             return Ok(ApiResult<bool>.Success(locker));
         }

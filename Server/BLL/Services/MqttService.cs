@@ -157,13 +157,14 @@ public class MqttService
                         using (var Db = furchaContext.Create())
                         {
                             var mqttBrain = JsonSerializer.Deserialize<MqttBaseRequest<MqttCreateBrain>>(responseMessage);
+                            var companyId = Db.Companies.FirstOrDefault(x => x.AccountUid == mqttBrain.Data.AccountId).Id;
                             Db.BrainModules.Add(new BrainModule
                             {
                                 Status = (int)BrainStatuses.New,
-                                CompanyId = mqttBrain.Data.AccountId,
+                                CompanyId = companyId,
                                 IpAddress = mqttBrain.Data.IpAddress,
                                 MacAddress = mqttBrain.Data.MacAddress,
-                                BrainUid = Guid.Parse(mqttBrain.Data.BrainUID),
+                                BrainUid = mqttBrain.Data.BrainUID,
                                 Description = mqttBrain.Data.Info,
                                 GroupId = null
                             });

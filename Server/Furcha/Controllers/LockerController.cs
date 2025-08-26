@@ -85,9 +85,9 @@ namespace FurchaAdminApi.Controllers
 
             return Ok(ApiResult<string>.Success("LockerGroup created successfully."));
         }
-
+/*
         [Authorize]
-        [RequiresPermission("AddModule")]
+        [RequiresPermission("AddModule")]*/
         [HttpPost("CreateModule")]
         public ApiResult<bool> CreateModule([FromBody] ModuleRequest request)
         {
