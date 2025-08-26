@@ -5,8 +5,6 @@ import ConfirmModal from '../../confirm/ConfirmModal';
 import { deleteUsers } from '../../../redux/api/userApi';
 
 function Delete({ ids, onClose }) {
-    console.log(ids);
-
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 

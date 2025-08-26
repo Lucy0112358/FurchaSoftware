@@ -35,7 +35,7 @@ function UserTableGroup() {
     <div onContextMenu={(e) => e.preventDefault()}
       onClick={handleGlobalClick}>
       <div className='flex justify-end mb-5'>
-        <UnselectIds setSelectedIds={setSelectedIds} buttonText="Unselect User Groups" />
+        <UnselectIds setSelectedIds={setSelectedIds} buttonText="Unselect" />
       </div>
       {
         allUserGroups.length ?
@@ -105,4 +105,4 @@ function UserTableGroup() {
   )
 }
 
-export default UserTableGroup
+export default UserTableGroup 

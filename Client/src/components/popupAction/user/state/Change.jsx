@@ -5,8 +5,6 @@ import ConfirmModal from '../../../confirm/ConfirmModal';
 import { changeUserState } from '../../../../redux/api/userApi';
 
 function Change({ user={}, onClose }) {
-    console.log(user, 8888888888888);
-
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 

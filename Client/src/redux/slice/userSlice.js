@@ -9,7 +9,7 @@ const initialState = {
   allUsers: [],
   userInfo: {},
   filteredUsers: [],
-  userShow: {},
+  getUser: {},
 };
 
 export const userSlice = createSlice({
@@ -44,7 +44,7 @@ export const userSlice = createSlice({
         state.loading = false;
       })
       .addCase(userShow.fulfilled, (state, action) => {
-        state.userShow = action.payload.data;
+        state.getUser = action.payload;
       })
       .addCase(setUserInfo.pending, (state) => {
         state.loading = true;
@@ -76,7 +76,7 @@ export const {
 } = userSlice.actions;
 
 export const getLoadingNow = (state) => state.user.loading;
-export const getUser = (state) => state.user.userShow;
+export const getUserData = (state) => state.user.getUser;
 export const getAllUsersData = (state) => state.user.allUsers;
 export const getAddUserInfo = (state) => state.user.userInfo;
 export const getFilteredUsers = (state) => state.user.filteredUsers;

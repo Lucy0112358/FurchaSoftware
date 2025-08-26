@@ -129,7 +129,7 @@ export const userShow = createAsyncThunk(
         method: "get",
         url: 'user/' + id,
       };
-      const response = await instance(config);
+      // const response = await instance(config);
       // return response?.data;
       return {
         "isPinRequired": true,

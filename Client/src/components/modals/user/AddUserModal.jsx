@@ -24,7 +24,7 @@ import ShowFormikError from "../../error/ShowFormikError";
 import { getAllGroupsData } from "../../../redux/slice/groupSlice";
 import { getAllGroups } from "../../../redux/api/groupApi";
 
-const AddUserModal = ({ isOpen, onClose, children }) => {
+const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
   if (!isOpen) return null;
   const dispatch = useDispatch();
   const userInfo = useSelector(getAddUserInfo);
@@ -34,49 +34,42 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
   const branches = useSelector(getBranchesData);
   const filteredBranchGroups = useSelector(getFilteredLockerGroups);
-  // const userGroups = useSelector(getUserGroupsData);
   const userGroups = useSelector(getAllGroupsData);
-  const [selectedBranches, setSelectedBranches] = useState([]);
   const [selectedGroups, setSelectedGroups] = useState(null);
   const [selectedLockerId, setSelectedLockerId] = useState([]);
   const [selectedLockerAddId, setSelectedLockerAddId] = useState({});
   const [userRight, setUserRight] = useState({});
-  const [sentGeneralInfo, setSentGeneralInfo] = useState({
-    isPinRequired: false,
-  });
-  //Start change for SelectBranch
+  const [sentGeneralInfo, setSentGeneralInfo] = useState({ isPinRequired: false });
   const [selectedBranch, setSelectedBranch] = useState({});
-  const [selectedBranchesForShow, setSelectedBranchesForShow] = useState({});
-  //END change for SelectBranch
-
-  const sendGroupInfo = (part, key, value) => {
-    dispatch(
-      setAddUserInfo({
-        [part]: {
-          ...userInfo[part],
-          [key]: value,
-        },
-      })
-    );
-
-    setSentGeneralInfo((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-
-    setUserRight((prev) => ({
-      ...prev,
-      [part]: {
-        ...(prev[part] || {}),
-        [key]: value,
-      },
-    }));
-  };
 
   useEffect(() => {
-    dispatch(getAllGroups())
-  }, [])
+    dispatch(getAllGroups());
+  }, [dispatch]);
 
+  useEffect(() => {
+    if (mode === "edit" && initialData) {
+      console.log(initialData, 'initialData');
+
+      setSentGeneralInfo({
+        ...initialData,
+        name: initialData.name || '',
+        surname: initialData.surname || '',
+        email: initialData.email || '',
+        isPinRequired: initialData.isPinRequired || false,
+        userGroups: initialData.userGroups || [],
+        cards: initialData.cards || [],
+        lockerIds: initialData.lockerIds || [],
+      });
+      setCards(initialData.cards || []);
+      setSelectedGroups(
+        initialData.userGroups?.map(id => ({
+          value: id,
+          label: userGroups.find(group => group.id === id)?.name || "Unknown"
+        })) || []
+      );
+    }
+  }, [mode, initialData, userGroups]);
+  console.log(sentGeneralInfo, 'sentGeneralInfo');
 
   const formatUserRightText = () => {
     const userRightsEntries = Object.entries(userRight);
@@ -90,14 +83,26 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
       .join('\n');
   };
 
+  const sendGroupInfo = (part, key, value) => {
+    dispatch(
+      setAddUserInfo({
+        [part]: {
+          ...userInfo[part],
+          [key]: value,
+        },
+      })
+    );
+    setSentGeneralInfo((prev) => ({ ...prev, [key]: value }));
+    setUserRight((prev) => ({
+      ...prev,
+      [part]: { ...(prev[part] || {}), [key]: value },
+    }));
+  };
+
   const validateForm = () => {
     const errors = {};
-    if (!sentGeneralInfo.name || !sentGeneralInfo.name.trim()) {
-      errors.name = 'Name is required';
-    }
-    if (!sentGeneralInfo.surname || !sentGeneralInfo.surname.trim()) {
-      errors.surname = 'Surname is required';
-    }
+    if (!sentGeneralInfo.name || !sentGeneralInfo.name.trim()) errors.name = 'Name is required';
+    if (!sentGeneralInfo.surname || !sentGeneralInfo.surname.trim()) errors.surname = 'Surname is required';
     if (!sentGeneralInfo.email || !sentGeneralInfo.email.trim()) {
       errors.email = 'Email is required';
     } else {
@@ -106,147 +111,27 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
         errors.email = 'Invalid email format';
       }
     }
-
-    if (!sentGeneralInfo.phone || !sentGeneralInfo.phone.trim()) {
-      errors.phone = 'Phone is required';
-    }
-
-    // if (!sentGeneralInfo.activeFrom) {
-    //   errors.activeFrom = 'Active From date is required';
-    // }
-    // if (!sentGeneralInfo.activeTo) {
-    //   errors.activeTo = 'Active To date is required';
-    // }
-
-    if (!sentGeneralInfo.userGroups || !sentGeneralInfo.userGroups.length) {
-      errors.userGroups = 'At least one User Group must be selected';
-    }
+    if (!sentGeneralInfo.phone || !sentGeneralInfo.phone.trim()) errors.phone = 'Phone is required';
+    if (!sentGeneralInfo.userGroups || !sentGeneralInfo.userGroups.length) errors.userGroups = 'At least one User Group must be selected';
     return errors;
   };
-  console.log(userInfo, "userInfo");
 
   const addUser = () => {
     const errors = validateForm();
     setFormErrors(errors);
-
-    if (Object.keys(errors).length > 0) {
+    if (Object.keys(errors).length) {
       toast.error('Please fill out the form correctly');
       return;
     }
-
     dispatch(setUserInfo(sentGeneralInfo))
-      .then((response) => {
-        if (response && response.payload?.isSuccess) {
-          window.location.reload();
-          // dispatch(setAddUserInfo({}));
-          // setSentGeneralInfo({
-          //   user_info: {},
-          //   active_period: {},
-          //   userGroups: [],
-          //   cards: [],
-          // });
+      .then(res => {
+        if (res?.payload?.isSuccess) {
+          toast.success("User added successfully");
           onClose();
         } else {
-          toast.error(response.error?.message || 'Error occurred');
+          toast.error(res.error?.message || 'Error occurred');
         }
-      })
-      .catch((error) => console.error('Error updating user info:', error));
-  };
-
-  const setCardNumbers = () => {
-    if (!cardRef.current) return;
-    
-    const newCard = cardRef.current.value.trim();
-
-    if (newCard) {
-      const addNewCardToCards = [...cards, newCard];
-      setCards(addNewCardToCards);
-      cardRef.current.value = null;
-      setSentGeneralInfo((prev) => ({
-        ...prev,
-        cards: addNewCardToCards,
-      }));
-      sendGroupInfo('Card No', 'cards', addNewCardToCards);
-    }
-  };
-
-  const handleDeleteCards = (value) => {
-    const withoutDeletedCards = cards.filter((card) => card !== value);
-    setCards(withoutDeletedCards);
-
-    setSentGeneralInfo((prev) => ({
-      ...prev,
-      cards: withoutDeletedCards,
-    }));
-    sendGroupInfo('Card No', 'cards', withoutDeletedCards);
-  };
-
-  const handleGroupsSelectChange = (selectedOption) => {
-    setSelectedGroups(selectedOption);
-    const ids = selectedOption.map((item) => item.value);
-
-    setSentGeneralInfo((prev) => ({
-      ...prev,
-      userGroups: ids,
-    }));
-    sendGroupInfo('User Groups', 'userGroups', ids);
-    dispatch(userFilter({ filterByGroupId: selectedOption.value }));
-  };
-
-  // const handleSelectBranch = (selectedOption) => {
-  //   setSelectedBranches((prevSelected) => {
-  //     const added = selectedOption.filter((item) => !prevSelected.includes(item));
-  //     if (added.length > 0) {
-  //       dispatch(getLockerGroupsByBranchId(added[0].value));
-  //     }
-  //     return selectedOption;
-  //   });
-  // };
-  const handleSelectBranch = (branch) => {
-    setSelectedBranch({ [branch.id]: branch.name });
-    const existAddedBranchLockers = selectedLockerAddId[branch.id];
-    if (existAddedBranchLockers) {
-      setSelectedLockerId(existAddedBranchLockers);
-    } else {
-      setSelectedLockerId([]);
-    }
-    dispatch(getLockerGroupsByBranchId(branch.id));
-  };
-
-  const handlePin = (value) => {
-    setSentGeneralInfo((prev) => ({
-      ...prev,
-      isPinRequired: value,
-    }));
-    sendGroupInfo('Pin', 'pin', value);
-  };
-
-  const handleBranchSelectAdd = (itemId) => {
-    setSelectedLockerId((prevSelected) => {
-      if (!prevSelected.includes(itemId)) {
-        return [...prevSelected, itemId];
-      }
-      return prevSelected;
-    });
-  };
-
-  const handleBranchSelectRemove = (itemId) => {
-    setSelectedLockerId((prevSelected) => {
-      if (prevSelected.includes(itemId)) {
-        return prevSelected.filter((id) => id !== itemId);
-      }
-      return prevSelected;
-    });
-  };
-
-  const handleClickBranchSelect = (itemId) => {
-    setSelectedLockerId((prevSelected) => {
-      if (prevSelected.includes(itemId)) {
-        return prevSelected.filter((id) => id !== itemId);
-      } else {
-        return [...prevSelected, itemId];
-      }
-    });
+      });
   };
 
   const sendLockerIds = () => {
@@ -307,25 +192,80 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
     toast.success("Lockers added successfully");
   };
 
-  const renderError = (fieldName) => {
-    if (formErrors[fieldName]) {
-      return (
-        <ShowFormikError message={formErrors[fieldName]} />
-      );
+  const updateUser = () => {
+    const errors = validateForm();
+    setFormErrors(errors);
+    if (Object.keys(errors).length) {
+      toast.error("Please fill out the form correctly");
+      return;
     }
-    return null;
+    dispatch(setUserInfo({ ...sentGeneralInfo, id: initialData.id }))
+      .then(res => {
+        if (res?.payload?.isSuccess) {
+          toast.success("User updated successfully");
+          onClose();
+        } else {
+          toast.error(res.error?.message || "Error occurred");
+        }
+      });
   };
+
+  const setCardNumbers = () => {
+    if (!cardRef.current) return;
+    const newCard = cardRef.current.value.trim();
+    if (!newCard) return;
+    const newCards = [...cards, newCard];
+    setCards(newCards);
+    setSentGeneralInfo(prev => ({ ...prev, cards: newCards }));
+    sendGroupInfo('Card No', 'cards', newCards);
+    cardRef.current.value = '';
+  };
+
+  const handleDeleteCards = (value) => {
+    const newCards = cards.filter(card => card !== value);
+    setCards(newCards);
+    setSentGeneralInfo(prev => ({ ...prev, cards: newCards }));
+    sendGroupInfo('Card No', 'cards', newCards);
+  };
+
+  const handleGroupsSelectChange = (selectedOption) => {
+    setSelectedGroups(selectedOption);
+    const ids = selectedOption.map(o => o.value);
+    setSentGeneralInfo(prev => ({ ...prev, userGroups: ids }));
+    sendGroupInfo('User Groups', 'userGroups', ids);
+    if (selectedOption.length) dispatch(userFilter({ filterByGroupId: selectedOption[0].value }));
+  };
+
+  const handleSelectBranch = (branch) => {
+    setSelectedBranch({ [branch.id]: branch.name });
+    setSelectedLockerId(selectedLockerAddId[branch.id] || []);
+    dispatch(getLockerGroupsByBranchId(branch.id));
+  };
+
+  const handlePin = (value) => {
+    setSentGeneralInfo(prev => ({ ...prev, isPinRequired: value }));
+    sendGroupInfo('Pin', 'pin', value);
+  };
+
+  const handleClickBranchSelect = (itemId) => {
+    setSelectedLockerId((prevSelected) => {
+      if (prevSelected.includes(itemId)) {
+        return prevSelected.filter((id) => id !== itemId);
+      } else {
+        return [...prevSelected, itemId];
+      }
+    });
+  };
+
+  const renderError = (field) => formErrors[field] ? <ShowFormikError message={formErrors[field]} /> : null;
 
   return (
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
       <div className="add__modal__content add__modal__content__addUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto h-full">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-white">Add User</h2>
-          <CloseButton onClick={onClose}>
-            &times;
-          </CloseButton>
+          <h2 className="text-2xl font-semibold text-white">{mode === 'add' ? 'Add User' : 'Edit User'}</h2>
+          <CloseButton onClick={onClose}>&times;</CloseButton>
         </div>
-
         <Tabs>
           <TabList>
             <Tab>Info</Tab>
@@ -339,10 +279,19 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                 <span>User Info</span>
                 <div className="add__modal__content__part__group grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <input
+                    {/* <input
                       placeholder="Name"
                       type="text"
                       value={userInfo.user_info?.name}
+                      onChange={(e) =>
+                        sendGroupInfo('user_info', 'name', e.target.value)
+                      }
+                      className="w-full p-1 border rounded"
+                    /> */}
+                    <input
+                      placeholder="Name"
+                      type="text"
+                      value={sentGeneralInfo.name || ''}
                       onChange={(e) =>
                         sendGroupInfo('user_info', 'name', e.target.value)
                       }
@@ -354,7 +303,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Last name"
                       type="text"
-                      value={userInfo.user_info?.surname}
+                      value={sentGeneralInfo.surname || ''}
                       onChange={(e) =>
                         sendGroupInfo('user_info', 'surname', e.target.value)
                       }
@@ -366,7 +315,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Email"
                       type="email"
-                      value={userInfo.user_info?.email}
+                      value={sentGeneralInfo.email || ''}
                       onChange={(e) =>
                         sendGroupInfo('user_info', 'email', e.target.value)
                       }
@@ -378,7 +327,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <input
                       placeholder="Phone"
                       type="text"
-                      value={userInfo.user_info?.phone}
+                      value={sentGeneralInfo.phone || ''}
                       onChange={(e) =>
                         sendGroupInfo('user_info', 'phone', e.target.value)
                       }
@@ -397,7 +346,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <label className="block text-gray-300">From</label>
                     <input
                       type="date"
-                      value={userInfo.active_period?.activeFrom}
+                      value={sentGeneralInfo.activeFrom || ''}
                       onChange={(e) =>
                         sendGroupInfo('active_period', 'activeFrom', e.target.value)
                       }
@@ -409,7 +358,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                     <label className="block text-gray-300">To</label>
                     <input
                       type="date"
-                      value={userInfo.active_period?.activeTo}
+                      value={sentGeneralInfo.activeTo || ''}
                       onChange={(e) =>
                         sendGroupInfo('active_period', 'activeTo', e.target.value)
                       }
@@ -542,7 +491,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
             </div>
 
             {/* Кнопки */}
-            <div className="flex justify-end space-x-4">
+            {/* <div className="flex justify-end space-x-4">
               <div className="modal__button">
                 <button className="bg-gray-600 text-white rounded" onClick={onClose}>
                   Cancel
@@ -553,6 +502,12 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                   Save
                 </button>
               </div>
+            </div> */}
+            <div className="flex justify-end space-x-4 mt-4">
+              <button className="bg-gray-600 text-white rounded px-4 py-2" onClick={onClose}>Cancel</button>
+              <button className="bg-gray-600 text-white rounded px-4 py-2" onClick={mode === 'add' ? addUser : updateUser}>
+                {mode === 'add' ? 'Save' : 'Update'}
+              </button>
             </div>
           </TabPanel>
 
@@ -634,7 +589,7 @@ const AddUserModal = ({ isOpen, onClose, children }) => {
                 {/* {selectedBranchesForShow.length > 0 && (
                   <div className="pl-5 select-none">
                     {selectedBranchesForShow.map((group) => (
-                     
+
                     )))} */}
               </div>
 

@@ -28,7 +28,7 @@ function UserPopup({ user, onClose, selectedIds }) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Edit lockers={user} onClose={onClose} />
+              <Edit id={user.id} onClose={onClose} />
               <Delete ids={[user.id]} onClose={onClose} />
               <State user={user} onClose={onClose} />
               <AddUserGroup ids={[user.id]} onClose={onClose} />
