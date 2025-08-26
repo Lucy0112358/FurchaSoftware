@@ -35,8 +35,11 @@ export const authSlice = createSlice({
       .addCase(signin.rejected, (state, action) => {
         state.loading = false;
       })
+      .addCase(getAuthUser.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(getAuthUser.fulfilled, (state, action) => {
-        state.authUser = action.payload
+        // state.authUser = action.payload
         state.isAuth = true
         state.authUserPermissions = {
           // 'role': state.authUser.role,
@@ -46,6 +49,10 @@ export const authSlice = createSlice({
           'role': 'LVL5_MasterAdmin',
           'permissions': ['Open_Locker'],
       }
+        state.loading = false;
+      })
+      .addCase(getAuthUser.rejected, (state, action) => {
+        state.loading = false;
       })
       .addCase(getRoles.fulfilled, (state, action) => {
         state.roles = action.payload
