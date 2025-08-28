@@ -55,14 +55,25 @@ namespace FurchaAdminApi.Services
         /// <param name="isActive">Indicates if the locker is active.</param>
         /// <param name="lockerStatus">The current status of the locker.</param>
         /// <returns>A list of editingLockers that match the specified criteria.</returns>
-        public List<OfficeResult> GetLockersByFilters(int branchId, string? lockerType, int? lockerGroupId, int? isOpen = null,
+        public List<OfficeResult> GetLockersByFilters(int? branchId, string? lockerType, int? lockerGroupId, int? isOpen = null,
             string? userName = null, int? adminId = null)
         {
-            var adminBranches = Db.Branches
-               .Include(b => b.AdminBranches)
-               .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
-               .ToList();
+            var adminBranches = new List<Branch>();
 
+            if (branchId == null)
+            {
+                adminBranches = Db.Branches
+                  .Include(b => b.AdminBranches)
+                  .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
+                  .ToList();
+            }
+            else
+            {
+                adminBranches = Db.Branches
+                .Include(b => b.AdminBranches)
+                .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId && ab.BranchId == branchId))
+                .ToList();
+            }
             //_branchRepository.GetBranchesByAdminId(8);
 
             var results = new List<OfficeResult>();
@@ -70,11 +81,11 @@ namespace FurchaAdminApi.Services
             foreach (var branch in adminBranches)
             {
                 // var lockers = _lockerRepository.GetLockersByCriteria(branch.Id, lockerType, lockerGroupId, isOpen);
-                var lockers = Db.Lockers
+                var lockers = Db.Lockers.Include(l => l.Brain)
                     .Where(l =>
-                        (lockerType == null || l.LockerType == lockerType) &&
-                        (lockerGroupId == null || l.GroupId == lockerGroupId) &&
-                        (branchId == 0 || l.BranchId == branchId) &&
+                        (lockerType == null || l.LockerType == lockerType /*|| l.Brain.LockerType*/) &&
+                        (lockerGroupId == null || l.Brain.GroupId == lockerGroupId) &&
+                        (branchId == null || l.Brain.BranchId == branchId) &&
                         (isOpen == null || l.IsOpen == (isOpen == 1))
                     )
                     .Select(l => new LockerWithUsers
@@ -106,11 +117,37 @@ namespace FurchaAdminApi.Services
                                     .ToList();*/
 
                 var branchLockerGroups = Db.LockerGroups
-       .Where(lg => lg.BranchId == branchId)
-       .ToList().OrderByDescending(group => group.Id)
-                    .ToList();
+                   .Where(lg => lg.BranchId == branchId)
+                   .ToList().OrderByDescending(group => group.Id)
+                   .ToList();
 
                 var lockerResults = new List<LockersResult>();
+
+                if (branchLockerGroups.Count == 0)
+                {
+                    lockerResults.Add(new LockersResult
+                    {
+                        GroupName = "Unassigned",
+                        GroupLockers = lockers.Select(locker => new LockerWithUsers
+                        {
+                            Id = locker.Id,
+                            LockerType = locker.LockerType,
+                            IsActive = locker.IsActive,
+                            IsOpen = locker.IsOpen,
+                            groupid = locker.groupid,
+                            Users = locker.Users,
+                            BranchId = locker.BranchId
+                        }).ToList()
+                    });
+
+                    results.Add(new OfficeResult
+                    {
+                        OfficeName = branch.Name,
+                        Lockers = lockerResults
+                    });
+
+                    return results;
+                }
 
                 foreach (var group in branchLockerGroups)
                 {
@@ -291,89 +328,89 @@ namespace FurchaAdminApi.Services
         {
             /* using (var transaction = new TransactionScope())
              {*/
-          /*  if (request.LockerGroupId == null)
-            {
-                var newGroup = new LockerGroup
-                {
-                    Name = "Unassigned 1", // index names
-                    BranchId = request.BranchId,
-                };
+            /*  if (request.LockerGroupId == null)
+              {
+                  var newGroup = new LockerGroup
+                  {
+                      Name = "Unassigned 1", // index names
+                      BranchId = request.BranchId,
+                  };
 
-                var unassignedGroup = Db.LockerGroups.Add(newGroup);
-                Db.SaveChanges();
-                //_lockerRepository.CreateLockerGroup(newGroup);
+                  var unassignedGroup = Db.LockerGroups.Add(newGroup);
+                  Db.SaveChanges();
+                  //_lockerRepository.CreateLockerGroup(newGroup);
 
-                request.LockerGroupId = unassignedGroup.Entity.Id;
-            }*/
+                  request.LockerGroupId = unassignedGroup.Entity.Id;
+              }*/
 
             var existingModule = Db.BrainModules.FirstOrDefault(m => m.Id == request.BrainId);
             if (existingModule != null)
             {
                 existingModule.BranchId = request.BranchId;
-                existingModule.Status = 2;               
+                existingModule.Status = 2;
 
                 Db.SaveChanges();
             }
 
-         /*   int startIndex = 1;
+            /*   int startIndex = 1;
 
-            var lockersWithNumber = Db.Lockers
-                .Where(l => l.GroupId == (int)request.LockerGroupId)
-                .ToList() // _lockerRepository.GetLockersOfGroup((int)request.LockerGroupId)
-                .OrderBy(x => (int)x.Number).ToList();
+               var lockersWithNumber = Db.Lockers
+                   .Where(l => l.GroupId == (int)request.LockerGroupId)
+                   .ToList() // _lockerRepository.GetLockersOfGroup((int)request.LockerGroupId)
+                   .OrderBy(x => (int)x.Number).ToList();
 
-            if (request.StartBegin)
-            {
-                if (lockersWithNumber.Any())
-                {
-                    foreach (var locker in lockersWithNumber)
-                    {
-                        var l = Db.Lockers.FirstOrDefault(l => l.Id == locker.Id);
-                        if (l != null)
-                        {
-                            l.Number = locker.Number + request.LastLocker;
-                            Db.SaveChanges();
-                        }
+               if (request.StartBegin)
+               {
+                   if (lockersWithNumber.Any())
+                   {
+                       foreach (var locker in lockersWithNumber)
+                       {
+                           var l = Db.Lockers.FirstOrDefault(l => l.Id == locker.Id);
+                           if (l != null)
+                           {
+                               l.Number = locker.Number + request.LastLocker;
+                               Db.SaveChanges();
+                           }
 
-                        //_lockerRepository.UpdateLocker(l);
-                    }
-                }
-            }
-            else
-            {
-                if (lockersWithNumber.Any())
-                {
-                    startIndex = lockersWithNumber.Select(x => (int)x.Number).Max() + 1;
-                }
-                else
-                {
-                    startIndex = 1;
-                }
-            }
+                           //_lockerRepository.UpdateLocker(l);
+                       }
+                   }
+               }
+               else
+               {
+                   if (lockersWithNumber.Any())
+                   {
+                       startIndex = lockersWithNumber.Select(x => (int)x.Number).Max() + 1;
+                   }
+                   else
+                   {
+                       startIndex = 1;
+                   }
+               }
 
 
-            if (startIndex >= request.LastLocker || request.FirstLocker < startIndex)
-            {
-                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "locker number is wrong");
-            }
+               if (startIndex >= request.LastLocker || request.FirstLocker < startIndex)
+               {
+                   throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "locker number is wrong");
+               }
 
-            for (int i = startIndex; i < request.LastLocker; i++)
-            {
-                var locker = new Locker
-                {
-                    Number = i,
-                    LockerType = locker_type.Common.ToString(),
-                    PasswordHash = "default",
-                    BranchId = request.BranchId,
-                    GroupId = request.LockerGroupId,
-                    BrainId = request.Id
-                };
+               for (int i = startIndex; i < request.LastLocker; i++)
+               {
+                   var locker = new Locker
+                   {
+                       Number = i,
+                       LockerType = locker_type.Common.ToString(),
+                       PasswordHash = "default",
+                       BranchId = request.BranchId,
+                       GroupId = request.LockerGroupId,
+                       BrainId = request.Id
+                   };
 
-                //  _lockerRepository.CreateLocker(locker);
-                Db.Lockers.Add(locker);
-                Db.SaveChanges();
-            }
-*/
+                   //  _lockerRepository.CreateLocker(locker);
+                   Db.Lockers.Add(locker);
+                   Db.SaveChanges();
+               }
+   */
             /*     }*/
             return true;
         }
@@ -572,11 +609,14 @@ namespace FurchaAdminApi.Services
             int groupId = module.Group?.Id ?? 0;
 
             var firstLockerType = module.Group?.Lockers?.FirstOrDefault()?.LockerType;
-
+            if (firstLockerType == null)
+            {
+                firstLockerType = module.Lockers.First().LockerType;
+            }
             return new FurchaBLL.Models.ModuleResult
             {
                 LockerType = firstLockerType,
-                LockerGroup = groupId,
+                LockerGroupId = groupId,
                 LockerRange = new LockerRange
                 {
                     Start = 1,
@@ -594,10 +634,10 @@ namespace FurchaAdminApi.Services
                 locker.LockerType = lockerType;
             }
             Db.SaveChanges();
-         /*   if(module.Lockers.Count < lockerTo - lockerFrom)
-            {
-                Db.Lockers.Add()
-            }*/
+            /*   if(module.Lockers.Count < lockerTo - lockerFrom)
+               {
+                   Db.Lockers.Add()
+               }*/
 
             return true;
         }

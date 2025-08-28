@@ -65,7 +65,7 @@ namespace FurchaAdminApi.Services
 
             if (userRole != null)
             {
-                 roleName = roles.Where(r => r.Id == userRole.RoleId).First().Name;
+                roleName = roles.Where(r => r.Id == userRole.RoleId).First().Name;
             }
             else
             {
@@ -164,7 +164,7 @@ namespace FurchaAdminApi.Services
         public List<UserResult> GetUsersForAdminBasedOnRole(int adminId)
         {
             var admin = Db.Administrators.First(a => a.Id == adminId); // _userRepository.GetAdminById(AdminId);
-            
+
             if (admin == null)
             {
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
@@ -199,7 +199,7 @@ namespace FurchaAdminApi.Services
 
         public List<User> GetUsersForLVL4Admin(FurchaDAL.Models.Administrator admin)
         {
-            var adminBranches =  Db.AdminBranches
+            var adminBranches = Db.AdminBranches
                         .Where(ab => ab.AdministratorId == admin.Id)
                         .Include(ab => ab.Branch)
                         .Select(ab => ab.Branch)
@@ -278,10 +278,10 @@ namespace FurchaAdminApi.Services
             }
             else if (admin.RoleId != (long)RoleEnum.user) //if a role is added this condition may change
             {
-               var adminBranches = Db.Branches
-                    .Include(b => b.AdminBranches)
-                    .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == admin.Id))
-                    .ToList();
+                var adminBranches = Db.Branches
+                     .Include(b => b.AdminBranches)
+                     .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == admin.Id))
+                     .ToList();
                 //_userRepository.GetAdminBranchesByAdminId(admin.Id);
 
                 var distinctBranchIds = adminBranches
@@ -378,7 +378,7 @@ namespace FurchaAdminApi.Services
             return filteredUsers;
         }
 
-        public async Task<UserResult> AddUser(UserCreateRequest newUser, int adminId)
+        public UserResult AddUser(UserCreateRequest newUser, int adminId)
         {
             if (newUser.IsPinRequired == true)
             {
@@ -396,7 +396,7 @@ namespace FurchaAdminApi.Services
                 Data = result
             };
 
-            await _mqttService.PublishMqttCommands(mqttRequest, companyUid.ToString(), "1"); // Use claims or context for real companyId and branchId
+            _mqttService.PublishMqttCommands(mqttRequest, companyUid.ToString(), "1"); // Use claims or context for real companyId and branchId
 
             return result;
         }
@@ -443,7 +443,7 @@ namespace FurchaAdminApi.Services
 
         private UserResult AddUserToDb(UserCreateRequest newUser, int adminId)
         {
-            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId; 
+            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId;
             var state = StateEnum.active;
 
             if (companyId == null)
@@ -462,39 +462,43 @@ namespace FurchaAdminApi.Services
 
             try
             {
-                using (var transactionScope = new TransactionScope(TransactionScopeOption.Required,
-                    new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
-                    TransactionScopeAsyncFlowOption.Enabled))
+                /*  using (var transactionScope = new TransactionScope(TransactionScopeOption.Required,
+                      new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                      TransactionScopeAsyncFlowOption.Enabled))
+                  {*/
+                var user = new User
                 {
-                    var user = new User
-                    {
-                        Name = newUser.Name,
-                        Surname = newUser.Surname,
-                        Email = newUser.Email,
-                        Phone = newUser.Phone,
-                        CreatedDate = DateOnly.FromDayNumber(1),
-                        State = (int)state,
-                        CompanyId = (int)companyId,
-                    };
+                    Name = newUser.Name,
+                    Surname = newUser.Surname,
+                    Email = newUser.Email,
+                    Phone = newUser.Phone,
+                    CreatedDate = DateOnly.FromDayNumber(1),
+                    State = (int)state,
+                    CompanyId = (int)companyId,
+                };
 
-                    Db.Add(user);
-                    Db.SaveChanges();
+                Db.Add(user);
+                Db.SaveChanges();
 
-                    AddCardsByNumbers(newUser.Cards, user.Id);
+                AddCardsByNumbers(newUser.Cards, user.Id);
+                if (newUser.LockerIds != null)
+                {
                     AssignLockersToUser(newUser.LockerIds, user.Id);
-                    AssignUserGroupsToUser(newUser.UserGroups, user.Id);
 
-                    transactionScope.Complete();
-
-                    return new UserResult
-                    {
-                        Id = user.Id,
-                        Name = user.Name,
-                        Surname = user.Surname,
-                        Role = RoleEnum.user.ToString(),
-                        State = user.State.ToString()
-                    };
                 }
+                AssignUserGroupsToUser(newUser.UserGroups, user.Id);
+
+                //    transactionScope.Complete();
+
+                return new UserResult
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Surname = user.Surname,
+                    Role = RoleEnum.user.ToString(),
+                    State = user.State.ToString()
+                };
+                /* }*/
             }
             catch (BaseException)
             {
@@ -532,27 +536,30 @@ namespace FurchaAdminApi.Services
         }
 
 
-        private void AssignLockersToUser(List<int> lockerIds, int userId)
+        public void AssignLockersToUser(List<int> lockerIds, int userId)
         {
-            try
-            {
-                foreach (var id in lockerIds)
-                {
-                    var userLocker = new UserLocker
-                    {
-                        UserId = userId,
-                        LockerId = id
-                    };
+            // Load the user with their existing lockers
+            var user = Db.Users
+                .Include(u => u.Lockers)   // navigation property generated by EF
+                .FirstOrDefault(u => u.Id == userId);
 
-                    Db.Add(userLocker);
-                }
+            if (user == null)
+                throw new InvalidOperationException($"User with Id {userId} not found.");
 
-                Db.SaveChanges();
-            }
-            catch (Exception ex)
+            // Get the lockers to assign
+            var lockersToAssign = Db.Lockers
+                .Where(l => lockerIds.Contains(l.Id))
+                .ToList();
+
+            // Assign lockers (skip duplicates)
+            foreach (var locker in lockersToAssign)
             {
-                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
+                if (!user.Lockers.Contains(locker))
+                    user.Lockers.Add(locker);
             }
+
+            // Save changes
+            Db.SaveChanges();
         }
 
         private List<FurchaDAL.Models.Card> AddCardsByNumbers(List<string> cardNumbers, int userId)
