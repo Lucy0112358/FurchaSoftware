@@ -9,5 +9,6 @@
         public const string URole = "URole";
         public const string Name = System.Security.Claims.ClaimTypes.Name;
         public const string Permissions = "Permissions";
+        public const string CompanyId = "CompanyId";
     }
 }

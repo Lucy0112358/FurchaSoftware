@@ -47,46 +47,55 @@ namespace FurchaAdminApi.Services
             }
         }
 
-        public FurchaDAL.Models.Administrator CreateAdmin(CreateAdminRequest request)
+        public void CreateAdmin(CreateAdminRequest request)
         {
-            // admin branch
-            // admin lockers
-            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == request.ModifiedBy).CompanyId;
-            var admin = new FurchaDAL.Models.Administrator
+            try
             {
-                UserId = request.UserId,
-                PasswordHash = "b33f9a399e11b3c36f3d3b338668c41214d8256a95594664166af9fb8b9b72d5",
-                Salt = "furcha-salt",
-                RoleId = request.RoleId,
-                IsActive = true,
-                CreatedDate = DateTime.UtcNow,
-                IsDeleted = true,
-                ModifiedBy = request.ModifiedBy,
-                LastPasswordChangeDate = DateTime.UtcNow,
-                ForcePasswordReset = true,
-                CompanyId = companyId
-            };
-
-            Db.Administrators.Add(admin); //_adminRepository.CreateAdmin(admin);
-            Db.SaveChanges();
-
-            foreach (var permission in request.Permissions)
-            {
-                var a = new AdminPermission
+                // admin branch
+                // admin lockers
+                var companyId = Db.Administrators.FirstOrDefault(a => a.Id == request.ModifiedBy).CompanyId;
+                var admin = new FurchaDAL.Models.Administrator
                 {
-                    AdministratorId = admin.Id,
-                    PermissionId = permission
+                    UserId = request.UserId,
+                    PasswordHash = "b33f9a399e11b3c36f3d3b338668c41214d8256a95594664166af9fb8b9b72d5",
+                    Salt = "furcha-salt",
+                    RoleId = request.RoleId,
+                    IsActive = true,
+                    CreatedDate = DateTime.UtcNow,
+                    IsDeleted = null,
+                    ModifiedBy = request.ModifiedBy,
+                    LastPasswordChangeDate = DateTime.UtcNow,
+                    ForcePasswordReset = true,
+                    CompanyId = companyId
                 };
 
-                Db.AdminPermissions.Add(a);// _adminRepository.CreateAdminPermissions(a);
+                Db.Administrators.Add(admin); //_adminRepository.CreateAdmin(admin);
                 Db.SaveChanges();
-            }
 
-            return admin;
+                foreach (var permissionId in request.Permissions)
+                {
+                    admin.AdminPermissions.Add(new AdminPermission
+                    {
+                        AdministratorId = admin.Id,
+                        PermissionId = permissionId
+                    });
+                }
+
+                Db.SaveChanges();
+                var state = Db.Entry(admin).State; 
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+     
+
+          //  return admin;
         }
 
-        public List<AdminResult> GetCompanyAdmins(int companyId)
+        public List<AdminResult> GetCompanyAdmins(int adminId)
         {
+            var companyId = Db.Administrators.First(x=> x.Id == adminId).CompanyId;
             var admins = Db.Administrators.Where(a => a.CompanyId == companyId).ToList(); // _adminRepository.GetAdminsByCompanyId(companyId);
             var result = new List<AdminResult>();
 
@@ -174,6 +183,7 @@ namespace FurchaAdminApi.Services
             a.Surname = adminUser.Surname; ;
             a.Role = admin.RoleId.ToString();
             a.Email = adminUser.Email;
+            a.CompanyId = adminUser.CompanyId.ToString();
             var hashedPassword = EncodePassword(password: authenticateRequest.Password, salt: admin.Salt);
             // var hashedPassword = authenticateRequest.Password;
 
@@ -237,6 +247,7 @@ namespace FurchaAdminApi.Services
             var claims = new[]
             {
             new Claim(ClaimTypes.Name, admin.Name),
+            new Claim(ClaimTypes.CompanyId, admin.CompanyId.ToString()),
             new Claim(ClaimTypes.UName, admin.Name),
             new Claim(ClaimTypes.Email, admin.Email),
             new Claim(ClaimTypes.AdminId, admin.Id.ToString()),

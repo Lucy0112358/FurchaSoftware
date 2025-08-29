@@ -70,9 +70,9 @@ namespace FurchaAdminApi.Controllers
             var permissions = authenticationService.GetRolePermissions(roleId);
             return Ok(permissions);
         }
-
+/*
         [Authorize]
-        [RequiresPermission("ManageAdmins")]        
+        [RequiresPermission("ManageAdmins")]       */ 
         [HttpPost("create-admin")]
         public ActionResult<ApiResult<Administrator>> CreateAdmin([FromBody] CreateAdminRequest request)
         {
@@ -80,22 +80,22 @@ namespace FurchaAdminApi.Controllers
             {
                 var adminId = GetClaimValue("AdminId");
                 request.ModifiedBy = int.Parse(adminId);
-                var newAdmin = authenticationService.CreateAdmin(request);
-                return Ok(ApiResult<Administrator>.Success(newAdmin));
+                authenticationService.CreateAdmin(request);
+                return Ok(ApiResult<Administrator>.Success());
             }
             catch (Exception ex)
             {
                // return Ok(ApiResult<Administrators>.Success());
-                  return NotFound(ApiResult<Administrator>.ErrorResult(ex.Message));
+                  return BadRequest(ApiResult<Administrator>.ErrorResult(ex.Message));
             }
         }
-
-        [Authorize]
+/*
+        [Authorize]*/
         [HttpGet("get-admins")]
         public ActionResult<ApiResult<List<AdminResult>>> GetAdmins()
         {
-            var companyId = 5;
-            var admins = authenticationService.GetCompanyAdmins(companyId);
+            var adminId = GetClaimValue("AdminId");
+            var admins = authenticationService.GetCompanyAdmins(int.Parse(adminId));
 
             if (admins == null || !admins.Any())
             {
