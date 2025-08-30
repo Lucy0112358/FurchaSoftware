@@ -134,7 +134,6 @@ namespace FurchaAdminApi.Services
             return res > 0;
         }
 
-
         public void DeleteBranch(int branchId)
         {
             var branch = Db.Branches
