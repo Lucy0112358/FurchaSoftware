@@ -23,7 +23,8 @@ namespace FurchaBLL.Services
                 Country = newCompany.Country,
                 Email = newCompany.Email,
                 Phone = newCompany.Phone,
-                CountryCode = newCompany.CountryCode
+                CountryCode = newCompany.CountryCode,
+                AccountUid = Guid.NewGuid()
             };
 
             var dbCompany = await Db.Companies.AddAsync(company);
