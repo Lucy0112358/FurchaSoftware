@@ -9,5 +9,7 @@
         public T Data { get; set;  }
 
         public DateTime ReceivedDate { get; set; }
+
+        public string? ErrorMessage { get; set; } = null;
     }
 }
