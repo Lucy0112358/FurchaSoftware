@@ -9,6 +9,9 @@ using System.Text;
 using FurchaDAL.Models;
 using FurchaBLL.MqttModels.Publish;
 using Microsoft.Extensions.DependencyInjection;
+using MQTTnet.Server;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using System.Text.Json.Serialization;
 
 public class MqttService
 {
@@ -166,7 +169,7 @@ public class MqttService
                                     Operation = (int)OperationTypes.Success,
                                     Command = (int)CommandTypes.CreateBrainModule
                                 }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933");
-                                break; 
+                                break;
                             }
 
                             Db.BrainModules.Add(new BrainModule
@@ -235,23 +238,37 @@ public class MqttService
 
     public async Task AddAccount(Guid? accountUID, string brainPass)
     {
-        var mqttCompany = new MqttBaseRequest<MqttCreateCompany>
+        var commandWrapper = new
         {
-            Command = (int)CommandTypes.CreateAccount,
-            Data = new MqttCreateCompany
+            commands = new object[]
             {
-                Username = accountUID.ToString(),
+            new
+            {
+                Command = "createClient",
+                Username = accountUID,
                 Password = brainPass,
-                Roles = new List<MqttRole>
+                ClientId = "",
+                TextName = "",
+                TextDescription = "",
+                Roles = new[]
                 {
-                    new MqttRole { RoleName = "user", Priority = 1 }
+                    new { RoleName = "user", Priority = 1 }
                 }
-            },
-            ReceivedDate = DateTime.UtcNow
+            }
+            }
         };
 
-        await PublishToMqtt(mqttCompany, "$CONTROL/dynamic-security/v1");
+        var payload = JsonSerializer.Serialize(commandWrapper);
+
+        var message = new MqttApplicationMessageBuilder()
+            .WithTopic("$CONTROL/dynamic-security/v1")
+            .WithPayload(payload)
+            .WithRetainFlag(true)
+            .Build();
+
+        var result = await _mqttClient.PublishAsync(message, CancellationToken.None);
     }
+
 
     public async Task PublishToMqtt<T>(MqttBaseRequest<T> request, string topic)
     {
