@@ -158,6 +158,17 @@ public class MqttService
                         {
                             var mqttBrain = JsonSerializer.Deserialize<MqttBaseRequest<MqttCreateBrain>>(responseMessage);
                             var companyId = Db.Companies.FirstOrDefault(x => x.AccountUid == mqttBrain.Data.AccountId).Id;
+                            var brains = Db.BrainModules.Where(x => x.CompanyId == companyId).ToList();
+                            if (brains.Any(x => x.BrainUid == mqttBrain.Data.BrainUID))
+                            {
+                                PublishToMqtt<int>(new MqttBaseRequest<int>
+                                {
+                                    Operation = (int)OperationTypes.Success,
+                                    Command = (int)CommandTypes.CreateBrainModule
+                                }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933");
+                                break; 
+                            }
+
                             Db.BrainModules.Add(new BrainModule
                             {
                                 Status = (int)BrainStatuses.New,
@@ -176,7 +187,7 @@ public class MqttService
                                 {
                                     Operation = (int)OperationTypes.Success,
                                     Command = (int)CommandTypes.CreateBrainModule
-                                }, "controller/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933/connection");
+                                }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933");
                             }
                         }
                         break;
@@ -201,7 +212,7 @@ public class MqttService
                                 {
                                     Operation = (int)OperationTypes.Success,
                                     Command = (int)CommandTypes.AddLockersToBrain
-                                }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933/connection");
+                                }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933");
                             }
                         }
                         break;
