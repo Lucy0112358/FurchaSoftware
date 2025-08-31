@@ -42,10 +42,10 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
     };
     dispatch(setAddUserInfo(updatedUserInfo));
 
-    setGroupRight((prev) => ({
-      ...prev,
-      ...updatedUserInfo,
-    }));
+    // setGroupRight((prev) => ({
+    //   ...prev,
+    //   ...updatedUserInfo,
+    // }));
   };
 
   const sendLockerIds = () => {

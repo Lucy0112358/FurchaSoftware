@@ -93,10 +93,10 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
       })
     );
     setSentGeneralInfo((prev) => ({ ...prev, [key]: value }));
-    setUserRight((prev) => ({
-      ...prev,
-      [part]: { ...(prev[part] || {}), [key]: value },
-    }));
+    // setUserRight((prev) => ({
+    //   ...prev,
+    //   [part]: { ...(prev[part] || {}), [key]: value },
+    // }));
   };
 
   const validateForm = () => {
@@ -474,20 +474,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
                 </div>
               </div>
 
-              {/* User Rights */}
-              <div className="add__modal__content__part">
-                <span>User rights</span>
-                <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-                  <label className="block text-gray-300">
-                    User rights details
-                  </label>
-                  <textarea
-                    className="w-full p-1 border rounded h-24"
-                    readOnly
-                    value={formatUserRightText()}
-                  />
-                </div>
-              </div>
+
             </div>
 
             {/* Кнопки */}
@@ -513,6 +500,20 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
 
           <TabPanel>
             <div className="flex justify-between flex-col" onContextMenu={(e) => e.preventDefault()}>
+              {/* User Rights */}
+              <div className="add__modal__content__part">
+                <span>User rights</span>
+                <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
+                  <label className="block text-gray-300">
+                    User rights details
+                  </label>
+                  <textarea
+                    className="w-full p-1 border rounded h-24"
+                    readOnly
+                    value={formatUserRightText()}
+                  />
+                </div>
+              </div>
               <div className="add__modal__content__part__select w-full">
                 <span>Branches</span>
                 <div className="add__modal__content__part__group mb-4c overflow-x-auto">

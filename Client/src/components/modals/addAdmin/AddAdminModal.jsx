@@ -71,13 +71,13 @@ const AddAdminModal = ({ onClose, children }) => {
       return acc;
     }, {});
 
-    if (Object.keys(initialPermissions).length) {
-      sendGroupInfo(
-        'Permission',
-        'permissions',
-        Object.keys(initialPermissions).join(', ')
-      );
-    }
+    // if (Object.keys(initialPermissions).length) {
+    //   sendGroupInfo(
+    //     'Permission',
+    //     'permissions',
+    //     Object.keys(initialPermissions).join(', ')
+    //   );
+    // }
 
     setSelectedPermissions(initialPermissions);
   }, [permissions]);
@@ -253,7 +253,7 @@ const AddAdminModal = ({ onClose, children }) => {
     const selectedRoleId = selectedOption.value;
     setSelectedRole(selectedRoleId);
     dispatch(getPermissions(selectedRoleId));
-    sendGroupInfo('Role', 'roleId', selectedRoleId);
+    // sendGroupInfo('Role', 'roleId', selectedRoleId);
   }
 
   const handleCheckboxChange = (id) => {
@@ -268,9 +268,9 @@ const AddAdminModal = ({ onClose, children }) => {
         .map(([key]) => key)
         .join(', ');
 
-      if (trueIds.length) {
-        sendGroupInfo('Permission', 'permissions', trueIds);
-      }
+      // if (trueIds.length) {
+      //   sendGroupInfo('Permission', 'permissions', trueIds);
+      // }
 
       return updated;
     });
@@ -279,7 +279,7 @@ const AddAdminModal = ({ onClose, children }) => {
   const handleUserSelectChange = (selectedOption) => {
     const selectedUserId = selectedOption.value;
     setSelectedUser(selectedUserId);
-    sendGroupInfo('User', 'userId', selectedUserId);
+    // sendGroupInfo('User', 'userId', selectedUserId);
   };
 
   return (
@@ -355,21 +355,6 @@ const AddAdminModal = ({ onClose, children }) => {
                   </div>
                 </div>)
               }
-
-              {/* User Rights */}
-              <div className="add__modal__content__part">
-                <span>User rights</span>
-                <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-                  <label className="block text-gray-300">
-                    User rights details
-                  </label>
-                  <textarea
-                    className="w-full p-1 border rounded h-24"
-                    readOnly
-                    value={formatUserRightText()}
-                  />
-                </div>
-              </div>
             </div>
 
             <div className="flex justify-end space-x-4">
@@ -388,6 +373,20 @@ const AddAdminModal = ({ onClose, children }) => {
 
           <TabPanel>
             <div className="flex justify-between flex-col" onContextMenu={(e) => e.preventDefault()}>
+              {/* User Rights */}
+              <div className="add__modal__content__part">
+                <span>User rights</span>
+                <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
+                  <label className="block text-gray-300">
+                    User rights details
+                  </label>
+                  <textarea
+                    className="w-full p-1 border rounded h-24"
+                    readOnly
+                    value={formatUserRightText()}
+                  />
+                </div>
+              </div>
               <div className="add__modal__content__part__select w-full">
                 <span>Branches</span>
                 <div className="add__modal__content__part__group mb-4">

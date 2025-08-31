@@ -60,7 +60,7 @@ function AdminTable() {
                   className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
                   onContextMenu={(e) => handleRightClick(e, admin)}
                 >
-                  <td className="flex items-center">
+                  <td>
                     <CustomCheckbox
                       checked={selectedIds.includes(admin.id)}
                       onChange={() => handleSelectLocker(admin.id)}
