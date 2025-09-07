@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import NoData from '../../components/no-data/NoData';
 import './modules.css';
@@ -9,27 +9,55 @@ import { getModules } from '../../redux/api/moduleApi';
 import { getModulesData } from '../../redux/slice/moduleSlice';
 import LockerPhoto from '../../components/modules/PhotoCreator/LockerPhoto';
 import EditModulesModal from '../../components/modals/modules/EditModulesModal';
+import { useContextMenu } from "../../hooks/useContextMenu";
+import ModulePopup from '../../components/popups/modules/ModulePopup';
 
 const Modules = () => {
     const allModules = useSelector(getModulesData);
     const [editItemId, setEditItemId] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [rightClickColumn, setRightClickColumn] = useState(null);
 
     const dispatch = useDispatch();
+    const {
+        popup,
+        handleRightClick,
+        handleGlobalClick,
+        closePopup,
+    } = useContextMenu();
 
-    const handleRightClick = (e, target) => {
-        e.preventDefault();
-        setEditItemId(target.id);
-        setShowModal(true);
-    };
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (popup.visible && popupRef.current && !popupRef.current.contains(e.target)) {
+                closePopup();
+            }
+        };
+        window.addEventListener('click', handleClickOutside);
+        return () => {
+            window.removeEventListener('click', handleClickOutside);
+        };
+    }, [popup.visible]);
+    const popupRef = useRef(null);
+
+    // const handleRightClick = (e, target) => {
+    //     e.preventDefault();
+    //     setEditItemId(target.id);
+    //     setShowModal(true);
+    // };
 
     useEffect(() => {
         dispatch(getModules());
     }, [dispatch]);
 
+    const rightClickHandler = (e, module, column) => {
+        handleRightClick(e, module);
+        setRightClickColumn(column);
+    }
+
     return (
         <div
             className="select-none"
+            onClick={handleGlobalClick}
             onContextMenu={(e) => e.preventDefault()}
         >
             {showModal && <EditModulesModal id={editItemId} onClose={() => setShowModal(false)} />}
@@ -45,23 +73,28 @@ const Modules = () => {
                                             <tr>
                                                 <th className="py-3 px-4 text-left text-gray-300 border-none">Module Chain</th>
                                                 <th className="py-3 px-4 text-left text-gray-300 border-none">Lockers Range</th>
-                                                  {/* <th className="py-3 px-4 text-left text-gray-300 border-none">Access Control</th> */}
+                                                {/* <th className="py-3 px-4 text-left text-gray-300 border-none">Access Control</th> */}
                                                 {/* <th className="py-3 px-4 text-left text-gray-300">Alarm System</th> */}
                                             </tr>
                                         </thead>
                                         {branch.modules.map((module) => (
                                             <tbody
                                                 key={module.id}
-                                                onContextMenu={(e) => handleRightClick(e, module)}
                                             >
                                                 <tr>
-                                                    <td className="py-3 px-4 border-none">
+                                                    <td
+                                                        className="py-3 px-4 border-none"
+                                                        onContextMenu={(e) => rightClickHandler(e, module, 'module')}
+                                                    >
                                                         <ModuleChain id={module.id} />
                                                     </td>
-                                                    <td className="py-3 px-4 border-none">
+                                                    <td
+                                                        className="py-3 px-4 border-none"
+                                                        onContextMenu={(e) => rightClickHandler(e, module, 'locker')}
+                                                    >
                                                         {module.lockerRange && <LockerPhoto lockerRange={module.lockerRange} />}
                                                     </td>
-                                                     {/* <td className="py-3 px-4 border-none">
+                                                    {/* <td className="py-3 px-4 border-none">
                                                         <AccessControl accessControl={module.accessControl} />
                                                     </td> */}
                                                     {/* <td className="py-3 px-4 border-none">
@@ -78,6 +111,19 @@ const Modules = () => {
                 )
             ) : (
                 <NoData text="No Modules" />
+            )}
+            {popup.visible && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: popup.y,
+                        left: popup.x,
+                        zIndex: 999,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <ModulePopup module={popup.target} onClose={closePopup} column={rightClickColumn} />
+                </div>
             )}
         </div>
     );

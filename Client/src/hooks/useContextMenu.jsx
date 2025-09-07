@@ -8,14 +8,15 @@ export function useContextMenu(selectedIds = []) {
     visible: false,
     x: 0,
     y: 0,
-    target: {}
+    target: {},
+    column: null
   });
 
   const closePopup = useCallback(() => {
     setPopup(prev => ({ ...prev, visible: false }));
   }, []);
 
-  const handleRightClick = useCallback((e, target = null) => {
+  const handleRightClick = useCallback((e, target = null, column=null) => {
     // if (!manage) return;
     e.preventDefault();
     const popupX = e.clientX + window.scrollX;
@@ -30,6 +31,7 @@ export function useContextMenu(selectedIds = []) {
       x: popupX,
       y: popupY,
       target: target,
+      column: column
     });
   }, [selectedIds, closePopup, manage]);
 

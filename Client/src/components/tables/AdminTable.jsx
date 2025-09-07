@@ -31,7 +31,7 @@ function AdminTable() {
   return (
     <div onContextMenu={(e) => e.preventDefault()} onClick={handleGlobalClick}>
       <div className="flex justify-end mb-5">
-        <UnselectIds setSelectedIds={setSelectedIds} buttonText="Unselect Admins" />
+        <UnselectIds setSelectedIds={setSelectedIds} buttonText="Unselect" />
       </div>
 
       {allAdmins?.length ? (

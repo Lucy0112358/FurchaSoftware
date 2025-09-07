@@ -90,6 +90,22 @@ export const getModules = createAsyncThunk(
       }
   )
 
+  export const deleteModule = createAsyncThunk(
+    'modules/deleteModule',
+    async (id, thunkAPI) => {
+        try {
+          const config = {
+            method: "delete",
+            url: 'modules/' + id,
+          };
+          const response = await instance(config);
+          return response?.data;
+        } catch (error) {
+          return thunkAPI.rejectWithValue(error.response.data.error.both);
+        }
+      }
+  )
+
   // export const getLockerGroupRange = createAsyncThunk(
   //   'modules/getLockerGroupRange',
   //   async ({brainId, groupId}, thunkAPI) => {
