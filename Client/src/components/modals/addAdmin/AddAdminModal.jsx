@@ -20,6 +20,7 @@ import { getPermissionsData, getRolesData } from "../../../redux/slice/authSlice
 import CustomSelect from "../../select/CustomSelect";
 import { getAllAdmins, setAdminInfo } from "../../../redux/api/adminApi";
 import ShowFormikError from "../../error/ShowFormikError";
+import { fromCamelCasePretty } from "../../../Utils";
 
 const AddAdminModal = ({ onClose, children }) => {
   const dispatch = useDispatch();
@@ -226,14 +227,14 @@ const AddAdminModal = ({ onClose, children }) => {
   };
 
   const sendGroupInfo = (part, key, value) => {
-    dispatch(
-      setAddUserInfo({
-        [part]: {
-          ...userInfo[part],
-          [key]: value,
-        },
-      })
-    );
+    // dispatch(
+    //   setAddUserInfo({
+    //     [part]: {
+    //       ...userInfo[part],
+    //       [key]: value,
+    //     },
+    //   })
+    // );
 
     setSentGeneralInfo((prev) => ({
       ...prev,
@@ -253,7 +254,7 @@ const AddAdminModal = ({ onClose, children }) => {
     const selectedRoleId = selectedOption.value;
     setSelectedRole(selectedRoleId);
     dispatch(getPermissions(selectedRoleId));
-    // sendGroupInfo('Role', 'roleId', selectedRoleId);
+    sendGroupInfo('Role', 'roleId', selectedRoleId);
   }
 
   const handleCheckboxChange = (id) => {
@@ -279,7 +280,7 @@ const AddAdminModal = ({ onClose, children }) => {
   const handleUserSelectChange = (selectedOption) => {
     const selectedUserId = selectedOption.value;
     setSelectedUser(selectedUserId);
-    // sendGroupInfo('User', 'userId', selectedUserId);
+    sendGroupInfo('User', 'userId', selectedUserId);
   };
 
   return (
@@ -334,10 +335,10 @@ const AddAdminModal = ({ onClose, children }) => {
                   <div className="add__modal__content__part  mr-1">
                     <span>Right</span>
                     <div className="add__modal__content__part__group mb-4 flex justify-between">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
                         {permissions.map((type) => (
                           <div key={type.typeId} className="mb-4">
-                            <h3 className="text-lg font-semibold text-white mb-2">{type.typeName}</h3>
+                            <h3 className="text-lg font-semibold text-white mb-2">{fromCamelCasePretty(type.typeName)}</h3>
                             {type.permissions.map((permission) => (
                               <div key={permission.id} className="permission-item flex items-center ml-4">
                                 <CustomCheckbox
@@ -345,7 +346,7 @@ const AddAdminModal = ({ onClose, children }) => {
                                   checked={selectedPermissions[permission.id]}
                                   onChange={() => handleCheckboxChange(permission.id)}
                                 />
-                                <span className="ml-2 text-white">{permission.name}</span>
+                                <span className="ml-2 text-white">{fromCamelCasePretty(permission.name)}</span>
                               </div>
                             ))}
                           </div>
