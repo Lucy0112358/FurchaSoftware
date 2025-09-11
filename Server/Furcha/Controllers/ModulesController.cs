@@ -30,14 +30,31 @@ namespace FurchaAdminApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult<ModuleResult> GetModuleById(int id)
+        public ActionResult<ApiResult<ModuleResult>> GetModuleById(int id)
         {
-            var locker = _lockerService.GetlockersById(id);
+            try
+            {
+                var module = _lockerService.GetlockersById(id);
 
-            return Ok(ApiResult<ModuleResult>.Success(locker));
+                return Ok(ApiResult<ModuleResult>.Success(module));
+            }
+            catch (ArgumentException ex) // when module not found
+            {
+                return NotFound((ex.Message));
+            }
+            catch (InvalidOperationException ex) // when no lockers
+            {
+                return BadRequest((ex.Message));
+            }
+            catch (Exception ex)
+            {
+                // log exception here
+                return StatusCode(500, ("An unexpected error occurred."));
+            }
         }
 
-/*        [Authorize]*/
+
+        /*        [Authorize]*/
         [HttpPost("{id}")]
         public ActionResult<bool> Update(int id, [FromBody] UpdateModuleRequest request)
         {

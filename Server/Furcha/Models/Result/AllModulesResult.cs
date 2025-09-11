@@ -12,7 +12,7 @@
     {
         public int Id { get; set; }
 
-        public string LockerRange { get; set; }
+        public string? LockerRange { get; set; }
 
         public int? AcessControl { get; set; } = null;
 

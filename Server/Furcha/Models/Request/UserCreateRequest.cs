@@ -20,7 +20,7 @@ namespace FurchaAdminApi.Models.Request
         public List<int> UserGroups { get; set; }
 
         public List<int>? LockerIds { get; set; }
-        public List<string> Cards { get; set; }
+        public List<string>? Cards { get; set; }
 
         //this property is to be deleted as soon as auth is done
     //    public int adminId { get; set; }

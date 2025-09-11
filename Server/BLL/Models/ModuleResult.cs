@@ -2,7 +2,7 @@
 {
     public class ModuleResult
     {
-        public string LockerType { get; set; }
+        public string? LockerType { get; set; }
 
         public int? LockerGroupId { get; set; }
 

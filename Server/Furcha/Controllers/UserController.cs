@@ -46,7 +46,7 @@ namespace FurchaAdminApi.Controllers
               [FromQuery] int? groupId = null,
               [FromQuery] int? branchId = null,
               [FromQuery] int pageNumber = 1,
-              [FromQuery] int page = 10)
+              [FromQuery] int page = 100)
         {
             var adminId = GetClaimValue("AdminId");
             var users = userService.GetFilteredUsersByPagination(int.Parse(adminId), groupId, branchId, pageNumber, page);

@@ -1,6 +1,5 @@
 ﻿using FurchaBLL.Constants;
 using FurchaBLL.MqttModels.Subscribe;
-using FurchaBLL.MqttModels;
 using Microsoft.Extensions.Logging;
 using MQTTnet.Client;
 using MQTTnet;
@@ -10,8 +9,6 @@ using FurchaDAL.Models;
 using FurchaBLL.MqttModels.Publish;
 using Microsoft.Extensions.DependencyInjection;
 using MQTTnet.Server;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using System.Text.Json.Serialization;
 
 public class MqttService
 {
