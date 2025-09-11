@@ -28,7 +28,10 @@ namespace FurchaJobService
 
             builder.Services.AddSingleton<MqttService>();
             builder.Services.AddHostedService<MqttMainWorker>();
-
+            builder.Services.AddWindowsService(options =>
+            {
+                options.ServiceName = "Furcha Job Service"; 
+            });
             var host = builder.Build();
             host.Run();
         }
