@@ -165,7 +165,7 @@ public class MqttService
                                 {
                                     Operation = (int)OperationTypes.Success,
                                     Command = (int)CommandTypes.CreateBrainModule
-                                }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933");
+                                }, topic.Replace("webserver", "controller"));
                                 break;
                             }
 
@@ -187,7 +187,7 @@ public class MqttService
                                 {
                                     Operation = (int)OperationTypes.Success,
                                     Command = (int)CommandTypes.CreateBrainModule
-                                }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933");
+                                }, topic.Replace("webserver", "controller"));
                             }
                         }
                         break;
@@ -212,7 +212,7 @@ public class MqttService
                                 {
                                     Operation = (int)OperationTypes.Success,
                                     Command = (int)CommandTypes.AddLockersToBrain
-                                }, "webserver/6fa85f64-5717-4562-b3fc-2c963f66afa6/004F00443133510933373933");
+                                }, topic.Replace( "webserver", "controller"));
                             }
                         }
                         break;

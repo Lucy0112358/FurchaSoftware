@@ -27,5 +27,7 @@ public partial class Branch
 
     public virtual ICollection<LockerGroup> LockerGroups { get; set; } = new List<LockerGroup>();
 
+    public virtual ICollection<Locker> Lockers { get; set; } = new List<Locker>();
+
     public virtual ICollection<UserBranch> UserBranches { get; set; } = new List<UserBranch>();
 }

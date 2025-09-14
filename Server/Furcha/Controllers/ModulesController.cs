@@ -63,5 +63,28 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<bool>.Success(locker));
         }
 
+        [HttpDelete("{id}")]
+        public ActionResult<ApiResult<bool>> Delete(int id)
+        {
+            try
+            {
+                var deleted = _lockerService.DeleteModule(id);
+
+                if (!deleted)
+                {
+                    return NotFound(ApiResult<bool>.ErrorResult("Module not found."));
+                }
+
+                return Ok(ApiResult<bool>.Success(true));
+            }
+            catch (Exception ex)
+            {
+                // log exception here
+                return StatusCode(500, ApiResult<bool>.ErrorResult("An unexpected error occurred while deleting the module."));
+            }
+        }
+
+
+
     }
 }

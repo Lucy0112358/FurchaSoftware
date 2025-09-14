@@ -233,6 +233,10 @@ public partial class furchaContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Locker_Brain");
 
+            entity.HasOne(d => d.Branch).WithMany(p => p.Lockers)
+                .HasForeignKey(d => d.BranchId)
+                .HasConstraintName("FK_Locker_Branch");
+
             entity.HasOne(d => d.Group).WithMany(p => p.Lockers)
                 .HasForeignKey(d => d.GroupId)
                 .HasConstraintName("FK_Locker_LockerGroup");
@@ -317,6 +321,12 @@ public partial class furchaContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__User__3214EC073C522500");
 
             entity.ToTable("User", "furcha");
+
+            entity.HasIndex(e => new { e.CompanyId, e.Email }, "UQ_User_CompanyId_Email").IsUnique();
+
+            entity.Property(e => e.Email)
+                .IsRequired()
+                .HasMaxLength(50);
 
             entity.HasMany(d => d.Lockers).WithMany(p => p.Users)
                 .UsingEntity<Dictionary<string, object>>(

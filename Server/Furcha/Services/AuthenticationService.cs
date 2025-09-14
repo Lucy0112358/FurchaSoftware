@@ -47,56 +47,75 @@ namespace FurchaAdminApi.Services
             }
         }
 
-        public void CreateAdmin(CreateAdminRequest request)
+        public void CreateOrUpdateAdmin(CreateAdminRequest request)
         {
             try
             {
-                // admin branch
-                // admin lockers
-                var companyId = Db.Administrators.FirstOrDefault(a => a.Id == request.ModifiedBy).CompanyId;
-                var admin = new FurchaDAL.Models.Administrator
-                {
-                    UserId = request.UserId,
-                    PasswordHash = "b33f9a399e11b3c36f3d3b338668c41214d8256a95594664166af9fb8b9b72d5",
-                    Salt = "furcha-salt",
-                    RoleId = request.RoleId,
-                    IsActive = true,
-                    CreatedDate = DateTime.UtcNow,
-                    IsDeleted = null,
-                    ModifiedBy = request.ModifiedBy,
-                    LastPasswordChangeDate = DateTime.UtcNow,
-                    ForcePasswordReset = true,
-                    CompanyId = companyId
-                };
+                var companyId = Db.Administrators
+                    .FirstOrDefault(a => a.Id == request.ModifiedBy)?.CompanyId
+                    ?? throw new Exception("Invalid ModifiedBy admin.");
 
-                Db.Administrators.Add(admin); //_adminRepository.CreateAdmin(admin);
-                Db.SaveChanges();
+                var dbAdmin = Db.Administrators
+                    .FirstOrDefault(a => a.UserId == request.UserId);
 
-                foreach (var permissionId in request.Permissions)
+                if (dbAdmin != null)
                 {
-                    admin.AdminPermissions.Add(new AdminPermission
+                    dbAdmin.RoleId = request.RoleId;
+                    dbAdmin.ModifiedBy = request.ModifiedBy;
+                    //   dbAdmin.LastPasswordChangeDate = DateTime.UtcNow;
+
+                    Db.AdminPermissions.RemoveRange(
+                        Db.AdminPermissions.Where(p => p.AdministratorId == dbAdmin.Id));
+
+                    foreach (var permissionId in request.Permissions)
                     {
-                        AdministratorId = admin.Id,
-                        PermissionId = permissionId
-                    });
+                        Db.AdminPermissions.Add(new AdminPermission
+                        {
+                            AdministratorId = dbAdmin.Id,
+                            PermissionId = permissionId
+                        });
+                    }
+                }
+                else
+                {
+                    var admin = new FurchaDAL.Models.Administrator
+                    {
+                        UserId = request.UserId,
+                        PasswordHash = "b33f9a399e11b3c36f3d3b338668c41214d8256a95594664166af9fb8b9b72d5",
+                        Salt = "furcha-salt",
+                        RoleId = request.RoleId,
+                        IsActive = true,
+                        CreatedDate = DateTime.UtcNow,
+                        IsDeleted = null,
+                        ModifiedBy = request.ModifiedBy,
+                        LastPasswordChangeDate = DateTime.UtcNow,
+                        ForcePasswordReset = true,
+                        CompanyId = companyId
+                    };
+
+                    foreach (var permissionId in request.Permissions)
+                    {
+                        admin.AdminPermissions.Add(new AdminPermission
+                        {
+                            PermissionId = permissionId
+                        });
+                    }
+
+                    Db.Administrators.Add(admin);
                 }
 
                 Db.SaveChanges();
-                var state = Db.Entry(admin).State; 
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message, ex);
             }
-     
-
-          //  return admin;
         }
 
         public List<AdminResult> GetCompanyAdmins(int adminId)
         {
-            var companyId = Db.Administrators.First(x=> x.Id == adminId).CompanyId;
-            var admins = Db.Administrators.Where(a => a.CompanyId == companyId).ToList(); // _adminRepository.GetAdminsByCompanyId(companyId);
+            var companyId = Db.Administrators.First(x => x.Id == adminId).CompanyId;
+            var admins = Db.Administrators.Where(a => a.CompanyId == companyId).OrderByDescending(a => a.Id).ToList(); // _adminRepository.GetAdminsByCompanyId(companyId);
             var result = new List<AdminResult>();
 
             foreach (var admin in admins)
@@ -137,7 +156,7 @@ namespace FurchaAdminApi.Services
             Name = rp.Permission.Name,
             Description = rp.Permission.Description,
             ObjectTypeId = rp.Permission.ObjectTypeId,
-          /*  IsOptional = rp.IsOptional*/
+            /*  IsOptional = rp.IsOptional*/
         })
         .ToList(); // _userRepository.GetRolePermissions(roleId);
             var objectTypes = Db.ObjectTypes.ToList(); // _userRepository.GetAllObjectTypes();
@@ -223,11 +242,11 @@ namespace FurchaAdminApi.Services
             Id = rp.Permission.Id,
             Name = rp.Permission.Name,
             Description = rp.Permission.Description,
-          /*  IsOptional = rp.IsOptional,
-            ObjectTypeId = rp.ObjectTypeId*/
+            /*  IsOptional = rp.IsOptional,
+              ObjectTypeId = rp.ObjectTypeId*/
         })
         .ToList()
-//_userRepository
+                    //_userRepository
                     //.GetRolePermissions((long)admin.Role)
                     .Select(p => p.Name)
                     .ToList();
@@ -268,5 +287,58 @@ namespace FurchaAdminApi.Services
 
             return tokenHandler.WriteToken(token);
         }
+
+        public ShowAdminResult GetAdminById(int id)
+        {
+            var dbAdmin = Db.Administrators.Include(a => a.User).Include(u => u.Role).Include(a => a.AdminBranches).ThenInclude(b => b.Branch).ThenInclude(b => b.Lockers)
+                .Include(a => a.AdminPermissions).ThenInclude(p => p.Permission).FirstOrDefault(a => a.Id == id);
+
+            return new ShowAdminResult
+            {
+                Id = dbAdmin.Id,
+                RoleId = dbAdmin.RoleId,
+                Role = dbAdmin.Role.Name,
+                Name = dbAdmin.User.Name,
+                Surname = dbAdmin.User.Surname,
+                IsActive = dbAdmin.IsActive,
+                Permissions = GetRolePermissions((long)dbAdmin.RoleId),
+                Branches = dbAdmin.AdminBranches.Select(b => new AdminBranchResult
+                {
+                    BranchId = b.BranchId,
+                    BranchName = b.Branch.Name,
+                    Lockers = b.Branch.Lockers.Select(l => new LockerResult
+                    {
+                        Id = l.Id,
+                        Number = l.Number,
+                        Groupid = l.GroupId,
+                        LockerType = l.LockerType
+                    }).ToList(),
+                }).ToList()
+            };
+        }
+
+        public void DeleteAdmins(List<int> ids)
+        {
+            var admins = Db.Administrators.Where(a => ids.Contains(a.Id)).ToList();
+
+            if (admins.Any())
+            {
+                Db.Administrators.RemoveRange(admins);
+                Db.SaveChanges();
+            }
+        }
+
+        public void SetAdminState(List<int> ids, int state)
+        {
+            var admins = Db.Administrators.Where(a => ids.Contains(a.Id)).ToList();
+
+            foreach (var admin in admins)
+            {
+                admin.IsActive = state == 1 ? true : false;
+            }
+
+            Db.SaveChanges();
+        }
+
     }
 }

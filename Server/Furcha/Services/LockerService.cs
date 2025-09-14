@@ -88,15 +88,15 @@ namespace FurchaAdminApi.Services
                     .Include(l => l.Brain)
                     .Where(l =>
                         (lockerType == null || l.LockerType == lockerType) &&
-                        (lockerGroupId == null || l.Brain.GroupId == lockerGroupId) && 
-                        l.BranchId == branch.Id &&                                   
+                        (lockerGroupId == null || l.Brain.GroupId == lockerGroupId) &&
+                        l.BranchId == branch.Id &&
                         (isOpen == null || l.IsOpen == (isOpen == 1))
                     )
                     .Select(l => new LockerWithUsers
                     {
                         Id = l.Id,
                         number = (long)(l.Number ?? 0),
-                        groupid = l.Brain.GroupId,     
+                        groupid = l.Brain.GroupId,
                         LockerType = l.LockerType,
                         IsActive = l.IsActive == true ? 1 : 0,
                         IsOpen = l.IsOpen == true ? 1 : 0,
@@ -110,7 +110,7 @@ namespace FurchaAdminApi.Services
                     .ToList();
 
                 var branchLockerGroups = Db.LockerGroups
-                    .Where(lg => lg.BranchId == branch.Id)  
+                    .Where(lg => lg.BranchId == branch.Id)
                     .OrderByDescending(group => group.Id)
                     .ToList();
 
@@ -130,13 +130,13 @@ namespace FurchaAdminApi.Services
                         Lockers = lockerResults
                     });
 
-                    continue;   
+                    continue;
                 }
 
                 foreach (var group in branchLockerGroups)
                 {
                     var groupLockers = lockers
-                        .Where(locker => locker.groupid == group.Id)  
+                        .Where(locker => locker.groupid == group.Id)
                         .ToList();
 
                     lockerResults.Add(new LockersResult
@@ -588,8 +588,8 @@ namespace FurchaAdminApi.Services
             var firstLockerType = module.Group?.Lockers?.FirstOrDefault()?.LockerType
        ?? module.Lockers?.FirstOrDefault()?.LockerType;
 
-          /*  if (firstLockerType == null)
-                throw new InvalidOperationException($"No lockers found for module {id}");*/
+            /*  if (firstLockerType == null)
+                  throw new InvalidOperationException($"No lockers found for module {id}");*/
 
             return new FurchaBLL.Models.ModuleResult
             {
@@ -617,6 +617,25 @@ namespace FurchaAdminApi.Services
                {
                    Db.Lockers.Add()
                }*/
+
+            return true;
+        }
+
+        public bool DeleteModule(int moduleId)
+        {
+            var module = Db.BrainModules.Include(m => m.Lockers).First(x => x.Id == moduleId);
+
+            module.Status = 1;
+
+            foreach(var locker in module.Lockers)
+            {
+                locker.LockerType = null;
+                locker.Group = null;
+                Db.Update(locker);
+            }
+
+            Db.Update(module);
+            Db.SaveChanges();
 
             return true;
         }

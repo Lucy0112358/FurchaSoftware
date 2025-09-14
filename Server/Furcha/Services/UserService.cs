@@ -39,14 +39,19 @@ namespace FurchaAdminApi.Services
             _mqttService = mqttService;
             Db = db;
         }
-        private List<User> GetUsersByIdsBranchAndGroup(List<int> userIds, int? branchId, int? groupId)
+        private List<User> GetUsersByIdsBranchAndGroup(List<int> userIds, int? branchId, int? groupId, bool? isAdmin)
         {
-            var query = Db.Users
+            var query = Db.Users.Include(u => u.UserBranches).Include(u => u.Administrators)
                 .Where(u => userIds.Contains(u.Id));
 
             if (branchId.HasValue)
             {
                 query = query.Where(u => u.UserBranches.Any(ub => ub.BranchId == branchId.Value));
+            }
+
+            if (isAdmin == false)
+            {
+                query = query.Where(u => u.Administrators.Any());
             }
 
             if (groupId.HasValue)
@@ -101,7 +106,7 @@ namespace FurchaAdminApi.Services
             };
         }
 
-        public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, int pageNumber = 1, int pageSize = 10)
+        public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, bool? isAdmin = null, int pageNumber = 1, int pageSize = 10)
         {
             var companyId = Db.Administrators.First(x => x.Id == adminId).CompanyId;
 
@@ -109,7 +114,7 @@ namespace FurchaAdminApi.Services
 
             var userIds = users.Select(x => x.Id).ToList();
 
-            var filteredUsers = GetUsersByIdsBranchAndGroup(userIds, filterByBranchId, filterByGroupId); // _userRepository.GetUsersByBranchGroupAndUserIds(userIds, filterByBranchId, filterByGroupId);
+            var filteredUsers = GetUsersByIdsBranchAndGroup(userIds, filterByBranchId, filterByGroupId, isAdmin); // _userRepository.GetUsersByBranchGroupAndUserIds(userIds, filterByBranchId, filterByGroupId);
 
             var pagedUsers = filteredUsers.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
 
