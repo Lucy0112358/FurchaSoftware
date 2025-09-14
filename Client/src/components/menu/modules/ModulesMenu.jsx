@@ -84,7 +84,7 @@ function ModulesMenu() {
           />
         }
         {isModulesModalOpen && <ModulesModal onClose={() => setIsModulesModalOpen(false)} />}
-        <div className="menu__filter flex space-x-4">
+        {/* <div className="menu__filter flex space-x-4">
           <div className='flex flex-col'>
             <div className='menu__filter__select'>
               <CustomSelect
@@ -118,7 +118,7 @@ function ModulesMenu() {
             />
             <label className="text-white block">Search</label>
           </div>
-        </div>
+        </div> */}
 
         <div className="menu__connection flex items-start text-white">
           <MediaQuery minWidth={769}>
@@ -136,7 +136,7 @@ function ModulesMenu() {
           <Manage />
         </div>
       </div>
-
+{/* 
       <div className="menu__filter__mobile hidden">
         <div className='flex justify-between'>
           <div className='menu__filter__select'>
@@ -169,7 +169,7 @@ function ModulesMenu() {
             <label className="text-white block">Search User</label>
           </div>
         </div>
-      </div>
+      </div> */}
     </>
   );
 }

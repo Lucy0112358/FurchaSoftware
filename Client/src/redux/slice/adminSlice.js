@@ -1,10 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAllAdmins } from "../api/adminApi";
+import { adminShow, getAllAdmins } from "../api/adminApi";
 
 const initialState = {
   loading: false,
   allAdmins: [],
   adminInfo: {},
+  getAdmin: {},
 };
 
 export const adminSlice = createSlice({
@@ -38,6 +39,9 @@ export const adminSlice = createSlice({
         state.errorMessage = action.payload;
         state.loading = false;
       })
+      .addCase(adminShow.fulfilled, (state, action) => {
+        state.getAdmin = action.payload.data;
+      })
   },
 });
 
@@ -47,6 +51,7 @@ export const {
 } = adminSlice.actions;
 
 export const getLoadingNow = (state) => state.admin.loading;
+export const getAdminData = (state) => state.admin.getAdmin;
 export const getAllAdminsData = (state) => state.admin.allAdmins;
 export const getAddAdminInfo = (state) => state.admin.adminInfo;
 

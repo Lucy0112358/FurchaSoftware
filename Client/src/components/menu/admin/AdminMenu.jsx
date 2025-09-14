@@ -108,7 +108,7 @@ function AdminMenu() {
         <div className="menu__filter flex space-x-4">
           <div className='flex flex-col'>
             {renderSelect("Branch", branchOptions, selectedBranch, (opt) => handleSelectChange(opt, 'branchId', setSelectedBranch))}
-            {renderSelect("User Group", groupOptions, selectedGroup, (opt) => handleSelectChange(opt, 'groupId', setSelectedGroup))}
+            {/* {renderSelect("User Group", groupOptions, selectedGroup, (opt) => handleSelectChange(opt, 'groupId', setSelectedGroup))} */}
           </div>
 
           {/* Search */}
@@ -142,7 +142,7 @@ function AdminMenu() {
       <div className="menu__filter__mobile hidden">
         <div className='flex justify-between'>
           {renderSelect("Branch", branchOptions, selectedBranch, (opt) => handleSelectChange(opt, 'branchId', setSelectedBranch))}
-          {renderSelect("User Group", groupOptions, selectedGroup, (opt) => handleSelectChange(opt, 'groupId', setSelectedGroup))}
+          {/* {renderSelect("User Group", groupOptions, selectedGroup, (opt) => handleSelectChange(opt, 'groupId', setSelectedGroup))} */}
           <div className='menu__filter__search'>
             <input type="text" className="w-full p-2 rounded" />
             <label className="text-white block">Search User</label>

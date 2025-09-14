@@ -7,7 +7,6 @@ import AdminPopupMultiItem from './AdminPopupMultiItem';
 
 
 function AdminPopup({ admin, onClose, selectedIds }) {
-console.log(admin, "admin popup");
 
   return (
     <div
@@ -26,7 +25,7 @@ console.log(admin, "admin popup");
             </div>
 
             <div className="flex flex-col gap-2">
-              <Edit lockers={admin} onClose={onClose} />
+              <Edit id={admin.id} onClose={onClose} />
               <Delete ids={[admin.id]} onClose={onClose} />
               <State admin={admin} onClose={onClose} />
             </div>

@@ -22,7 +22,7 @@ import { getAllAdmins, setAdminInfo } from "../../../redux/api/adminApi";
 import ShowFormikError from "../../error/ShowFormikError";
 import { fromCamelCasePretty } from "../../../Utils";
 
-const AddAdminModal = ({ onClose, children }) => {
+const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   const dispatch = useDispatch();
   const [formErrors, setFormErrors] = useState({});
   const [userOptions, setUserOptions] = useState([]);
@@ -43,9 +43,10 @@ const AddAdminModal = ({ onClose, children }) => {
   const [userInfo, setUserInfo] = useState({});
 
   //END change for SelectBranch
+  console.log(mode, 'mode', initialData, 'initialData');
 
   useEffect(() => {
-    dispatch(filterUserWithOutPaginte({}));
+    dispatch(filterUserWithOutPaginte({ isAdmin: false }));
     dispatch(getRoles());
   }, [dispatch]);
 
@@ -287,7 +288,7 @@ const AddAdminModal = ({ onClose, children }) => {
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
       <div className="add__modal__content add__modal__content__addAdminUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto h-full">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-white">Assign Administrators Rights To The User</h2>
+          <h2 className="text-2xl font-semibold text-white">Assign Administrator To The User</h2>
           <CloseButton onClick={onClose}>
             &times;
           </CloseButton>
@@ -305,14 +306,24 @@ const AddAdminModal = ({ onClose, children }) => {
                 <div className="add__modal__content__part w-[70%] mr-1">
                   <span>User</span>
                   <div className="add__modal__content__part__group mb-4 flex justify-between">
-                    <div className="w-full mr-2">
-                      <CustomSelect
-                        options={userOptions}
-                        value={userOptions.find((option) => option.value === selectedUser)}
-                        onChange={(e) => handleUserSelectChange(e)}
-                      />
-                      {renderError('user')}
-                    </div>
+                    {
+                      mode === 'edit' ? (
+                        <input
+                          type="text"
+                          value={initialData.name + ' ' + initialData.surname}
+                          disabled
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                        />) : (
+                        <div className="w-full mr-2">
+                          <CustomSelect
+                            options={userOptions}
+                            value={userOptions.find((option) => option.value === selectedUser)}
+                            onChange={(e) => handleUserSelectChange(e)}
+                          />
+                          {renderError('user')}
+                        </div>)
+                    }
+
                   </div>
                 </div>
 

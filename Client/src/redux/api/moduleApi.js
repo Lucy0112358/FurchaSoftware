@@ -95,8 +95,8 @@ export const getModules = createAsyncThunk(
     async (id, thunkAPI) => {
         try {
           const config = {
-            method: "delete",
-            url: 'modules/' + id,
+            method: "post",
+            url: 'modules/delete/' + id,
           };
           const response = await instance(config);
           return response?.data;
