@@ -63,7 +63,7 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<bool>.Success(locker));
         }
 
-        [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public ActionResult<ApiResult<bool>> Delete(int id)
         {
             try

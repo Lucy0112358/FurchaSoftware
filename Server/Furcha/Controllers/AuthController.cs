@@ -152,10 +152,10 @@ namespace FurchaAdminApi.Controllers
             }
         }
 
-        [HttpDelete]
-        public IActionResult DeleteAdmins([FromBody] List<int> Ids)
+        [HttpPost("delete-admins")]
+        public IActionResult DeleteAdmins([FromBody] DeleteAdminRequest request)
         {
-            authenticationService.DeleteAdmins(Ids);
+            authenticationService.DeleteAdmins(request.Ids);
 
             return Ok();
         }

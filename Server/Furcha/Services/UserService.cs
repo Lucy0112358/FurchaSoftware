@@ -51,7 +51,7 @@ namespace FurchaAdminApi.Services
 
             if (isAdmin == false)
             {
-                query = query.Where(u => u.Administrators.Any());
+                query = query.Where(u => !u.Administrators.Any());
             }
 
             if (groupId.HasValue)
