@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import UserPopupMultiItem from './AdminPopupMultiItem';
 import Edit from '../../popupAction/admin/Edit';
 import Delete from '../../popupAction/admin/Delete';
 import State from '../../popupAction/admin/State';
@@ -15,7 +14,7 @@ function AdminPopup({ admin, onClose, selectedIds }) {
     if (admin.id) {
       dispatch(adminShow({ id: admin.id }));
     }
-  }, [id]);
+  }, [admin]);
 
   return (
     <div

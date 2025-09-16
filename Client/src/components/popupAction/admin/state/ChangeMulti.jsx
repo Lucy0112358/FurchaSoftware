@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { toast } from "react-toastify";
 import ConfirmModal from '../../../confirm/ConfirmModal';
 import CustomSelect from '../../../select/CustomSelect';
-import { changeAdminState } from '../../../../redux/api/adminApi';
+import { changeAdminState, getAllAdmins } from '../../../../redux/api/adminApi';
 
 function ChangeMulti({ ids = [], onClose }) {
     const [selectedStateValue, setSelectedStateValue] = useState(null);
@@ -30,6 +30,7 @@ function ChangeMulti({ ids = [], onClose }) {
                 .unwrap()
                 .then((res) => {
                     toast.success(res.message);
+                    dispatch(getAllAdmins());
                     onClose();
                 })
                 .catch((err) => {
