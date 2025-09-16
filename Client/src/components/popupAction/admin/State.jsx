@@ -1,8 +1,11 @@
 import React from 'react';
 import Change from './state/Change';
 import ChangeMulti from './state/ChangeMulti';
+import { getAdminData } from '../../../redux/slice/adminSlice';
+import { useSelector } from 'react-redux';
 
-function State({ admin = {}, ids = [], onClose }) {
+function State({ ids = [], onClose }) {
+    const admin = useSelector(getAdminData);
     return (
         <>
             {

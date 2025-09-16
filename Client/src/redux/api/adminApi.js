@@ -3,11 +3,12 @@ import instance from "../../config/axios/axiosConfig";
 
 export const getAllAdmins = createAsyncThunk(
   'admin/getAllAdmins',
-  async (_, thunkAPI) => {
+  async (params, thunkAPI) => {
       try {
         const config = {
           method: "get",
           url: 'Auth/get-admins',
+          params: { ...params },
         };
         const response = await instance(config);
         return response?.data;

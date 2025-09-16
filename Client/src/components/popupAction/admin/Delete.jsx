@@ -14,6 +14,7 @@ function Delete({ ids, onClose }) {
                 .unwrap()
                 .then((res) => {
                     toast.success(res.message);
+                    dispatch(getAllAdmins());
                     onClose();
                 })
                 .catch((err) => {

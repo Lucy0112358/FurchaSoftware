@@ -14,7 +14,7 @@ function Change({ admin={}, onClose }) {
         if (admin?.id) {
             const data = {
                 ids: [admin.id],
-                state: admin.state === 'active' ? 2 : 1
+                state: admin.isActive ? 2 : 1
             }
             dispatch(changeAdminState(data))
                 .unwrap()
@@ -34,7 +34,7 @@ function Change({ admin={}, onClose }) {
                 className='bg-gray-600 text-white rounded cursor-pointer'
                 onClick={() => setShowConfirm(true)}
             >
-                {admin.state === 'active' ? 'Suspend' : 'Activate'}
+                {admin.isActive  ? 'Suspend' : 'Activate'}
             </button>
 
             {showConfirm && (

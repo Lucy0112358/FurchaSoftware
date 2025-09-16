@@ -80,8 +80,8 @@ function AdminTable() {
                       <div key={idx}>{branch}</div>
                     ))}
                   </td>
-                  <td className={admin.state === 'Suspended' ? 'text-red-500' : ''}>
-                    {admin.state}
+                  <td className={admin.isActive === false ? 'text-red-500' : ''}>
+                    {admin.isActive ? 'Active' : 'Suspended'}
                   </td>
                 </tr>
               ))}
