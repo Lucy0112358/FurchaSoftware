@@ -204,6 +204,11 @@ public partial class furchaContext : DbContext
             entity.Property(e => e.CardNumber)
                 .IsRequired()
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.User).WithMany(p => p.Cards)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Card_User");
         });
 
         modelBuilder.Entity<Company>(entity =>

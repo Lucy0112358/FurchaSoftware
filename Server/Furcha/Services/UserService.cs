@@ -10,6 +10,7 @@ using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.EntityFrameworkCore;
+using Mono.TextTemplating;
 using System;
 using System.ComponentModel.Design;
 using System.Linq;
@@ -110,7 +111,7 @@ namespace FurchaAdminApi.Services
         {
             var u = Db.Users.Where(a => ids.Contains(a.Id)).ToList();
 
-            if (admins.Any())
+            if (u.Any())
             {
                 Db.Users.RemoveRange(u);
                 Db.SaveChanges();
@@ -417,7 +418,7 @@ namespace FurchaAdminApi.Services
                 };
 
                 _mqttService.PublishMqttCommands(mqttRequest, companyUid.ToString(), "1");
-            }          
+            }
 
             return result;
         }
@@ -580,7 +581,7 @@ namespace FurchaAdminApi.Services
         {
             var user = Db.Users
                 .Include(u => u.Lockers)
-                .Include(u => u.UserBranches) 
+                .Include(u => u.UserBranches)
                 .FirstOrDefault(u => u.Id == userId);
 
             if (user == null)
@@ -688,6 +689,33 @@ namespace FurchaAdminApi.Services
             }
 
             Db.SaveChanges();
+        }
+
+        public SingleUserResult GetUserById(int id)
+        {
+            var user = Db.Users.Include(x => x.UserBranches).ThenInclude(x => x.Branch).ThenInclude(x => x.BrainModules).ThenInclude(b => b.Lockers)
+                .Include(u => u.Lockers).ThenInclude(l => l.Brain)
+                .Include(x => x.Cards).Include(u => u.UserGroups).First(u => u.Id == id);
+
+            return new SingleUserResult
+            {
+                Id = user.Id,
+                IsPinRequired = false,
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email,
+                ActiveFrom = user.ActiveFrom,
+                ActiveTo = user.ActiveTo,
+                State = user.State == 1 ? "Active" : "Suspended",
+                UserGroups = user.UserGroups.Select(x => x.Id).ToList(),
+                Cards = user.Cards.Select(x => x.CardNumber).ToList(),
+                Branches = user.UserBranches.Select(b => new BranchResult
+                {
+                    Id = b.BranchId,
+                    Name = b.Branch.Name,
+                    Lockers = user.Lockers.Where(l => l.Brain.BranchId == b.BranchId).Select(x => x.Id).ToList(),
+                }).ToList(),
+            };
         }
 
     }

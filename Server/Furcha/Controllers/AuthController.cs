@@ -108,7 +108,7 @@ namespace FurchaAdminApi.Controllers
         /*
                 [Authorize]*/
         [HttpGet("get-admins")]
-        public ActionResult<ApiResult<List<AdminResult>>> GetAdmins([FromQuery] int? branchId = null, [FromQuery] string name)
+        public ActionResult<ApiResult<List<AdminResult>>> GetAdmins([FromQuery] string name, [FromQuery] int? branchId = null)
         {
             var adminId = GetClaimValue("AdminId");
             var admins = authenticationService.GetCompanyAdmins(int.Parse(adminId), name, branchId);

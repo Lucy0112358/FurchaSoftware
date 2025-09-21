@@ -193,5 +193,30 @@ namespace FurchaAdminApi.Controllers
 
             return Ok();
         }
+
+        [HttpGet("{id}")]
+        public ActionResult<ApiResult<SingleUserResult>> GetUserById(int id)
+        {
+            try
+            {
+                var u = userService.GetUserById(id);
+
+                return Ok(ApiResult<SingleUserResult>.Success(u));
+            }
+            catch (ArgumentException ex) 
+            {
+                return NotFound((ex.Message));
+            }
+            catch (InvalidOperationException ex) 
+            {
+                return BadRequest((ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ("An unexpected error occurred."));
+            }
+        }
+
+
     }
 }

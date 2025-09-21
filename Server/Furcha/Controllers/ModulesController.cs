@@ -42,13 +42,12 @@ namespace FurchaAdminApi.Controllers
             {
                 return NotFound((ex.Message));
             }
-            catch (InvalidOperationException ex) // when no lockers
+            catch (InvalidOperationException ex)
             {
                 return BadRequest((ex.Message));
             }
             catch (Exception ex)
             {
-                // log exception here
                 return StatusCode(500, ("An unexpected error occurred."));
             }
         }

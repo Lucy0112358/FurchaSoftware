@@ -12,4 +12,6 @@ public partial class Card
     public int? UserId { get; set; }
 
     public string CardNumber { get; set; }
+
+    public virtual User User { get; set; }
 }

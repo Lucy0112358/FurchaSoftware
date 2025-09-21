@@ -31,6 +31,8 @@ public partial class User
 
     public virtual ICollection<Administrator> Administrators { get; set; } = new List<Administrator>();
 
+    public virtual ICollection<Card> Cards { get; set; } = new List<Card>();
+
     public virtual ICollection<UserBranch> UserBranches { get; set; } = new List<UserBranch>();
 
     public virtual ICollection<Locker> Lockers { get; set; } = new List<Locker>();
