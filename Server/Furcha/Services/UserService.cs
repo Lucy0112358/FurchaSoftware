@@ -488,25 +488,39 @@ namespace FurchaAdminApi.Services
                       new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
                       TransactionScopeAsyncFlowOption.Enabled))
                   {*/
-                var user = new User
-                {
-                    Name = newUser.Name,
-                    Surname = newUser.Surname,
-                    Email = newUser.Email,
-                    Phone = newUser.Phone,
-                    CreatedDate = DateOnly.FromDayNumber(1),
-                    State = (int)state,
-                    CompanyId = (int)companyId,
-                    ActiveFrom = newUser.ActiveFrom,
-                    ActiveTo = newUser.ActiveTo
-                };
+               
 
                 if (newUser.Id == 0)
                 {
+                    var user = new User
+                    {
+                        Name = newUser.Name,
+                        Surname = newUser.Surname,
+                        Email = newUser.Email,
+                        Phone = newUser.Phone,
+                        CreatedDate = DateOnly.FromDayNumber(1),
+                        State = (int)state,
+                        CompanyId = (int)companyId,
+                        ActiveFrom = newUser.ActiveFrom,
+                        ActiveTo = newUser.ActiveTo
+                    };
+
                     Db.Add(user);
                 }
                 if (newUser.Id > 0)
                 {
+                    var user = new User
+                    {
+                        Name = newUser.Name,
+                        Surname = newUser.Surname,
+                        Phone = newUser.Phone,
+                        CreatedDate = DateOnly.FromDayNumber(1),
+                        State = (int)state,
+                        CompanyId = (int)companyId,
+                        ActiveFrom = newUser.ActiveFrom,
+                        ActiveTo = newUser.ActiveTo
+                    };
+
                     Db.Users.Update(user);
                 }
 
