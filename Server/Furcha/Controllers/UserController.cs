@@ -5,6 +5,7 @@ using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -149,6 +150,28 @@ namespace FurchaAdminApi.Controllers
             }
         }
 
+        [HttpPost("delete-users")]
+        public IActionResult DeleteUsers([FromBody] DeleteAdminRequest request)
+        {
+            userService.DeleteUsers(request.Ids);
 
+            return Ok(true);
+        }
+
+        [HttpPost("change-state")]
+        public IActionResult SetUserState([FromBody] ChangeAdminStateRequest request)
+        {
+            userService.SetUserState(request.Ids, request.State);
+
+            return Ok();
+        }
+
+        [HttpPatch("change-group")]
+        public IActionResult ChangeUserGroup([FromBody] ChangeUsersGroupRequest request)
+        {
+            userService.ChangeUsersGroup(request.Ids, request.GroupId);
+
+            return Ok();
+        }
     }
 }

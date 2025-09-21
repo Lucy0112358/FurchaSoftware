@@ -106,6 +106,18 @@ namespace FurchaAdminApi.Services
             };
         }
 
+        public bool DeleteUsers(List<int> ids)
+        {
+            var u = Db.Users.Where(a => ids.Contains(a.Id)).ToList();
+
+            if (admins.Any())
+            {
+                Db.Users.RemoveRange(u);
+                Db.SaveChanges();
+            }
+
+            return true;
+        }
         public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, bool? isAdmin = null, int pageNumber = 1, int pageSize = 10)
         {
             var companyId = Db.Administrators.First(x => x.Id == adminId).CompanyId;
@@ -338,8 +350,8 @@ namespace FurchaAdminApi.Services
                 }
 
                 var lockerGroups = Db.LockerGroups
-        .Where(lg => Db.Lockers
-            .Where(l => l.GroupId == lg.Id)
+        .Where(lg => Db.Lockers.Include(x => x.Brain)
+            .Where(l => l.Brain.GroupId == lg.Id)
             .Join(Db.UserGroupLockers,
                   locker => locker.Id,
                   ugl => ugl.LockerId,
@@ -600,6 +612,28 @@ namespace FurchaAdminApi.Services
             return result;
         }
 
+        public void SetUserState(List<int> ids, int state)
+        {
+            var users = Db.Users.Where(a => ids.Contains(a.Id)).ToList();
 
+            foreach (var u in users)
+            {
+                u.State = state;
+            }
+
+            Db.SaveChanges();
+        }
+
+        public void ChangeUsersGroup(List<int> ids, int groupId)
+        {
+            var users = Db.Users.Include(u => u.UserGroups).Where(a => ids.Contains(a.Id)).ToList();
+
+            foreach (var u in users)
+            {
+               u.
+            }
+
+            Db.SaveChanges();
+        }
     }
 }

@@ -18,6 +18,4 @@ public partial class LockerGroup
     public virtual ICollection<BrainModule> BrainModules { get; set; } = new List<BrainModule>();
 
     public virtual Branch Branch { get; set; }
-
-    public virtual ICollection<Locker> Lockers { get; set; } = new List<Locker>();
 }

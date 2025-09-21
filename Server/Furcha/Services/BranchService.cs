@@ -37,20 +37,20 @@ namespace FurchaAdminApi.Services
                     Db.BranchAddresses
                         .Where(a => a.Id == x.AddressId)
                         .FirstOrDefault().Street,
-                    Db.Lockers
-                        .Where(l => l.BranchId == x.Id)
+                    Db.Lockers.Include(x => x.Brain)
+                        .Where(l => l.Brain.BranchId == x.Id)
                         .Select(l => l.LockerType)
                         .Distinct()
                         .ToList(),
-                    Db.Lockers
-                        .Where(c => c.BranchId == x.Id)
+                    Db.Lockers.Include(x => x.Brain)
+                        .Where(c => c.Brain.BranchId == x.Id)
                         .Count()))
                 .ToList(); 
         }
 
         private int GetLocersCount(int branchId)
         {
-            var count = Db.Lockers.Where(l => l.BranchId == branchId).Count(); //_lockerRepository.GetLockersByBranchId(branchId).Count;
+            var count = Db.Lockers.Include(x => x.Brain).Where(l => l.Brain.BranchId == branchId).Count(); //_lockerRepository.GetLockersByBranchId(branchId).Count;
 
             return count;
         }
@@ -73,13 +73,13 @@ namespace FurchaAdminApi.Services
                     Db.BranchAddresses
                         .Where(a => a.Id == x.AddressId)
                         .FirstOrDefault().Street,
-                    Db.Lockers
-                        .Where(l => l.BranchId == x.Id)
+                    Db.Lockers.Include(x => x.Brain)
+                        .Where(l => l.Brain.BranchId == x.Id)
                         .Select(l => l.LockerType)
                         .Distinct()
                         .ToList(),
-                    Db.Lockers
-                        .Where(c => c.BranchId == x.Id)
+                    Db.Lockers.Include(x => x.Brain)
+                        .Where(c => c.Brain.BranchId == x.Id)
                         .Count()))
                 .ToList();   //.Select(x => x.ToAllBranchResult(_branchRepository.GetBranchAddressById(x.AddressId).Street, _branchRepository.GetLockerTypesByBranch(x.Id), GetLocersCount(x.Id))).ToList();
         }

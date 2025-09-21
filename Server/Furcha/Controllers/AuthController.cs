@@ -108,10 +108,10 @@ namespace FurchaAdminApi.Controllers
         /*
                 [Authorize]*/
         [HttpGet("get-admins")]
-        public ActionResult<ApiResult<List<AdminResult>>> GetAdmins()
+        public ActionResult<ApiResult<List<AdminResult>>> GetAdmins([FromQuery] int? branchId = null, [FromQuery] string name)
         {
             var adminId = GetClaimValue("AdminId");
-            var admins = authenticationService.GetCompanyAdmins(int.Parse(adminId));
+            var admins = authenticationService.GetCompanyAdmins(int.Parse(adminId), name, branchId);
 
             if (admins == null || !admins.Any())
             {
@@ -157,7 +157,7 @@ namespace FurchaAdminApi.Controllers
         {
             authenticationService.DeleteAdmins(request.Ids);
 
-            return Ok();
+            return Ok(true);
         }
 
         [HttpPatch("set-admin-state")]
@@ -167,5 +167,7 @@ namespace FurchaAdminApi.Controllers
 
             return Ok();
         }
+
+
     }
 }

@@ -80,7 +80,6 @@ public partial class furchaContext : DbContext
 
             entity.HasOne(d => d.Administrator).WithMany(p => p.AdminBranches)
                 .HasForeignKey(d => d.AdministratorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AdminBranch_Administrator");
 
             entity.HasOne(d => d.Branch).WithMany(p => p.AdminBranches)
@@ -97,7 +96,6 @@ public partial class furchaContext : DbContext
 
             entity.HasOne(d => d.Administrator).WithMany(p => p.AdminPermissions)
                 .HasForeignKey(d => d.AdministratorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AdminPermission_Administrator");
 
             entity.HasOne(d => d.Permission).WithMany(p => p.AdminPermissions)
@@ -232,14 +230,6 @@ public partial class furchaContext : DbContext
                 .HasForeignKey(d => d.BrainId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Locker_Brain");
-
-            entity.HasOne(d => d.Branch).WithMany(p => p.Lockers)
-                .HasForeignKey(d => d.BranchId)
-                .HasConstraintName("FK_Locker_Branch");
-
-            entity.HasOne(d => d.Group).WithMany(p => p.Lockers)
-                .HasForeignKey(d => d.GroupId)
-                .HasConstraintName("FK_Locker_LockerGroup");
         });
 
         modelBuilder.Entity<LockerGroup>(entity =>

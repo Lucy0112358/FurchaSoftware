@@ -75,6 +75,18 @@ namespace FurchaAdminApi.Services
                             PermissionId = permissionId
                         });
                     }
+
+                    Db.AdminBranches.RemoveRange(
+                    Db.AdminBranches.Where(p => p.AdministratorId == dbAdmin.Id));
+
+                    foreach (var branchId in request.Branches)
+                    {
+                        Db.AdminBranches.Add(new FurchaDAL.Models.AdminBranch
+                        {
+                            AdministratorId = dbAdmin.Id,
+                            BranchId = branchId
+                        });
+                    }
                 }
                 else
                 {
@@ -93,6 +105,18 @@ namespace FurchaAdminApi.Services
                         CompanyId = companyId
                     };
 
+                    Db.Administrators.Add(admin);
+                    Db.SaveChanges();
+
+                    foreach (var branchId in request.Branches)
+                    {
+                        Db.AdminBranches.Add(new FurchaDAL.Models.AdminBranch
+                        {
+                            AdministratorId = dbAdmin.Id,
+                            BranchId = branchId
+                        });
+                    }
+
                     foreach (var permissionId in request.Permissions)
                     {
                         admin.AdminPermissions.Add(new AdminPermission
@@ -100,8 +124,6 @@ namespace FurchaAdminApi.Services
                             PermissionId = permissionId
                         });
                     }
-
-                    Db.Administrators.Add(admin);
                 }
 
                 Db.SaveChanges();
@@ -112,10 +134,20 @@ namespace FurchaAdminApi.Services
             }
         }
 
-        public List<AdminResult> GetCompanyAdmins(int adminId)
+        public List<AdminResult> GetCompanyAdmins(int adminId, string name, int? filterByBranchId = null)
         {
             var companyId = Db.Administrators.First(x => x.Id == adminId).CompanyId;
-            var admins = Db.Administrators.Where(a => a.CompanyId == companyId).OrderByDescending(a => a.Id).ToList(); // _adminRepository.GetAdminsByCompanyId(companyId);
+            var admins = Db.Administrators
+                  .Include(a => a.User)
+                  .Include(a => a.AdminBranches)
+                  .Where(a => a.CompanyId == companyId
+                           && a.AdminBranches.Any(b => b.BranchId == filterByBranchId)
+                           && (string.IsNullOrEmpty(name)
+                               || a.User.Name.Contains(name)
+                               || a.User.Surname.Contains(name)))
+                  .OrderByDescending(a => a.Id)
+                  .ToList();
+            // _adminRepository.GetAdminsByCompanyId(companyId);
             var result = new List<AdminResult>();
 
             foreach (var admin in admins)
@@ -290,7 +322,8 @@ namespace FurchaAdminApi.Services
 
         public ShowAdminResult GetAdminById(int id)
         {
-            var dbAdmin = Db.Administrators.Include(a => a.User).Include(u => u.Role).Include(a => a.AdminBranches).ThenInclude(b => b.Branch).ThenInclude(b => b.Lockers)
+            var dbAdmin = Db.Administrators.Include(a => a.User).Include(u => u.Role)
+                .Include(a => a.AdminBranches).ThenInclude(b => b.Branch).ThenInclude(x => x.BrainModules)
                 .Include(a => a.AdminPermissions).ThenInclude(p => p.Permission).FirstOrDefault(a => a.Id == id);
 
             return new ShowAdminResult
@@ -304,20 +337,20 @@ namespace FurchaAdminApi.Services
                 Permissions = GetRolePermissions((long)dbAdmin.RoleId),
                 Branches = dbAdmin.AdminBranches.Select(b => new AdminBranchResult
                 {
-                    BranchId = b.BranchId,
-                    BranchName = b.Branch.Name,
-                    Lockers = b.Branch.Lockers.Select(l => new LockerResult
-                    {
-                        Id = l.Id,
-                        Number = l.Number,
-                        Groupid = l.GroupId,
-                        LockerType = l.LockerType
-                    }).ToList(),
+                    /* BranchId = b.BranchId,
+                     BranchName = b.Branch.Name,
+                     Lockers = b.Branch.Lockers.Select(l => new LockerResult
+                     {
+                         Id = l.Id,
+                         Number = l.Number,
+                         Groupid = l.GroupId,
+                         LockerType = l.LockerType
+                     }).ToList(),*/
                 }).ToList()
             };
         }
 
-        public void DeleteAdmins(List<int> ids)
+        public bool DeleteAdmins(List<int> ids)
         {
             var admins = Db.Administrators.Where(a => ids.Contains(a.Id)).ToList();
 
@@ -326,6 +359,8 @@ namespace FurchaAdminApi.Services
                 Db.Administrators.RemoveRange(admins);
                 Db.SaveChanges();
             }
+
+            return true;
         }
 
         public void SetAdminState(List<int> ids, int state)

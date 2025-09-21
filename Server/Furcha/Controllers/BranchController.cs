@@ -20,7 +20,7 @@ namespace FurchaAdminApi.Controllers
             _branchService = branchService;
         }
 
-        [Authorize]
+/*        [Authorize]*/
         [HttpGet("company-branches")]
         public ActionResult<ApiResult<List<BranchFilterResult>>> GetAllBranchesOfCompanyByAdminId()
         {
@@ -46,7 +46,7 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<bool>.Success(branch));
         }
 
-        [Authorize]
+  /*      [Authorize]*/
         [HttpGet("branches")]
         public ActionResult<ApiResult<List<AllBranchResult>>> GetAllBranchesOfCompanyByAdminId([FromQuery] string? name)
         {
