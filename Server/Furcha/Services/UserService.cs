@@ -490,42 +490,30 @@ namespace FurchaAdminApi.Services
                   {*/
 
                 var user = Db.Users.FirstOrDefault(u => u.Id == newUser.Id);
-
-                if (newUser.Id == 0)
+                user = new User
                 {
-                    user = new User
-                    {
-                        Name = newUser.Name,
-                        Surname = newUser.Surname,
-                        Email = newUser.Email,
-                        Phone = newUser.Phone,
-                        CreatedDate = DateOnly.FromDayNumber(1),
-                        State = (int)state,
-                        CompanyId = (int)companyId,
-                        ActiveFrom = newUser.ActiveFrom,
-                        ActiveTo = newUser.ActiveTo
-                    };
+                    Name = newUser.Name,
+                    Surname = newUser.Surname,
+                    Email = newUser.Email,
+                    Phone = newUser.Phone,
+                    CreatedDate = DateOnly.FromDayNumber(1),
+                    State = (int)state,
+                    CompanyId = (int)companyId,
+                    ActiveFrom = newUser.ActiveFrom,
+                    ActiveTo = newUser.ActiveTo
+                };
+                if (newUser.Id == 0)
+                {                
 
                     Db.Add(user);
                 }
                 if (newUser.Id > 0)
                 {
-                    user = new User
-                    {
-                        Name = newUser.Name,
-                        Surname = newUser.Surname,
-                        Phone = newUser.Phone,
-                        CreatedDate = DateOnly.FromDayNumber(1),
-                        State = (int)state,
-                        CompanyId = (int)companyId,
-                        ActiveFrom = newUser.ActiveFrom,
-                        ActiveTo = newUser.ActiveTo
-                    };
-
+                    
                     Db.Users.Update(user);
                 }
 
-                Db.SaveChanges();
+                 Db.SaveChanges();
 
                 if (newUser.Cards != null)
                 {
