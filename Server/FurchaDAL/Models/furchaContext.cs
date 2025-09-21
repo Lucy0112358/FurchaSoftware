@@ -314,6 +314,8 @@ public partial class furchaContext : DbContext
 
             entity.HasIndex(e => new { e.CompanyId, e.Email }, "UQ_User_CompanyId_Email").IsUnique();
 
+            entity.Property(e => e.ActiveFrom).HasColumnType("datetime");
+            entity.Property(e => e.ActiveTo).HasColumnType("datetime");
             entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(50);
@@ -344,7 +346,7 @@ public partial class furchaContext : DbContext
                         .HasConstraintName("FK__User_User__UserI__2CF2ADDF"),
                     j =>
                     {
-                        j.HasKey("UserId", "UserGroupId").HasName("PK__User_Use__082D6A50C028EA0D");
+                        j.HasKey("UserId", "UserGroupId");
                         j.ToTable("User_UserGroup", "furcha");
                     });
         });

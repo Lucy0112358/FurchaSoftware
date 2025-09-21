@@ -115,6 +115,26 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<UserResult>.Success(result));
         }
 
+        [HttpPost("edit-user")]
+        public async Task<ActionResult<ApiResult<UserResult>>> EditUser([FromBody] UserCreateRequest userCreateRequest)
+        {
+            var adminId = GetClaimValue("AdminId");
+
+            if (userCreateRequest == null)
+            {
+                return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
+            }
+
+            var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
+
+            if (result == null)
+            {
+                return BadRequest(ApiResult<UserResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
+            }
+
+            return Ok(ApiResult<UserResult>.Success(result));
+        }
+
         [Authorize]
         [RequiresPermission("ManageUserGroup")]
         [HttpPost("add-user-group")]

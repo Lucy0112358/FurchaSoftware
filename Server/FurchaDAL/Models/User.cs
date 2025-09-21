@@ -25,6 +25,10 @@ public partial class User
 
     public byte? IsMqtt { get; set; }
 
+    public DateTime? ActiveFrom { get; set; }
+
+    public DateTime? ActiveTo { get; set; }
+
     public virtual ICollection<Administrator> Administrators { get; set; } = new List<Administrator>();
 
     public virtual ICollection<UserBranch> UserBranches { get; set; } = new List<UserBranch>();
