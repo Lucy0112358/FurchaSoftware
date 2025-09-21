@@ -488,11 +488,12 @@ namespace FurchaAdminApi.Services
                       new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
                       TransactionScopeAsyncFlowOption.Enabled))
                   {*/
-               
+
+                var user = Db.Users.FirstOrDefault(u => u.Id == newUser.Id);
 
                 if (newUser.Id == 0)
                 {
-                    var user = new User
+                    user = new User
                     {
                         Name = newUser.Name,
                         Surname = newUser.Surname,
@@ -509,7 +510,7 @@ namespace FurchaAdminApi.Services
                 }
                 if (newUser.Id > 0)
                 {
-                    var user = new User
+                    user = new User
                     {
                         Name = newUser.Name,
                         Surname = newUser.Surname,
