@@ -54,7 +54,7 @@ function UserTable() {
                   key={user.id}
                   className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
                   onContextMenu={(e) => handleRightClick(e, user)}>
-                  <td className='flex items-center'>
+                  <td>
                     <CustomCheckbox
                       checked={selectedUserIds.includes(user.id)}
                       onChange={() => handleSelectLocker(user.id)}
@@ -82,6 +82,8 @@ function UserTable() {
                   <td className={` ${user.state === 'Suspended' ? 'text-red-500' : ''}`}>
                     {user.state}
                   </td>
+                  <td>{user.activeTo? user.activeTo : '-'}</td>
+                  <td>{user.activeFrom ? user.activeFrom : '-'}</td>
                 </tr>
               ))}
             </tbody>

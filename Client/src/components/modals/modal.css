@@ -1,4 +1,6 @@
 .add__modal__content  {
+    position: relative !important;
+    z-index: 1000 !important;
     background-color: #5a686a;
 }
 

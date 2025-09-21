@@ -32,6 +32,9 @@ export const lockerSlice = createSlice({
     setSelectedLockerIds: (state, action) => {
       state.selectedLockerIds = action.payload;
     },
+    clearFilteredLockerGroups: (state) => {
+      state.filteredLockerGroups = [];
+    },
   },
 
   extraReducers: (builder) => {
@@ -66,7 +69,8 @@ export const lockerSlice = createSlice({
 export const {
   setLoading,
   setLockerFilter,
-  setSelectedLockerIds
+  setSelectedLockerIds,
+  clearFilteredLockerGroups,
 } = lockerSlice.actions;
 
 export const getLoadingNow = (state) => state.locker.loading;

@@ -37,6 +37,24 @@ export const setUserInfo = createAsyncThunk(
   }
 )
 
+export const updateUserInfo = createAsyncThunk(
+  'user/updateUser',
+  async (data, thunkAPI) => {
+    try {
+      const config = {
+        method: "post",
+        url: 'User/edit-user',
+        data: data
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)
+
 export const filterUserWithOutPaginte = createAsyncThunk(
   'user/filterUserWithOutPaginte',
   async (params, thunkAPI) => {
@@ -73,8 +91,8 @@ export const deleteUsers = createAsyncThunk(
   async (ids, thunkAPI) => {
     try {
       const config = {
-        method: "delete",
-        url: 'User/users',
+        method: "post",
+        url: 'User/delete-users',
         data: { ids: ids }
       };
       const response = await instance(config);
@@ -90,7 +108,7 @@ export const changeUserState = createAsyncThunk(
   async ({ ids, state }, thunkAPI) => {
     try {
       const config = {
-        method: "patch",
+        method: "post",
         url: 'User/change-state',
         data: { ids: ids, state: state }
       };
@@ -129,27 +147,37 @@ export const userShow = createAsyncThunk(
         method: "get",
         url: 'user/' + id,
       };
-      // const response = await instance(config);
-      // return response?.data;
-      return {
-        "isPinRequired": true,
-        "name": "Name",
-        "email": "email@mail.ru",
-        "phone": "Phone",
-        "surname": "LastName",
-        "activeFrom": "2025-08-14",
-        "activeTo": "2025-08-28",
-        "userGroups": [
-          1,
-          2
-        ],
-        "cards": [
-          "xzcxzvcxvcxv",
-          "cxvxc"
-        ],
-        "pin": true,
-        "adminId": 8
-      }
+      const response = await instance(config);
+      return response?.data?.data;
+      // return {
+      //   "isPinRequired": true,
+      //   "name": "Name",
+      //   "email": "email@mail.ru",
+      //   "phone": "Phone",
+      //   "surname": "LastName",
+      //   "activeFrom": "2025-08-14",
+      //   "activeTo": "2025-08-28",
+      //   "userGroups": [
+      //     1,
+      //     2
+      //   ],
+      //   "cards": [
+      //     "xzcxzvcxvcxv",
+      //     "cxvxc"
+      //   ],
+      //   "branches" : [ 
+      //     {
+      //       "id": 1,
+      //       "name": "Talin branch",
+      //       "lockers": [10,11, 12]
+      //     },
+      //     {
+      //       "id": 2,
+      //       "name": "Gyumri branch",
+      //       "lockers": [6, 8, 9]
+      //     }
+      //   ]
+      // }
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data.error.both);
     }

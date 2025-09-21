@@ -8,7 +8,7 @@ import Unspecified from './unspecified/Unspecified';
 
 function GenerateLocker({ item, index }) {
   const renderLocker = () => {
-    // const name = item.user ? getInitials(item.user) : '';
+    // const name = item.user ? getInitials(item['users'][0]) : '';
     const incrementedIndex = index + 1;
     const name = 'JB';
     const nameShort = 'Joohn Brain';

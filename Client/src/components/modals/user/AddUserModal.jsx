@@ -8,12 +8,12 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import { getBranchesData } from "../../../redux/slice/menuSlice";
 import { userFilter } from "../../../redux/api/menuApi";
-import { setUserInfo } from "../../../redux/api/userApi";
+import { getAllUsers, setUserInfo, updateUserInfo } from "../../../redux/api/userApi";
 import { IoMdAdd } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
 import AddUserGroupModal from "../addUserGroup/AddUserGroupModal";
 import { getLockerGroupsByBranchId } from "../../../redux/api/branchApi";
-import { getFilteredLockerGroups } from "../../../redux/slice/lockerSlice";
+import { clearFilteredLockerGroups, getFilteredLockerGroups } from "../../../redux/slice/lockerSlice";
 import GroupName from "../../headers/GroupName";
 import GenerateLocker from "../../lockers/GenerateLocker";
 import NoData from "../../no-data/NoData";
@@ -192,6 +192,29 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
     toast.success("Lockers added successfully");
   };
 
+
+  useEffect(() => {
+    if (mode === "edit" && initialData?.branches?.length) {
+      const lockerMap = {};
+      initialData.branches.forEach(branch => {
+        lockerMap[branch.id] = branch.lockers || [];
+      });
+      setSelectedLockerAddId(lockerMap);
+      setSentGeneralInfo(prev => ({
+        ...prev,
+        lockerIds: Object.values(lockerMap).flat()
+      }));
+
+      const generalInfo = initialData.branches
+        .map(branch => `${branch.name}: ${branch.lockers.join(",")}`)
+        .join("; ");
+      setUserRight(prev => ({
+        ...prev,
+        Locker: { lockers: generalInfo }
+      }));
+    }
+  }, [mode, initialData]);
+
   const updateUser = () => {
     const errors = validateForm();
     setFormErrors(errors);
@@ -199,10 +222,11 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
       toast.error("Please fill out the form correctly");
       return;
     }
-    dispatch(setUserInfo({ ...sentGeneralInfo, id: initialData.id }))
+    dispatch(updateUserInfo({ ...sentGeneralInfo, id: initialData.id }))
       .then(res => {
         if (res?.payload?.isSuccess) {
           toast.success("User updated successfully");
+          dispatch(getAllUsers());
           onClose();
         } else {
           toast.error(res.error?.message || "Error occurred");
@@ -238,13 +262,16 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
 
   const handleSelectBranch = (branch) => {
     setSelectedBranch({ [branch.id]: branch.name });
-    setSelectedLockerId(selectedLockerAddId[branch.id] || []);
+    const alreadySelected = selectedLockerAddId[branch.id] || [];
+    console.log(alreadySelected, 'alreadySelected');
+
+    setSelectedLockerId(alreadySelected);
     dispatch(getLockerGroupsByBranchId(branch.id));
   };
 
   const handlePin = (value) => {
     setSentGeneralInfo(prev => ({ ...prev, isPinRequired: value }));
-    sendGroupInfo('Pin', 'pin', value);
+    sendGroupInfo('Pin', 'isPinRequired', value);
   };
 
   const handleClickBranchSelect = (itemId) => {
@@ -257,6 +284,38 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
     });
   };
 
+  const handleBranchSelectRemove = (itemId) => {
+    setSelectedLockerId((prevSelected) => {
+      if (prevSelected.includes(itemId)) {
+        return prevSelected.filter((id) => id !== itemId);
+      }
+      return prevSelected;
+    });
+  };
+
+  const handleBranchSelectAdd = (itemId) => {
+    setSelectedLockerId((prevSelected) => {
+      if (!prevSelected.includes(itemId)) {
+        return [...prevSelected, itemId];
+      }
+      return prevSelected;
+    });
+  };
+
+  const handleClose = () => {
+    setSelectedLockerId([]);
+    setSelectedLockerAddId({});
+    setUserRight({});
+    setSentGeneralInfo({ isPinRequired: false });
+    setSelectedBranch({});
+    setCards([]);
+    setSelectedGroups(null);
+
+    dispatch(clearFilteredLockerGroups([]));
+
+    onClose();
+  };
+
   const renderError = (field) => formErrors[field] ? <ShowFormikError message={formErrors[field]} /> : null;
 
   return (
@@ -264,7 +323,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
       <div className="add__modal__content add__modal__content__addUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto h-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">{mode === 'add' ? 'Add User' : 'Edit User'}</h2>
-          <CloseButton onClick={onClose}>&times;</CloseButton>
+          <CloseButton onClick={handleClose}>&times;</CloseButton>
         </div>
         <Tabs>
           <TabList>
@@ -491,7 +550,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
               </div>
             </div> */}
             <div className="flex justify-end space-x-4 mt-4">
-              <button className="bg-gray-600 text-white rounded px-4 py-2" onClick={onClose}>Cancel</button>
+              <button className="bg-gray-600 text-white rounded px-4 py-2" onClick={handleClose}>Cancel</button>
               <button className="bg-gray-600 text-white rounded px-4 py-2" onClick={mode === 'add' ? addUser : updateUser}>
                 {mode === 'add' ? 'Save' : 'Update'}
               </button>

@@ -39,7 +39,7 @@ export const authSlice = createSlice({
         state.loading = true;
       })
       .addCase(getAuthUser.fulfilled, (state, action) => {
-        // state.authUser = action.payload
+        state.authUser = action.payload
         state.isAuth = true
         state.authUserPermissions = {
           // 'role': state.authUser.role,
