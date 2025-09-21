@@ -159,6 +159,8 @@ public class MqttService
                             var mqttBrain = JsonSerializer.Deserialize<MqttBaseRequest<MqttCreateBrain>>(responseMessage);
                             var companyId = Db.Companies.FirstOrDefault(x => x.AccountUid == mqttBrain.Data.AccountId).Id;
                             var brains = Db.BrainModules.Where(x => x.CompanyId == companyId).ToList();
+
+
                             if (brains.Any(x => x.BrainUid == mqttBrain.Data.BrainUID))
                             {
                                 PublishToMqtt<int>(new MqttBaseRequest<int>
@@ -196,12 +198,15 @@ public class MqttService
                         using (var Db = furchaContext.Create())
                         {
                             var lockerCount = JsonSerializer.Deserialize<MqttBaseRequest<MqttLockerCount>>(responseMessage);
+
+                            var brain = Db.BrainModules.FirstOrDefault(x => x.BrainUid == lockerCount.Data.BrainUid);
                             for (int i = 0; i < lockerCount.Data.LockerCount; i++)
                             {
                                 Db.Lockers.Add(new Locker
                                 {
                                     LockerType = "unassigned",
-                                    PasswordHash = "test"
+                                    PasswordHash = "test",
+                                    BrainId = brain.Id
                                 });
                             }
 

@@ -4,6 +4,6 @@
     {
         public int LockerCount { get; set; }
 
-        public Guid BrainUid { get; set; }
+        public string BrainUid { get; set; }
     }
 }

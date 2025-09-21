@@ -513,7 +513,6 @@ namespace FurchaAdminApi.Services
                     // Update existing user
                     user.Name = newUser.Name;
                     user.Surname = newUser.Surname;
-                    user.Email = newUser.Email;
                     user.Phone = newUser.Phone;
                     user.State = (int)state;
                     user.ActiveFrom = newUser.ActiveFrom;
