@@ -30,11 +30,11 @@ namespace FurchaAdminApi.Services
             Db = db;
         }
         /// <summary>
-        /// Each user in the group should have access to same editingLockers in the lockerGroup. <br></br>
+        /// Each user in the mLockers should have access to same editingLockers in the lockerGroup. <br></br>
         /// Each locker is in only one lockerGroup.
         /// </summary>
-        /// <param name="ugId">The ID of the user group.</param>
-        /// <returns>A list of permitted editingLockers for the user group.</returns>
+        /// <param name="ugId">The ID of the user mLockers.</param>
+        /// <returns>A list of permitted editingLockers for the user mLockers.</returns>
         public List<FurchaDAL.Models.Locker> GetPermittedLockersOfUserGroup(int ugId)
         {
             var permittedLockers = Db.UserGroupLockers
@@ -49,7 +49,7 @@ namespace FurchaAdminApi.Services
         /// Retrieves editingLockers based on specified filtering criteria.
         /// </summary>
         /// <param name="lockerType">The type of locker.</param>
-        /// <param name="lockerGroupId">The locker group ID.</param>
+        /// <param name="lockerGroupId">The locker mLockers ID.</param>
         /// <param name="branchId">The branch ID.</param>
         /// <param name="status">The status of the locker.</param>
         /// <param name="isActive">Indicates if the locker is active.</param>
@@ -63,7 +63,7 @@ namespace FurchaAdminApi.Services
            string? userName = null,
            int? adminId = null)
         {
-            var adminBranches = new List<Branch>();
+            var adminBranches = new List<FurchaDAL.Models.Branch>();
 
             if (branchId == null)
             {
@@ -218,7 +218,7 @@ namespace FurchaAdminApi.Services
         public ModuleLockers GetLockersRange(int groupId)
         {
             var lockersWithNumber = Db.Lockers.Include(x => x.Brain)
-        .Where(l => l.Brain.GroupId == groupId).ToList() //_lockerRepository.GetLockersOfGroup(groupId)
+        .Where(l => l.Brain.GroupId == groupId).ToList() //_lockerRepository.GetLockersOfGroup(oldGroupId)
                  .OrderBy(x => x.Number).Select(x => x.Number).ToList();
 
             return new ModuleLockers
@@ -253,7 +253,7 @@ namespace FurchaAdminApi.Services
                 {
                     var groupModules = Db.BrainModules
         .Where(bm => bm.GroupId == group.Id && bm.Status == 2)
-        .ToList(); //_lockerRepository.GetModulesByGroupId(group.Id);
+        .ToList(); //_lockerRepository.GetModulesByGroupId(mLockers.Id);
 
                     if (groupModules.Any())
                     {
@@ -449,7 +449,7 @@ namespace FurchaAdminApi.Services
                 var groupId = lockerGroup.Key;
                 var lockersInGroup = lockerGroup.Value;
 
-                var all = Db.Lockers.Include(l=> l.Brain)
+                var all = Db.Lockers.Include(l => l.Brain)
                     .Where(l => l.Brain.GroupId == groupId)
                     .ToList();
                 //_lockerRepository.GetLockersOfGroup((int)lockerGroup.Key);
@@ -466,7 +466,7 @@ namespace FurchaAdminApi.Services
                 }
                 if (types.Count > 2)
                 {
-                    throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "Locker types must be the same in the group");
+                    throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "Locker types must be the same in the mLockers");
                 }
                 foreach (var locker in lockersInGroup)
                 {
@@ -575,7 +575,7 @@ namespace FurchaAdminApi.Services
         public FurchaBLL.Models.ModuleResult GetlockersById(int id)
         {
             var module = Db.BrainModules
-                .Include(x => x.Group)                   
+                .Include(x => x.Group)
                 .Include(x => x.Lockers) // ensure module.Lockers is loaded
                 .FirstOrDefault(x => x.Id == id);
 
@@ -605,19 +605,88 @@ namespace FurchaAdminApi.Services
 
         public bool UpdateModule(string lockerType, int lockerFrom, int lockerTo, int lockerGroupId, int id)
         {
-            var module = Db.BrainModules.Include(m => m.Lockers).FirstOrDefault(x => x.Id == id);
-            module.GroupId = lockerGroupId;
-            foreach (var locker in module.Lockers)
+            using var transaction = Db.Database.BeginTransaction();
+            try
             {
-                locker.LockerType = lockerType;
-            }
-            Db.SaveChanges();
-            /*   if(module.Lockers.Count < lockerTo - lockerFrom)
-               {
-                   Db.Lockers.Add()
-               }*/
+                var module = Db.BrainModules.Include(m => m.Lockers).FirstOrDefault(x => x.Id == id);
+                if (module == null) throw new Exception("Module not found");
 
-            return true;
+                var oldGroupId = module.GroupId;
+                if (oldGroupId != lockerGroupId)
+                {
+                    var lockersOfOldGroup = Db.Lockers
+                     .Include(l => l.Brain)
+                     .Where(b => b.Brain.GroupId == oldGroupId)
+                     .OrderBy(l => l.Brain.Id)
+                     .ThenBy(l => l.Id)
+                     .ToList();
+
+                    for (int i = 0; i < lockersOfOldGroup.Count; i++)
+                    {
+                        lockersOfOldGroup[i].Number = i + 1;
+                    }
+                }
+
+                var lockersOfNewGroup = Db.Lockers
+                    .Include(l => l.Brain)
+                    .Where(b => b.Brain.GroupId == lockerGroupId)
+                    .OrderBy(l => l.Brain.Id)
+                    .ThenBy(l => l.Id)
+                    .ToList();
+
+                var lockers = module.Lockers.OrderBy(l => l.Id).ToList();
+                var lockerCount = lockers.Count;
+                if (lockerTo - lockerFrom < lockerCount)
+                    throw new Exception("Wrong locker numbers");
+
+                var modules = lockersOfNewGroup.GroupBy(g => g.BrainId).ToList();
+
+                int index = 0;
+                for (var i = lockerFrom; i <= lockerTo && index < lockerCount; i++, index++)
+                {
+                    lockers[index].Number = i;
+                    lockers[index].LockerType = lockerType;
+                }
+
+                for (int i = 0; i < modules.Count; i++)
+                {
+                    if (i < modules.Count - 1)
+                    {
+                        if (lockerFrom < modules[i].LastOrDefault()?.Number && lockerTo > modules[i + 1].FirstOrDefault()?.Number)
+                        {
+                            throw new Exception("Overlapping locker numbers");
+                        }
+                    }
+
+                    if (modules[i].Key == id)
+                        continue;
+
+                    var mLockers = modules[i].ToList();
+                    var moduleLockerCount = mLockers.Count;
+
+                    for (var j = 0; j < moduleLockerCount; j++)
+                    {
+                        if (j > 0)
+                            mLockers[j].Number = mLockers[j - 1].Number + 1;
+                        else if (i == 0)
+                            mLockers[j].Number = 1;
+                        else
+                            mLockers[j].Number = modules[i - 1].LastOrDefault()?.Number + 1 ?? 1;
+                    }
+                }
+                
+                module.GroupId = lockerGroupId;
+
+                Db.SaveChanges();
+
+                transaction.Commit();
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public bool DeleteModule(int moduleId)
@@ -627,7 +696,7 @@ namespace FurchaAdminApi.Services
             module.Status = 1;
             module.GroupId = null;
 
-            foreach(var locker in module.Lockers)
+            foreach (var locker in module.Lockers)
             {
                 locker.LockerType = "unassigned";
                 Db.Update(locker);
