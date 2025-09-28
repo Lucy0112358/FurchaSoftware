@@ -1,4 +1,5 @@
-﻿using Domain.Enums;
+﻿using Domain.Configuration;
+using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
@@ -420,84 +421,65 @@ namespace FurchaAdminApi.Services
             return lockerGroups;
         }
 
-        public void EditLocker(List<int> lockerIds, string type)
+        public ApiResult<EditLockerResult> EditLocker(List<int> lockerIds, string type)
         {
-            var editingLockers = new List<Locker>();
+            var result = new EditLockerResult();
 
-            foreach (var id in lockerIds)
-            {
-                var locker = Db.Lockers.Include(l => l.Brain).FirstOrDefault(l => l.Id == id);// _lockerRepository.GetLockerByIdOrDefault(id);
-                if (locker != null)
-                {
-                    editingLockers.Add(locker);
-                }
-            }
+            var editingLockers = Db.Lockers
+                .Include(l => l.Brain)
+                .Where(l => lockerIds.Contains(l.Id))
+                .ToList();
 
-            // Safe because nulls are excluded
             var groupedLockers = editingLockers
                 .GroupBy(l => l.Brain.GroupId)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
+            var dbType = Db.LockerTypes
+                .FirstOrDefault(t => t.Name.ToLower() == type.Trim().ToLower());
+
+            if (dbType == null)
+                return ApiResult<EditLockerResult>.ErrorResult("Locker type not found");
+
+            int tId = dbType.Id;
+
             foreach (var lockerGroup in groupedLockers)
             {
-                var types = new HashSet<string>();
-                if (type != "common")
+                using var transaction = Db.Database.BeginTransaction();
+                try
                 {
-                    types.Add(type);
-                }
+                    var lockersInGroup = lockerGroup.Value;
 
-                var groupId = lockerGroup.Key;
-                var lockersInGroup = lockerGroup.Value;
-
-                var all = Db.Lockers.Include(l => l.Brain)
-                    .Where(l => l.Brain.GroupId == groupId)
-                    .ToList();
-                //_lockerRepository.GetLockersOfGroup((int)lockerGroup.Key);
-                foreach (var locker in all)
-                {
-                    if (!lockersInGroup.Contains(locker))
+                    for (int i = 0; i < lockersInGroup.Count; i++)
                     {
-                        if (locker.LockerType != "common")
+                        if (i == 0)
                         {
-                            types.Add(locker.LockerType.ToLower());
+                            lockersInGroup[i].LockerType = tId;
+                            continue;
                         }
+
+                        if (lockersInGroup[i].LockerType != tId)
+                        {
+                            throw new BaseException(ErrorCodeEnum.GenericErrorRetry,
+                                "Locker types must be the same in the group");
+                        }
+
+                        lockersInGroup[i].LockerType = tId;
                     }
 
-                }
-                if (types.Count > 2)
-                {
-                    throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "Locker types must be the same in the mLockers");
-                }
-                foreach (var locker in lockersInGroup)
-                {
-
-                    if (type != null)
-                    {
-                        locker.LockerType = type;
-                    }
-                    Db.Lockers.Update(locker);
                     Db.SaveChanges();
-                    // _lockerRepository.UpdateLocker(locker);
+                    transaction.Commit();
+                    result.SuccessfulGroups.Add(lockerGroup.Key);
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    result.FailedGroups.Add((lockerGroup.Key, ex.Message));
                 }
             }
 
-
-            /*if (locker != null)
-            {
-                groupedLockers.TryGetValue(locker.groupid, out string val);
-                if (type != val)
-                {
-                    throw new Exception();
-                }
-                if (type != null)
-                {
-                    locker.LockerType = type;
-                }
-                _lockerRepository.UpdateLocker(locker);
-            }*/
-
-
+            return ApiResult<EditLockerResult>.Success(result);
         }
+
 
         public void SuspendLockers(List<int> lockerIds)
         {
@@ -674,7 +656,7 @@ namespace FurchaAdminApi.Services
                             mLockers[j].Number = modules[i - 1].LastOrDefault()?.Number + 1 ?? 1;
                     }
                 }
-                
+
                 module.GroupId = lockerGroupId;
 
                 Db.SaveChanges();

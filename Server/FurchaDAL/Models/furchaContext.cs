@@ -50,6 +50,8 @@ public partial class furchaContext : DbContext
 
     public virtual DbSet<LockerGroup> LockerGroups { get; set; }
 
+    public virtual DbSet<LockerType> LockerTypes { get; set; }
+
     public virtual DbSet<ObjectType> ObjectTypes { get; set; }
 
     public virtual DbSet<Permission> Permissions { get; set; }
@@ -228,13 +230,16 @@ public partial class furchaContext : DbContext
 
             entity.ToTable("Locker", "furcha");
 
-            entity.Property(e => e.LockerType).IsRequired();
             entity.Property(e => e.Number).HasColumnType("numeric(18, 0)");
 
             entity.HasOne(d => d.Brain).WithMany(p => p.Lockers)
                 .HasForeignKey(d => d.BrainId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Locker_Brain");
+
+            entity.HasOne(d => d.LockerTypeNavigation).WithMany(p => p.Lockers)
+                .HasForeignKey(d => d.LockerType)
+                .HasConstraintName("FK_Locker_LockerType");
         });
 
         modelBuilder.Entity<LockerGroup>(entity =>
@@ -252,6 +257,17 @@ public partial class furchaContext : DbContext
                 .HasForeignKey(d => d.BranchId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_LockerGroup_Branch");
+        });
+
+        modelBuilder.Entity<LockerType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__LockerTy__3214EC07A765444F");
+
+            entity.ToTable("LockerType", "furcha");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
         });
 
         modelBuilder.Entity<ObjectType>(entity =>

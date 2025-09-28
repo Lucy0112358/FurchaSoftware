@@ -59,6 +59,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[furcha].[LockerType]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[furcha].[ObjectType]",
          "ObjectType": 0
       },

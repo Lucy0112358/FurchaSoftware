@@ -9,8 +9,6 @@ public partial class Locker
 {
     public int Id { get; set; }
 
-    public string LockerType { get; set; }
-
     public string PasswordHash { get; set; }
 
     public bool? IsActive { get; set; }
@@ -23,7 +21,11 @@ public partial class Locker
 
     public int? BrainId { get; set; }
 
+    public int? LockerType { get; set; }
+
     public virtual BrainModule Brain { get; set; }
+
+    public virtual LockerType LockerTypeNavigation { get; set; }
 
     public virtual ICollection<UserGroupLocker> UserGroupLockers { get; set; } = new List<UserGroupLocker>();
 

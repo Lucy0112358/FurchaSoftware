@@ -176,25 +176,14 @@ namespace FurchaAdminApi.Controllers
         [Authorize]
         [RequiresPermission("ManageLocker")]
         [HttpPost("edit-lockers")]
-        public IActionResult EditLockers([FromBody] EditLockerRequest request)
+        public ApiResult<EditLockerResult> EditLockers([FromBody] EditLockerRequest request)
         {
             if (request == null || request.LockerIds == null || !request.LockerIds.Any())
             {
-                return BadRequest(ApiResult<string>.ErrorResult("Invalid request data."));
+                return ApiResult<EditLockerResult>.ErrorResult("Invalid request data.");
             }
 
-            try
-            {
-                _lockerService.EditLocker(request.LockerIds, request.Type);
-                return Ok(ApiResult<string>.Success("Lockers edited successfully."));
-
-
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ApiResult<string>.ErrorResult(ex.Message));
-
-            }
+            return _lockerService.EditLocker(request.LockerIds, request.Type);
         }
 
         [Authorize]
