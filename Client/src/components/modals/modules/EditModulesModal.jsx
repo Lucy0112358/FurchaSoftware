@@ -7,8 +7,8 @@ import { getLockerGroupsData } from "../../../redux/api/menuApi";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import { IoMdAdd } from "react-icons/io";
-import { getLockerGroupMinMax, getModule, getModuleModalGroupes } from "../../../redux/slice/moduleSlice";
-import { editModule, getModul } from "../../../redux/api/moduleApi";
+import { getLockerGroupMinMax, getModuleLockerData, getModuleModalGroupes } from "../../../redux/slice/moduleSlice";
+import { editModuleLocker, getModuleLocker } from "../../../redux/api/moduleApi";
 import { getLockerOptions } from "../../../enums/Locker/Types";
 import CloseButton from "../attributes/CloseButton";
 import { useFormik } from 'formik';
@@ -20,7 +20,7 @@ const EditModulesModal = ({ id, onClose }) => {
 
   const lockerGroups = useSelector(getModuleModalGroupes);
   const lockerGroupRange = useSelector(getLockerGroupMinMax);
-  const module = useSelector(getModule);
+  const moduleLocker = useSelector(getModuleLockerData);
 
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
   const lockerOptions = getLockerOptions().map((lockerType) => ({
@@ -34,17 +34,17 @@ const EditModulesModal = ({ id, onClose }) => {
 
   useEffect(() => {
     if (id) {
-      dispatch(getModul({ id }));
+      dispatch(getModuleLocker({ id }));
     }
   }, [id, dispatch]);
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      lockerType: module?.lockerType || '',
-      lockerFrom: module?.lockerRange?.start || '',
-      lockerTo: module?.lockerRange?.end || '',
-      lockerGroupId: module?.lockerGroupId || null,
+      lockerType: moduleLocker?.lockerType || '',
+      lockerFrom: moduleLocker?.lockerRange?.start || '',
+      lockerTo: moduleLocker?.lockerRange?.end || '',
+      lockerGroupId: moduleLocker?.lockerGroupId || null,
     },
     validationSchema: Yup.object().shape({
       lockerGroupId: Yup.number().nullable(),
@@ -60,7 +60,7 @@ const EditModulesModal = ({ id, onClose }) => {
     }),
     onSubmit: async (values) => {
       try {
-        const response = await dispatch(editModule({ id, data: values }));
+        const response = await dispatch(editModuleLocker({ id, data: values }));
         if (response?.payload?.isSuccess) {
           toast.success("Module updated successfully");
           onClose();

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import EditModulesModal from '../../modals/modules/EditModulesModal';
+import EditModulesModal from '../../../modals/modules/EditModulesModal';
+import ModulesModal from '../../../modals/modules/ModulesModal';
 
 function Edit({ module, onClose }) {
     const [showModal, setShowModal] = useState(false);
@@ -10,7 +11,7 @@ function Edit({ module, onClose }) {
                 Edit
             </button>
 
-            {showModal && <EditModulesModal id={module?.id} onClose={() => setShowModal(false)} />}
+            {showModal && <ModulesModal id={module?.id} mode = "edit" onClose={() => setShowModal(false)} />}
         </>
     )
 }

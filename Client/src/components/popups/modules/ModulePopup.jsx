@@ -1,10 +1,11 @@
 import React from 'react';
-import Edit from '../../popupAction/module/Edit';
-import Delete from '../../popupAction/module/Delete';
+import LockerEdit from '../../popupAction/module/locker/LockerEdit';
+import Edit from '../../popupAction/module/module/Edit';
+import Delete from '../../popupAction/module/module/Delete';
 
 function ModulePopup({ module, onClose, column }) {
   console.log(module, column, 'module in popup');
-  
+
   return (
     <div
       className="bg-white shadow-xl rounded-lg p-5 w-72 border border-gray-200"
@@ -21,9 +22,12 @@ function ModulePopup({ module, onClose, column }) {
           {column && (
             <div className="flex flex-col gap-2">
               {column === "locker" ? (
-                <Edit module={module} onClose={onClose} />
+                <LockerEdit module={module} onClose={onClose} />
               ) : column === "module" ? (
-                <Delete module={module} onClose={onClose} />
+                <>
+                  <Edit module={module} onClose={onClose} />
+                  <Delete module={module} onClose={onClose} />
+                </>
               ) : null}
             </div>
           )}

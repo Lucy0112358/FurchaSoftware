@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from "react-toastify";
-import ConfirmModal from '../../confirm/ConfirmModal';
-import { deleteModule, getModules } from '../../../redux/api/moduleApi';
+import ConfirmModal from '../../../confirm/ConfirmModal';
+import { deleteModule, getModules } from '../../../../redux/api/moduleApi';
 
 function Delete({ module, onClose }) {
     const dispatch = useDispatch();

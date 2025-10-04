@@ -118,7 +118,7 @@ const Modules = () => {
                         position: 'absolute',
                         top: popup.y,
                         left: popup.x,
-                        zIndex: 999,
+                        zIndex: 1,
                     }}
                     onClick={(e) => e.stopPropagation()}
                 >

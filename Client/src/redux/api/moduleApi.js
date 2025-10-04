@@ -37,8 +37,9 @@ export const getModules = createAsyncThunk(
       }
   )
 
-    export const editModule = createAsyncThunk(
-    'modules/editModule',
+  //change name editModuleEdit
+    export const editModuleLocker = createAsyncThunk(
+    'modules/editModuleLocker',
     async ({data, id}, thunkAPI) => {
         try {
           const config = {
@@ -73,8 +74,8 @@ export const getModules = createAsyncThunk(
       }
   )
 
-  export const getModul = createAsyncThunk(
-    'modules/getModul',
+  export const getModuleLocker = createAsyncThunk(
+    'modules/getModuleLocker',
     async ({id}, thunkAPI) => {
         try {
           const config = {
@@ -105,6 +106,45 @@ export const getModules = createAsyncThunk(
         }
       }
   )
+
+  export const moduleShow = createAsyncThunk(
+  'modules/show',
+  async ({ id }, thunkAPI) => {
+    try {
+      const config = {
+        method: "get",
+        url: 'modules/getModule/' + id,
+      };
+      const response = await instance(config);
+      return response?.data?.data;
+      // return {
+      //   "brainId": 'uransd-5sda5zcxz-sdacmdsd-sdcksdc',
+      //   "branchId": 8,
+      // }
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)
+
+export const updateModule = createAsyncThunk(
+  'modules/updateModule',
+  async ({id, data}, thunkAPI) => {
+    try {
+      const config = {
+        method: "post",
+        url: 'modules/editModule/' + id,
+        data: data
+      };
+console.log(config, data);
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)
 
   // export const getLockerGroupRange = createAsyncThunk(
   //   'modules/getLockerGroupRange',

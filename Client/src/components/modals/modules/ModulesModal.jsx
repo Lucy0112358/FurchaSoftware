@@ -7,8 +7,8 @@ import { getBranches, getLockerGroupsData } from "../../../redux/api/menuApi";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import { IoMdAdd } from "react-icons/io";
-import { filterGroupByBranch, getModule, getModuleModalBranches, getNewBrainsData } from "../../../redux/slice/moduleSlice";
-import { addModuleFunc, getNewBrains } from "../../../redux/api/moduleApi";
+import { filterGroupByBranch, getModuleData, getNewBrainsData } from "../../../redux/slice/moduleSlice";
+import { addModuleFunc, getNewBrains, moduleShow, updateModule } from "../../../redux/api/moduleApi";
 import CloseButton from "../attributes/CloseButton";
 import BranchModal from "../branch/BranchModal";
 import { useFormik } from 'formik';
@@ -16,12 +16,11 @@ import CustomSelect from "../../select/CustomSelect";
 import { getAllBranches } from "../../../redux/api/branchApi";
 import { getAllBranchesData } from "../../../redux/slice/branchSlice";
 
-const ModulesModal = ({ onClose }) => {
-  // const branches = useSelector(getModuleModalBranches);
+const ModulesModal = ({ onClose, id, mode = "add" }) => {
   const branches = useSelector(getAllBranchesData);
   const newBrains = useSelector(getNewBrainsData);
+  const module = useSelector(getModuleData);
   const dispatch = useDispatch();
-
 
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
 
@@ -31,26 +30,46 @@ const ModulesModal = ({ onClose }) => {
   }));
 
   useEffect(() => {
-    // dispatch(getBranches());
     dispatch(getAllBranches());
     dispatch(getLockerGroupsData());
     dispatch(getNewBrains());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (id) {
+      dispatch(moduleShow({ id }));
+    }
+  }, [id]);
+  console.log(module, 'module in modal');
+
   const formik = useFormik({
     initialValues: {
-      branchId: '',
-      brainId: '',
+      branchId: module.branchId || '',
+      brainId: module.brainUid || '',
     },
+    enableReinitialize: true,
     validationSchema: Yup.object().shape({
-      brainId: Yup.number().required('Brain ID is required'),
-      branchId: Yup.number().required('Branch ID is required'),
+      brainId: mode === "edit"
+        ? Yup.string().required("Brain ID is required")
+        : Yup.number().required("Brain ID is required"),
+      branchId: Yup.number().required("Branch ID is required"),
     }),
     onSubmit: (values) => {
-      dispatch(addModuleFunc(values))
+      console.log(values, 'form values');
+      
+      const action = mode === "edit"
+        ? updateModule({ id, data:{
+          branchId:values.branchId,
+          brainUid:values.brainId
+        } })
+        : addModuleFunc(values);
+
+      dispatch(action)
         .then((response) => {
           if (response?.payload?.isSuccess) {
-            toast.success("Modules created successfully");
+            toast.success(
+              mode === "edit" ? "Module updated successfully" : "Module created successfully"
+            );
             onClose();
           }
         })
@@ -67,7 +86,6 @@ const ModulesModal = ({ onClose }) => {
 
   const handleNewBrainChange = (option) => {
     formik.setFieldValue('brainId', option?.value);
-    // dispatch(getLockerGroupRange({ brainId: option.value }));
   };
 
   return (
@@ -76,7 +94,9 @@ const ModulesModal = ({ onClose }) => {
         <div className="add__modal__content add__modal__content__addModules rounded-lg shadow-lg w-full max-w-4xl overflow-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-white">Add brain modules</h2>
+            <h2 className="text-2xl font-semibold text-white">
+              {mode === "edit" ? "Edit brain module" : "Add brain module"}
+            </h2>
             <CloseButton onClick={onClose}>&times;</CloseButton>
           </div>
 
@@ -85,16 +105,35 @@ const ModulesModal = ({ onClose }) => {
             <div className="add__modal__content__part">
               <span>General</span>
               <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
+                {console.log(formik.values, 'brainId')
+                }
                 {/* Brain Module */}
                 <label className="block text-gray-300">Brain Module</label>
                 <div className="w-5/6 mr-2">
-                  <CustomSelect
-                    options={newBrainsOptions}
-                    name="brainId"
-                    onChange={handleNewBrainChange}
-                  />
-                  {formik.touched.brainId && formik.errors.brainId && (
-                    <div className="text-red-500">{formik.errors.brainId}</div>
+                  {mode === "edit" ? (
+                    <input
+                      type="text"
+                      name="brainId"
+                      value={formik.values.brainId}
+                      readOnly
+                      className="w-full px-3 py-2 rounded"
+                    />
+                  ) : (
+                    <>
+                      <CustomSelect
+                        options={newBrainsOptions}
+                        name="brainId"
+                        onChange={handleNewBrainChange}
+                        value={
+                          newBrainsOptions.find(
+                            (opt) => String(opt.value) === String(formik.values.brainId)
+                          ) || null
+                        }
+                      />
+                      {formik.touched.brainId && formik.errors.brainId && (
+                        <div className="text-red-500">{formik.errors.brainId}</div>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -108,6 +147,12 @@ const ModulesModal = ({ onClose }) => {
                         value: branch.id,
                       }))}
                       onChange={handleBranchChange}
+                      value={branches
+                        ?.map(branch => ({
+                          label: branch.name,
+                          value: branch.id,
+                        }))
+                        .find(opt => opt.value === formik.values.branchId) || null}
                     />
                     {formik.touched.branchId && formik.errors.branchId && (
                       <div className="text-red-500">{formik.errors.branchId}</div>
@@ -151,7 +196,7 @@ const ModulesModal = ({ onClose }) => {
                 type="submit"
                 className="bg-gray-600 text-white rounded px-4 py-2"
               >
-                Save
+                {mode === "edit" ? "Update" : "Save"}
               </button>
             </div>
           </div>

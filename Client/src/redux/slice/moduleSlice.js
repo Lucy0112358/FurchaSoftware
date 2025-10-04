@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getBranches, getLockerGroupsData } from "../api/menuApi";
 import { userSlice } from "./userSlice";
-import {  getModul, getModules, getNewBrains } from "../api/moduleApi";
+import { getModuleLocker, getModules, getNewBrains, moduleShow } from "../api/moduleApi";
 import { LockerTypes } from "../../enums/Locker/Types";
 
 const initialState = {
@@ -14,7 +14,8 @@ const initialState = {
     min: 1,
     max: 256,
   },
-  module: {
+  module: {},
+  moduleLocker: {
     // lockerType: 'personal',
     // lockerGroupId: 1,
     // lockerRange: {
@@ -54,18 +55,21 @@ export const moduleSlice = createSlice({
       .addCase(getModules.fulfilled, (state, action) => {
         state.allModules = action.payload.data;
       })
+      .addCase(moduleShow.fulfilled, (state, action) => {
+        state.module= action.payload;
+      })
       .addCase(getNewBrains.fulfilled, (state, action) => {
         state.newBrains = action.payload.data;
       })
-      .addCase(getModul.fulfilled, (state, action) => {
-        state.module = action.payload.data;
+      .addCase(getModuleLocker.fulfilled, (state, action) => {
+        state.moduleLocker = action.payload.data;
       })
-      // .addCase(getLockerGroupRange.fulfilled, (state, action) => {
-      //   state.lockerGroupMinMax = {
-      //     min: action.payload.data?.lastLocker ?? 1,
-      //     max: 256,
-      //   };
-      // });
+    // .addCase(getLockerGroupRange.fulfilled, (state, action) => {
+    //   state.lockerGroupMinMax = {
+    //     min: action.payload.data?.lastLocker ?? 1,
+    //     max: 256,
+    //   };
+    // });
   },
 });
 
@@ -78,7 +82,8 @@ export const getModuleModalBranches = (state) => state.modules.modalBranches;
 export const getModulesData = (state) => state.modules.allModules;
 export const getNewBrainsData = (state) => state.modules.newBrains;
 export const getLockerGroupMinMax = (state) => state.modules.lockerGroupMinMax;
-export const getModule = (state) => state.modules.module;
+export const getModuleLockerData = (state) => state.modules.moduleLocker;
+export const getModuleData = (state) => state.modules.module;
 
 
 export default moduleSlice.reducer;
