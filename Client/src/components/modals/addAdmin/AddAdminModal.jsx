@@ -297,7 +297,7 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
         <Tabs>
           <TabList>
             <Tab>Info</Tab>
-            <Tab>Lockers</Tab>
+            <Tab>Locker groups</Tab>
           </TabList>
           <TabPanel>
             <div>
@@ -401,7 +401,7 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
               </div>
               <div className="add__modal__content__part__select w-full">
                 <span>Branches</span>
-                <div className="add__modal__content__part__group mb-4">
+                <div className="add__modal__content__part__group mb-4c overflow-x-auto">
                   <div className="flex mr-2">
                     {
                       branches.length > 0 && (

@@ -49,7 +49,7 @@ function LockerTable() {
                     {lockerGroup.groupLockers.length !== 0 ? (
                       <>
                         <div className="ml-2 mt-3">
-                          <GroupName name={lockerGroup.groupName} />
+                          <GroupName name={lockerGroup.groupName} id={5} />
                         </div>
 
                         <div

@@ -4,6 +4,7 @@ import userReducer from '../slice/userSlice';
 import menuReducer from '../slice/menuSlice';
 import groupReducer from '../slice/groupSlice';
 import lockerReducer from '../slice/lockerSlice';
+import lockerGroupReducer from '../slice/lockerGroupSlice';
 import moduleReducer from '../slice/moduleSlice';
 import branchReducer from '../slice/branchSlice';
 import adminReducer from '../slice/adminSlice';
@@ -20,5 +21,6 @@ export const store = configureStore({
     branch: branchReducer,
     admin: adminReducer,
     system: systemReducer,
+    lockerGroup: lockerGroupReducer,
   },
 });

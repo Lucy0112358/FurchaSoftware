@@ -24,8 +24,8 @@ const EditModulesModal = ({ id, onClose }) => {
 
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
   const lockerOptions = getLockerOptions().map((lockerType) => ({
-    name: lockerType,
-    label: lockerType.charAt(0).toUpperCase() + lockerType.slice(1),
+    name: lockerType.type,
+    label: lockerType.type.charAt(0).toUpperCase() + lockerType.type.slice(1),
   }));
 
   useEffect(() => {
