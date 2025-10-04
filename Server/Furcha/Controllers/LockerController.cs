@@ -26,7 +26,7 @@ namespace FurchaAdminApi.Controllers
         [HttpGet]
         public ActionResult<ApiResult<List<OfficeResult>>> Get(
             int? branchId = null,
-            string? lockerType = null,
+            int? lockerType = null,
             int? lockerGroupId = null,
             int? isOpen = null,
             string? userName = null

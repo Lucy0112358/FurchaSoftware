@@ -1,5 +1,6 @@
 ﻿namespace FurchaAdminApi.Models.Result
 {
+    [Obsolete]
     public class LockerResult
     {
         public int Id { get; set; }

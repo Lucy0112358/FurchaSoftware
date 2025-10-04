@@ -23,6 +23,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[furcha].[AdminLockerGroup]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[furcha].[AdminPermission]",
          "ObjectType": 0
       },

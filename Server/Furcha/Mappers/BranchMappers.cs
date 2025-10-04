@@ -19,7 +19,7 @@ namespace FurchaAdminApi.Mappers
             };
         }*/
 
-        public static AllBranchResult ToAllBranchResult(this FurchaDAL.Models.Branch branch, string address, List<string> lockerTypes, int count)
+        public static AllBranchResult ToAllBranchResult(this FurchaDAL.Models.Branch branch, string address, List<int?> lockerTypes, int count)
         {
             return new AllBranchResult
             {

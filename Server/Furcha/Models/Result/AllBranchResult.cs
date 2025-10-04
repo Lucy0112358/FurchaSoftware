@@ -10,7 +10,7 @@
 
         public string Comment { get; set; }
 
-        public List<string> LockerTypes { get; set; }
+        public List<int?> LockerTypes { get; set; }
 
         public int LockersCount { get; set; }
 

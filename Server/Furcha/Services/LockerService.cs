@@ -58,7 +58,7 @@ namespace FurchaAdminApi.Services
         /// <returns>A list of editingLockers that match the specified criteria.</returns>
         public List<OfficeResult> GetLockersByFilters(
            int? branchId,
-           string? lockerType,
+           int? lockerType,
            int? lockerGroupId,
            int? isOpen = null,
            string? userName = null,
@@ -468,12 +468,12 @@ namespace FurchaAdminApi.Services
 
                     Db.SaveChanges();
                     transaction.Commit();
-                    result.SuccessfulGroups.Add(lockerGroup.Key);
+                    result.SuccessfulGroups.Add((int)lockerGroup.Key);
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    result.FailedGroups.Add((lockerGroup.Key, ex.Message));
+                    result.FailedGroups.Add(((int)lockerGroup.Key, ex.Message));
                 }
             }
 
@@ -585,7 +585,7 @@ namespace FurchaAdminApi.Services
 
         }
 
-        public bool UpdateModule(string lockerType, int lockerFrom, int lockerTo, int lockerGroupId, int id)
+        public bool UpdateModule(int lockerType, int lockerFrom, int lockerTo, int lockerGroupId, int id)
         {
             using var transaction = Db.Database.BeginTransaction();
             try
@@ -680,7 +680,7 @@ namespace FurchaAdminApi.Services
 
             foreach (var locker in module.Lockers)
             {
-                locker.LockerType = "unassigned";
+                locker.LockerType = 0;
                 Db.Update(locker);
             }
 
@@ -688,6 +688,42 @@ namespace FurchaAdminApi.Services
             Db.SaveChanges();
 
             return true;
+        }
+
+        public bool EditModule(int moduleId, int branchId)
+        {
+            var module = Db.BrainModules.Include(m => m.Lockers).First(x => x.Id == moduleId);
+
+            module.BranchId = branchId;
+            module.GroupId = null;
+
+            foreach (var locker in module.Lockers)
+            {
+                locker.LockerType = 0;
+                Db.Update(locker);
+            }
+
+            Db.Update(module);
+            Db.SaveChanges();
+
+            return true;
+        }
+
+
+        public FurchaBLL.Models.EditModuleResult GetModuleById(int id)
+        {
+            var module = Db.BrainModules.FirstOrDefault(x => x.Id == id);
+
+            if (module == null)
+                throw new ArgumentException($"Module with Id {id} not found");
+
+            return new FurchaBLL.Models.EditModuleResult
+            {
+                Id = id,
+                BrainUid = module.BrainUid,
+                BranchId = (int)module.BranchId
+            };
+
         }
 
     }

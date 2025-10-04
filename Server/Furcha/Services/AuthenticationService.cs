@@ -7,6 +7,7 @@ using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
 using FurchaBLL.Models;
 using FurchaDAL.Models;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -64,8 +65,7 @@ namespace FurchaAdminApi.Services
                     dbAdmin.ModifiedBy = request.ModifiedBy;
                     //   dbAdmin.LastPasswordChangeDate = DateTime.UtcNow;
 
-                    Db.AdminPermissions.RemoveRange(
-                        Db.AdminPermissions.Where(p => p.AdministratorId == dbAdmin.Id));
+                    Db.AdminPermissions.RemoveRange(Db.AdminPermissions.Where(p => p.AdministratorId == dbAdmin.Id));
 
                     foreach (var permissionId in request.Permissions)
                     {
@@ -76,8 +76,7 @@ namespace FurchaAdminApi.Services
                         });
                     }
 
-                    Db.AdminBranches.RemoveRange(
-                    Db.AdminBranches.Where(p => p.AdministratorId == dbAdmin.Id));
+                    Db.AdminBranches.RemoveRange(Db.AdminBranches.Where(p => p.AdministratorId == dbAdmin.Id));
 
                     foreach (var branchId in request.Branches)
                     {
@@ -85,6 +84,17 @@ namespace FurchaAdminApi.Services
                         {
                             AdministratorId = dbAdmin.Id,
                             BranchId = branchId
+                        });
+                    }
+
+                    Db.AdminLockerGroups.RemoveRange(Db.AdminLockerGroups.Where(p => p.AdminId == dbAdmin.Id));
+
+                    foreach (var lockerGroup in request.GroupIds)
+                    {
+                        Db.AdminLockerGroups.Add(new FurchaDAL.Models.AdminLockerGroup
+                        {
+                            AdminId = dbAdmin.Id,
+                            LockerGroupId = lockerGroup
                         });
                     }
                 }
@@ -122,6 +132,17 @@ namespace FurchaAdminApi.Services
                         admin.AdminPermissions.Add(new AdminPermission
                         {
                             PermissionId = permissionId
+                        });
+                    }
+
+                    Db.AdminLockerGroups.RemoveRange(Db.AdminLockerGroups.Where(p => p.AdminId == dbAdmin.Id));
+
+                    foreach (var lockerGroup in request.GroupIds)
+                    {
+                        Db.AdminLockerGroups.Add(new FurchaDAL.Models.AdminLockerGroup
+                        {
+                            AdminId = dbAdmin.Id,
+                            LockerGroupId = lockerGroup
                         });
                     }
                 }
@@ -337,15 +358,9 @@ namespace FurchaAdminApi.Services
                 Permissions = GetRolePermissions((long)dbAdmin.RoleId),
                 Branches = dbAdmin.AdminBranches.Select(b => new AdminBranchResult
                 {
-                    /* BranchId = b.BranchId,
-                     BranchName = b.Branch.Name,
-                     Lockers = b.Branch.Lockers.Select(l => new LockerResult
-                     {
-                         Id = l.Id,
-                         Number = l.Number,
-                         Groupid = l.GroupId,
-                         LockerType = l.LockerType
-                     }).ToList(),*/
+                    BranchId = b.BranchId,
+                    BranchName = b.Branch.Name,
+                    GroupIds =Db.AdminLockerGroups.Where(b => b.AdminId == id).Select(x => x.LockerGroupId).ToList(),
                 }).ToList()
             };
         }

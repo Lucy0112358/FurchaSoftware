@@ -14,7 +14,7 @@
 
         public List<int> Permissions { get; set; }
 
-        public List<int>? LockerIds { get; set; }
+        public List<int>? GroupIds { get; set; }
 
         public List<int>? Branches { get; set; }
 

@@ -30,6 +30,8 @@ public partial class furchaContext : DbContext
     }
     public virtual DbSet<AdminBranch> AdminBranches { get; set; }
 
+    public virtual DbSet<AdminLockerGroup> AdminLockerGroups { get; set; }
+
     public virtual DbSet<AdminPermission> AdminPermissions { get; set; }
 
     public virtual DbSet<AdminSession> AdminSessions { get; set; }
@@ -88,6 +90,23 @@ public partial class furchaContext : DbContext
                 .HasForeignKey(d => d.BranchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AdminBranch_Branch");
+        });
+
+        modelBuilder.Entity<AdminLockerGroup>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__AdminLoc__3214EC074B962C7B");
+
+            entity.ToTable("AdminLockerGroup", "furcha");
+
+            entity.HasIndex(e => new { e.AdminId, e.LockerGroupId }, "UQ_AdminLockerGroup_AdminId_LockerGroupId").IsUnique();
+
+            entity.HasOne(d => d.Admin).WithMany(p => p.AdminLockerGroups)
+                .HasForeignKey(d => d.AdminId)
+                .HasConstraintName("FK_AdminLockerGroup_Admin");
+
+            entity.HasOne(d => d.LockerGroup).WithMany(p => p.AdminLockerGroups)
+                .HasForeignKey(d => d.LockerGroupId)
+                .HasConstraintName("FK_AdminLockerGroup_LockerGroup");
         });
 
         modelBuilder.Entity<AdminPermission>(entity =>

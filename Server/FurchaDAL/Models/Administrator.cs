@@ -35,6 +35,8 @@ public partial class Administrator
 
     public virtual ICollection<AdminBranch> AdminBranches { get; set; } = new List<AdminBranch>();
 
+    public virtual ICollection<AdminLockerGroup> AdminLockerGroups { get; set; } = new List<AdminLockerGroup>();
+
     public virtual ICollection<AdminPermission> AdminPermissions { get; set; } = new List<AdminPermission>();
 
     public virtual Company Company { get; set; }
