@@ -1,4 +1,6 @@
-﻿namespace FurchaAdminApi.Models.Result
+﻿using FurchaDAL.Models;
+
+namespace FurchaAdminApi.Models.Result
 {
     public class LockersResult
     {
@@ -14,7 +16,7 @@
 
         public int? groupid { get; set; }
 
-        public int? LockerType { get; set; }
+        public LockerType LockerType { get; set; }
 
         public int IsActive { get; set; }
 
