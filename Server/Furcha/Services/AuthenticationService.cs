@@ -78,15 +78,18 @@ namespace FurchaAdminApi.Services
 
                     Db.AdminBranches.RemoveRange(Db.AdminBranches.Where(p => p.AdministratorId == dbAdmin.Id));
 
-                    var branchIds = Db.LockerGroups.Where(x => request.GroupIds.Contains(x.Id)).Select(x => x.BranchId.Value).Distinct().ToList();
-
-                    foreach (var branchId in branchIds)
+                    if (request.GroupIds != null && request.GroupIds.Any())
                     {
-                        Db.AdminBranches.Add(new FurchaDAL.Models.AdminBranch
+                        var branchIds = Db.LockerGroups.Where(x => request.GroupIds.Contains(x.Id)).Select(x => x.BranchId.Value).Distinct().ToList();
+
+                        foreach (var branchId in branchIds)
                         {
-                            AdministratorId = dbAdmin.Id,
-                            BranchId = branchId
-                        });
+                            Db.AdminBranches.Add(new FurchaDAL.Models.AdminBranch
+                            {
+                                AdministratorId = dbAdmin.Id,
+                                BranchId = branchId
+                            });
+                        }
                     }
 
                     Db.AdminLockerGroups.RemoveRange(Db.AdminLockerGroups.Where(p => p.AdminId == dbAdmin.Id));
@@ -120,16 +123,19 @@ namespace FurchaAdminApi.Services
                     Db.Administrators.Add(admin);
                     Db.SaveChanges();
 
-                    var branchIds = Db.LockerGroups.Where(x => request.GroupIds.Contains(x.Id)).Select(x => x.BranchId.Value).Distinct().ToList();
-
-                    foreach (var branchId in branchIds)
+                    if (request.GroupIds != null && request.GroupIds.Any())
                     {
-                        Db.AdminBranches.Add(new FurchaDAL.Models.AdminBranch
+                        var branchIds = Db.LockerGroups.Where(x => request.GroupIds.Contains(x.Id)).Select(x => x.BranchId.Value).Distinct().ToList();
+
+                        foreach (var branchId in branchIds)
                         {
-                            AdministratorId = dbAdmin.Id,
-                            BranchId = branchId
-                        });
-                    }
+                            Db.AdminBranches.Add(new FurchaDAL.Models.AdminBranch
+                            {
+                                AdministratorId = dbAdmin.Id,
+                                BranchId = branchId
+                            });
+                        }
+                    }                
 
                     foreach (var permissionId in request.Permissions)
                     {
