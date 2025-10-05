@@ -229,8 +229,8 @@ namespace FurchaAdminApi.Controllers
 
         [Authorize]
         /*        [RequiresPermission("ManageLocker")]*/
-        [HttpPost("editLockerGroup")]
-        public ActionResult Edit([FromBody] int id, [FromBody] string name)
+        [HttpPost("editLockerGroup/{id}")]
+        public ActionResult Edit( int id, [FromBody] string name)
         {
             var g = _lockerService.EditGroup(id, name);
 
