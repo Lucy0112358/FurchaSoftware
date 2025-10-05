@@ -160,8 +160,7 @@ public class MqttService
                             var companyId = Db.Companies.FirstOrDefault(x => x.AccountUid == mqttBrain.Data.AccountId).Id;
                             var brains = Db.BrainModules.Where(x => x.CompanyId == companyId).ToList();
 
-
-                            if (brains.Any(x => x.BrainUid == mqttBrain.Data.BrainUID))
+                            if (brains.Any(x => x.BrainUid == mqttBrain.Data.BrainUid))
                             {
                                 PublishToMqtt<int>(new MqttBaseRequest<int>
                                 {
@@ -177,7 +176,7 @@ public class MqttService
                                 CompanyId = companyId,
                                 IpAddress = mqttBrain.Data.IpAddress,
                                 MacAddress = mqttBrain.Data.MacAddress,
-                                BrainUid = mqttBrain.Data.BrainUID,
+                                BrainUid = mqttBrain.Data.BrainUid,
                                 Description = mqttBrain.Data.Info,
                                 GroupId = null
                             });
