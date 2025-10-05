@@ -85,9 +85,9 @@ namespace FurchaAdminApi.Controllers
 
 
         [HttpPost("editModule/{id}")]
-        public ActionResult<ApiResult<bool>> Edit(int id, [FromBody] int branchId)
+        public ActionResult<ApiResult<bool>> Edit(int id, [FromBody] EditModuleDto req)
         {
-            var locker = _lockerService.EditModule(id, branchId);
+            var locker = _lockerService.EditModule(id, req.BranchId);
             return Ok(ApiResult<bool>.Success(locker));
         }
 

@@ -291,6 +291,9 @@ public partial class furchaContext : DbContext
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100);
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasMaxLength(30);
         });
 
         modelBuilder.Entity<ObjectType>(entity =>

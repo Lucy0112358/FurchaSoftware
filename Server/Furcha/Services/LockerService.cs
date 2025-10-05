@@ -87,7 +87,7 @@ namespace FurchaAdminApi.Services
             foreach (var branch in adminBranches)
             {
                 var lockers = Db.Lockers
-                    .Include(l => l.Brain).Include(l => l.LockerType)
+                    .Include(l => l.Brain).Include(l => l.LockerTypeNavigation)
                     .Where(l =>
                         (lockerType == null || l.LockerType == lockerType) &&
                         (lockerGroupId == null || l.Brain.GroupId == lockerGroupId) &&
@@ -160,7 +160,7 @@ namespace FurchaAdminApi.Services
              .Where(lg => lg.BranchId == branchId).Distinct()
              .ToList(); //_lockerRepository.GetLockerGroupsByBranchId(branchId).Distinct().ToList();
                         // var lockers = _lockerRepository.GetUserLockersByBranchId(branchId);
-            var lockers = Db.Lockers.Include(x => x.Brain)
+            var lockers = Db.Lockers.Include(x => x.Brain).Include(l => l.LockerTypeNavigation)
                  .Where(l => l.Brain.BranchId == branchId)
                  .Select(l => new LockerWithUsers
                  {

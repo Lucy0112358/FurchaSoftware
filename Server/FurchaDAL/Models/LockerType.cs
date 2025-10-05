@@ -11,5 +11,7 @@ public partial class LockerType
 
     public string Name { get; set; }
 
+    public string Type { get; set; }
+
     public virtual ICollection<Locker> Lockers { get; set; } = new List<Locker>();
 }
