@@ -9,6 +9,7 @@ using FurchaBLL.Models;
 using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 using Locker = FurchaDAL.Models.Locker;
 using LockerGroup = FurchaDAL.Models.LockerGroup;
 
@@ -117,23 +118,6 @@ namespace FurchaAdminApi.Services
 
                 var lockerResults = new List<LockersResult>();
 
-                if (branchLockerGroups.Count == 0)
-                {
-                    lockerResults.Add(new LockersResult
-                    {
-                        GroupName = "Unassigned",
-                        GroupLockers = lockers
-                    });
-
-                    results.Add(new OfficeResult
-                    {
-                        OfficeName = branch.Name,
-                        Lockers = lockerResults
-                    });
-
-                    continue;
-                }
-
                 foreach (var group in branchLockerGroups)
                 {
                     var groupLockers = lockers
@@ -144,6 +128,19 @@ namespace FurchaAdminApi.Services
                     {
                         GroupName = group.Name,
                         GroupLockers = groupLockers
+                    });
+                }
+
+                var unassignedLockers = lockers
+                    .Where(locker => locker.groupid == null || locker.groupid == 0)
+                    .ToList();
+
+                if (unassignedLockers.Any())
+                {
+                    lockerResults.Add(new LockersResult
+                    {
+                        GroupName = "Unassigned",
+                        GroupLockers = unassignedLockers
                     });
                 }
 
@@ -724,6 +721,28 @@ namespace FurchaAdminApi.Services
                 BranchId = (int)module.BranchId
             };
 
+        }
+
+        public FurchaBLL.Models.LockerGroupResult GetLockerGroup(int id)
+        {
+            var group = Db.LockerGroups.FirstOrDefault(m => m.Id == id);
+
+            return new FurchaBLL.Models.LockerGroupResult
+            {
+                Id = group.Id,
+                Name = group.Name
+            };
+        }
+
+        public bool EditGroup(int id, string name)
+        {
+            var group = Db.LockerGroups.FirstOrDefault(m => m.Id == id);
+
+            group.Name = name;
+
+            Db.SaveChanges();
+
+            return true;
         }
 
     }

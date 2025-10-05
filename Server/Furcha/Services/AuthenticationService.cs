@@ -390,5 +390,29 @@ namespace FurchaAdminApi.Services
             Db.SaveChanges();
         }
 
+        public List<LockerType> GetLockerTypes(int adminId)
+        {
+            var companyId = Db.Administrators.Where(a => a.Id == adminId).FirstOrDefault().CompanyId;
+
+            var company = Db.Companies.FirstOrDefault(c => c.Id == companyId);
+
+            if (company == null || string.IsNullOrWhiteSpace(company.LockerTypeIds))
+                return new List<LockerType>();
+
+            // Clean and parse the LockerTypeIds string: "[1, 2, 3]" → ["1","2","3"]
+            var cleanedIds = company.LockerTypeIds
+                .Trim('[', ']', ' ')                 // remove brackets and spaces
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(id => id.Trim())             // remove spaces around numbers
+                .Select(int.Parse)                   // convert to integers
+                .ToList();
+
+            var list = Db.LockerTypes
+                .Where(x => cleanedIds.Contains(x.Id))
+                .ToList();
+
+            return list;
+        }
+
     }
 }

@@ -239,6 +239,10 @@ public partial class furchaContext : DbContext
             entity.ToTable("Company", "furcha");
 
             entity.Property(e => e.City).IsRequired();
+            entity.Property(e => e.LockerTypeIds)
+                .IsRequired()
+                .HasMaxLength(30)
+                .HasDefaultValue("[0]");
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.Street).IsRequired();
         });

@@ -85,20 +85,19 @@ namespace FurchaAdminApi.Controllers
 
 
         [HttpPost("editModule/{id}")]
-        public ActionResult<bool> Edit(int id, [FromBody] int branchId)
+        public ActionResult<ApiResult<bool>> Edit(int id, [FromBody] int branchId)
         {
             var locker = _lockerService.EditModule(id, branchId);
-
             return Ok(ApiResult<bool>.Success(locker));
         }
 
 
         [HttpGet("getModule/{id}")]
-        public ActionResult<FurchaBLL.Models.EditModuleResult> GetModule(int id)
+        public ActionResult<ApiResult<FurchaBLL.Models.EditModuleResult>> GetModule(int id)
         {
             var m = _lockerService.GetModuleById(id);
-
             return Ok(ApiResult<FurchaBLL.Models.EditModuleResult>.Success(m));
         }
+
     }
 }

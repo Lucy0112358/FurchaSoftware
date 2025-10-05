@@ -85,9 +85,9 @@ namespace FurchaAdminApi.Controllers
 
             return Ok(ApiResult<string>.Success("LockerGroup created successfully."));
         }
-/*
-        [Authorize]
-        [RequiresPermission("AddModule")]*/
+        /*
+                [Authorize]
+                [RequiresPermission("AddModule")]*/
         [HttpPost("CreateModule")]
         public ApiResult<bool> CreateModule([FromBody] ModuleRequest request)
         {
@@ -117,15 +117,15 @@ namespace FurchaAdminApi.Controllers
         }
 
 #warning When auth is done, this methode must return only modules accessible for the logged in admin
-/*        [Authorize]
-        [HttpGet("GetModules")]
-        public ActionResult<ApiResult<List<ModuleResult>>> GetModules()
-        {
-            var adminId = GetClaimValue("AdminId");
-            var modules = _lockerService.GetModules(int.Parse(adminId));
+        /*        [Authorize]
+                [HttpGet("GetModules")]
+                public ActionResult<ApiResult<List<ModuleResult>>> GetModules()
+                {
+                    var adminId = GetClaimValue("AdminId");
+                    var modules = _lockerService.GetModules(int.Parse(adminId));
 
-            return Ok(ApiResult<List<ModuleResult>>.Success(modules));
-        }*/
+                    return Ok(ApiResult<List<ModuleResult>>.Success(modules));
+                }*/
 
         [Authorize]
         [HttpGet("get-new-brains")]
@@ -196,8 +196,8 @@ namespace FurchaAdminApi.Controllers
         {
         }
 
-      /*  [Authorize]
-        [RequiresPermission("ManageLocker")]*/
+        /*  [Authorize]
+          [RequiresPermission("ManageLocker")]*/
         [HttpPost("open-lockers")]
         public IActionResult OpenLockers([FromBody] List<int> lockerIds)
         {
@@ -227,5 +227,24 @@ namespace FurchaAdminApi.Controllers
         }
 
 
+        [Authorize]
+        /*        [RequiresPermission("ManageLocker")]*/
+        [HttpPost("editLockerGroup")]
+        public ActionResult Edit([FromBody] int id, [FromBody] string name)
+        {
+            var g = _lockerService.EditGroup(id, name);
+
+            return Ok(ApiResult<bool>.Success(g));
+        }
+
+        [Authorize]
+        /*        [RequiresPermission("ManageLocker")]*/
+        [HttpGet("getLockerGroup/{id}")]
+        public ApiResult<FurchaBLL.Models.LockerGroupResult> GetLockerGroup([FromQuery] int id)
+        {
+            var g = _lockerService.GetLockerGroup(id);
+
+            return ApiResult<FurchaBLL.Models.LockerGroupResult>.Success(g);
+        }
     }
 }

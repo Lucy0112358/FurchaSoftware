@@ -137,6 +137,16 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<ShowAdminResult>.Success(admin));
         }
 
+        [HttpGet("getLockerTypes")]
+        public ActionResult<ApiResult<List<LockerType>>> GetCompanyLockerTypes()
+        {
+            var adminId = GetClaimValue("AdminId");
+
+            var l = authenticationService.GetLockerTypes(int.Parse(adminId));
+
+            return Ok(ApiResult<List<LockerType>>.Success(l));
+        }
+
         [HttpPost("add-company")]
         public IActionResult RegisterCompany([FromBody] CreateCompanyRequest company)
         {
