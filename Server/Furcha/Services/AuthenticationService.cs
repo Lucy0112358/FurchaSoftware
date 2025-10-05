@@ -76,10 +76,10 @@ namespace FurchaAdminApi.Services
                         });
                     }
 
-                    Db.AdminBranches.RemoveRange(Db.AdminBranches.Where(p => p.AdministratorId == dbAdmin.Id));
-
                     if (request.GroupIds != null && request.GroupIds.Any())
                     {
+                        Db.AdminBranches.RemoveRange(Db.AdminBranches.Where(p => p.AdministratorId == dbAdmin.Id));
+
                         var branchIds = Db.LockerGroups.Where(x => request.GroupIds.Contains(x.Id)).Select(x => x.BranchId.Value).Distinct().ToList();
 
                         foreach (var branchId in branchIds)
@@ -90,17 +90,17 @@ namespace FurchaAdminApi.Services
                                 BranchId = branchId
                             });
                         }
-                    }
 
-                    Db.AdminLockerGroups.RemoveRange(Db.AdminLockerGroups.Where(p => p.AdminId == dbAdmin.Id));
+                        Db.AdminLockerGroups.RemoveRange(Db.AdminLockerGroups.Where(p => p.AdminId == dbAdmin.Id));
 
-                    foreach (var lockerGroup in request.GroupIds)
-                    {
-                        Db.AdminLockerGroups.Add(new FurchaDAL.Models.AdminLockerGroup
+                        foreach (var lockerGroup in request.GroupIds)
                         {
-                            AdminId = dbAdmin.Id,
-                            LockerGroupId = lockerGroup
-                        });
+                            Db.AdminLockerGroups.Add(new FurchaDAL.Models.AdminLockerGroup
+                            {
+                                AdminId = dbAdmin.Id,
+                                LockerGroupId = lockerGroup
+                            });
+                        }
                     }
                 }
                 else
@@ -135,7 +135,18 @@ namespace FurchaAdminApi.Services
                                 BranchId = branchId
                             });
                         }
-                    }                
+
+                        Db.AdminLockerGroups.RemoveRange(Db.AdminLockerGroups.Where(p => p.AdminId == dbAdmin.Id));
+
+                        foreach (var lockerGroup in request.GroupIds)
+                        {
+                            Db.AdminLockerGroups.Add(new FurchaDAL.Models.AdminLockerGroup
+                            {
+                                AdminId = dbAdmin.Id,
+                                LockerGroupId = lockerGroup
+                            });
+                        }
+                    }
 
                     foreach (var permissionId in request.Permissions)
                     {
@@ -143,18 +154,7 @@ namespace FurchaAdminApi.Services
                         {
                             PermissionId = permissionId
                         });
-                    }
-
-                    Db.AdminLockerGroups.RemoveRange(Db.AdminLockerGroups.Where(p => p.AdminId == dbAdmin.Id));
-
-                    foreach (var lockerGroup in request.GroupIds)
-                    {
-                        Db.AdminLockerGroups.Add(new FurchaDAL.Models.AdminLockerGroup
-                        {
-                            AdminId = dbAdmin.Id,
-                            LockerGroupId = lockerGroup
-                        });
-                    }
+                    }                  
                 }
 
                 Db.SaveChanges();
@@ -172,7 +172,7 @@ namespace FurchaAdminApi.Services
                   .Include(a => a.User)
                   .Include(a => a.AdminBranches)
                   .Where(a => a.CompanyId == companyId
-                           && a.AdminBranches.Any(b => b.BranchId == filterByBranchId)
+                           && a.AdminBranches.Any(b => filterByBranchId == null || b.BranchId == filterByBranchId)
                            && (string.IsNullOrEmpty(name)
                                || a.User.Name.Contains(name)
                                || a.User.Surname.Contains(name)))
@@ -370,7 +370,7 @@ namespace FurchaAdminApi.Services
                 {
                     BranchId = b.BranchId,
                     BranchName = b.Branch.Name,
-                    GroupIds =Db.AdminLockerGroups.Where(b => b.AdminId == id).Select(x => x.LockerGroupId).ToList(),
+                    GroupIds = Db.AdminLockerGroups.Where(b => b.AdminId == id).Select(x => x.LockerGroupId).ToList(),
                 }).ToList()
             };
         }
