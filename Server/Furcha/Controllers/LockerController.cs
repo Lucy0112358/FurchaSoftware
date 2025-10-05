@@ -52,14 +52,6 @@ namespace FurchaAdminApi.Controllers
 
         }
 
-        [Authorize]
-        [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
-        {
-            return "value";
-        }
-
-
         public class LockerGroupRequest
         {
             public int BranchId { get; set; }
@@ -131,7 +123,6 @@ namespace FurchaAdminApi.Controllers
         [HttpGet("get-new-brains")]
         public ActionResult<ApiResult<List<NewModulesResult>>> GetNewModules([FromQuery] int branchId)
         {
-            var adminId = GetClaimValue("AdminId");
             var modules = _lockerService.GetNewModules(branchId);
 
             return Ok(ApiResult<List<NewModulesResult>>.Success(modules));
@@ -151,12 +142,6 @@ namespace FurchaAdminApi.Controllers
             }
 
             return Ok(ApiResult<List<LockerGroup>>.Success(lockerGroups));
-        }
-
-        // PUT api/<LockerController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
         }
 
         [Authorize]
@@ -184,16 +169,6 @@ namespace FurchaAdminApi.Controllers
             }
 
             return _lockerService.EditLocker(request.LockerIds, request.Type);
-        }
-
-        [Authorize]
-        [RequiresPermission("ManageLocker")]
-        [HttpDelete("{id}")]
-
-        [Authorize]
-        [RequiresPermission("ManageLocker")]
-        public void Delete(int id)
-        {
         }
 
         /*  [Authorize]
@@ -238,13 +213,23 @@ namespace FurchaAdminApi.Controllers
         }
 
         [Authorize]
-        /*        [RequiresPermission("ManageLocker")]*/
         [HttpGet("getLockerGroup/{id}")]
-        public ApiResult<FurchaBLL.Models.LockerGroupResult> GetLockerGroup([FromQuery] int id)
+        public ActionResult<ApiResult<LockerGroupResultDto>> GetLockerGroup(int id)
         {
             var g = _lockerService.GetLockerGroup(id);
 
-            return ApiResult<FurchaBLL.Models.LockerGroupResult>.Success(g);
+            if (g == null)
+                return NotFound(ApiResult<LockerGroupResultDto>.ErrorResult("Locker group not found."));
+
+            var dto = new LockerGroupResultDto
+            {
+                Id = g.Id,
+                Name = g.Name,
+              // BranchId = g.BranchId
+            };
+
+            return Ok(ApiResult<LockerGroupResultDto>.Success(dto));
         }
+
     }
 }
