@@ -677,7 +677,7 @@ namespace FurchaAdminApi.Services
 
             foreach (var locker in module.Lockers)
             {
-                locker.LockerType = 0;
+                locker.LockerType = 1;
                 Db.Update(locker);
             }
 
@@ -696,7 +696,7 @@ namespace FurchaAdminApi.Services
 
             foreach (var locker in module.Lockers)
             {
-                locker.LockerType = 0;
+                locker.LockerType = 1;
                 Db.Update(locker);
             }
 

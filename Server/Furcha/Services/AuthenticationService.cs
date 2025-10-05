@@ -78,7 +78,9 @@ namespace FurchaAdminApi.Services
 
                     Db.AdminBranches.RemoveRange(Db.AdminBranches.Where(p => p.AdministratorId == dbAdmin.Id));
 
-                    foreach (var branchId in request.Branches)
+                    var branchIds = Db.LockerGroups.Where(x => request.GroupIds.Contains(x.Id)).Select(x => x.BranchId.Value).Distinct().ToList();
+
+                    foreach (var branchId in branchIds)
                     {
                         Db.AdminBranches.Add(new FurchaDAL.Models.AdminBranch
                         {
@@ -118,7 +120,9 @@ namespace FurchaAdminApi.Services
                     Db.Administrators.Add(admin);
                     Db.SaveChanges();
 
-                    foreach (var branchId in request.Branches)
+                    var branchIds = Db.LockerGroups.Where(x => request.GroupIds.Contains(x.Id)).Select(x => x.BranchId.Value).Distinct().ToList();
+
+                    foreach (var branchId in branchIds)
                     {
                         Db.AdminBranches.Add(new FurchaDAL.Models.AdminBranch
                         {
