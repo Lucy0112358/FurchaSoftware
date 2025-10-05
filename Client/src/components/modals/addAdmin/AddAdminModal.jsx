@@ -6,10 +6,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAddUserInfo, getFilteredUsers, setAddUserInfo } from "../../../redux/slice/userSlice";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
+import { getBranchesData, getLockerGroups, getUserGroupsData, setLockerGroupWithFilters } from "../../../redux/slice/menuSlice";
 import { filterUserWithOutPaginte, setUserInfo } from "../../../redux/api/userApi";
 import { getLockerGroupsByBranchId } from "../../../redux/api/branchApi";
-import { getFilteredLockerGroups } from "../../../redux/slice/lockerSlice";
+import { getFilteredLockerGroups } from "../../../redux/slice/menuSlice";
 import GroupName from "../../headers/GroupName";
 import GenerateLocker from "../../lockers/GenerateLocker";
 import NoData from "../../no-data/NoData";
@@ -21,6 +21,7 @@ import CustomSelect from "../../select/CustomSelect";
 import { getAllAdmins, setAdminInfo } from "../../../redux/api/adminApi";
 import ShowFormikError from "../../error/ShowFormikError";
 import { fromCamelCasePretty } from "../../../Utils";
+import { getLockerGroupsData } from "../../../redux/api/menuApi";
 
 const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   const dispatch = useDispatch();
@@ -28,9 +29,9 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   const [userOptions, setUserOptions] = useState([]);
   const [roleOptions, setRoleOptions] = useState([]);
   const branches = useSelector(getBranchesData);
-  const filteredBranchGroups = useSelector(getFilteredLockerGroups);
-  const [selectedLockerId, setSelectedLockerId] = useState([]);
-  const [selectedLockerAddId, setSelectedLockerAddId] = useState({});
+  // const filteredBranchGroups = useSelector(getFilteredLockerGroups);
+  const [selectedLockerGroupId, setSelectedLockerGroupId] = useState([]);
+  const [selectedLockerGroupAddId, setSelectedLockerGroupAddId] = useState({});
   const [userRight, setUserRight] = useState({});
   const [sentGeneralInfo, setSentGeneralInfo] = useState({});
   const [selectedBranch, setSelectedBranch] = useState({});
@@ -41,6 +42,8 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   const permissions = useSelector(getPermissionsData);
   const [selectedPermissions, setSelectedPermissions] = useState({});
   const [userInfo, setUserInfo] = useState({});
+  const filteredLockerGroups = useSelector(getFilteredLockerGroups);
+
 
   //END change for SelectBranch
   console.log(mode, 'mode', initialData, 'initialData');
@@ -48,6 +51,7 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   useEffect(() => {
     dispatch(filterUserWithOutPaginte({ isAdmin: false }));
     dispatch(getRoles());
+    dispatch(getLockerGroupsData());
   }, [dispatch]);
 
   useEffect(() => {
@@ -136,17 +140,17 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
 
   const handleSelectBranch = (branch) => {
     setSelectedBranch({ [branch.id]: branch.name });
-    const existAddedBranchLockers = selectedLockerAddId[branch.id];
-    if (existAddedBranchLockers) {
-      setSelectedLockerId(existAddedBranchLockers);
+    const existAddedBranchLockerGroups = selectedLockerGroupAddId[branch.id];
+    if (existAddedBranchLockerGroups) {
+      setSelectedLockerGroupId(existAddedBranchLockerGroups);
     } else {
-      setSelectedLockerId([]);
+      setSelectedLockerGroupId([]);
     }
-    dispatch(getLockerGroupsByBranchId(branch.id));
+    dispatch(setLockerGroupWithFilters(branch.id));
   };
 
   const handleBranchSelectAdd = (itemId) => {
-    setSelectedLockerId((prevSelected) => {
+    setSelectedLockerGroupId((prevSelected) => {
       if (!prevSelected.includes(itemId)) {
         return [...prevSelected, itemId];
       }
@@ -155,7 +159,7 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   };
 
   const handleBranchSelectRemove = (itemId) => {
-    setSelectedLockerId((prevSelected) => {
+    setSelectedLockerGroupId((prevSelected) => {
       if (prevSelected.includes(itemId)) {
         return prevSelected.filter((id) => id !== itemId);
       }
@@ -164,7 +168,7 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   };
 
   const handleClickBranchSelect = (itemId) => {
-    setSelectedLockerId((prevSelected) => {
+    setSelectedLockerGroupId((prevSelected) => {
       if (prevSelected.includes(itemId)) {
         return prevSelected.filter((id) => id !== itemId);
       } else {
@@ -173,49 +177,49 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
     });
   };
 
-  const sendLockerIds = () => {
+  const sendGroupIds = () => {
 
-    setSelectedLockerAddId((prev) => ({
+    setSelectedLockerGroupAddId((prev) => ({
       ...prev,
-      [Object.keys(selectedBranch)]: selectedLockerId,
+      [Object.keys(selectedBranch)]: selectedLockerGroupId,
     }));
 
-    const selectedLockers = { ...selectedLockerAddId, [Object.keys(selectedBranch)]: selectedLockerId };
+    const selectedLockerGroups = { ...selectedLockerGroupAddId, [Object.keys(selectedBranch)]: selectedLockerGroupId };
 
-    const generalInfo = Object.entries(selectedLockers)
-      .filter(([branchIdString, lockerIds]) => lockerIds.length > 0)
-      .map(([branchIdString, lockerIds]) => {
+    const generalInfo = Object.entries(selectedLockerGroups)
+      .filter(([branchIdString, groupIds]) => groupIds.length > 0)
+      .map(([branchIdString, groupIds]) => {
         const branchId = Number(branchIdString);
         const branch = branches.find(b => b.id === branchId);
         const branchName = branch ? branch.name : "Unknown";
-        const lockerIdsString = lockerIds.join(",");
-        return `${branchName}: ${lockerIdsString}`;
+        const groupIdsString = groupIds.join(",");
+        return `${branchName}: ${groupIdsString}`;
       })
       .join("; ");
 
     dispatch(
       setAddUserInfo({
-        'Locker': {
-          ...userInfo['Locker'],
-          ['lockers']: Object.values(selectedLockers).flat(),
+        'Groups': {
+          ...userInfo['Groups'],
+          ['groups']: Object.values(selectedLockerGroups).flat(),
         },
       })
     );
 
     setSentGeneralInfo((prev) => ({
       ...prev,
-      'lockerIds': Object.values(selectedLockers).flat(),
+      'groupIds': Object.values(selectedLockerGroups).flat(),
     }));
 
     setUserRight((prev) => ({
       ...prev,
-      'Locker': {
-        ...(prev['Locker'] || {}),
-        'lockers': generalInfo,
+      'Groups': {
+        ...(prev['Groups'] || {}),
+        'groups': generalInfo,
       },
     }));
 
-    toast.success("Lockers added successfully");
+    toast.success("Groups added successfully");
   };
 
   const renderError = (fieldName) => {
@@ -228,27 +232,27 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   };
 
   const sendGroupInfo = (part, key, value) => {
-    // dispatch(
-    //   setAddUserInfo({
-    //     [part]: {
-    //       ...userInfo[part],
-    //       [key]: value,
-    //     },
-    //   })
-    // );
+    dispatch(
+      setAddUserInfo({
+        [part]: {
+          ...userInfo[part],
+          [key]: value,
+        },
+      })
+    );
 
     setSentGeneralInfo((prev) => ({
       ...prev,
       [key]: value,
     }));
 
-    setUserRight((prev) => ({
-      ...prev,
-      [part]: {
-        ...(prev[part] || {}),
-        [key]: value,
-      },
-    }));
+    // setUserRight((prev) => ({
+    //   ...prev,
+    //   [part]: {
+    //     ...(prev[part] || {}),
+    //     [key]: value,
+    //   },
+    // }));
   };
 
   const handleRoleSelectChange = (selectedOption) => {
@@ -434,47 +438,50 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
                   </div>
                 </div>
               </div>
-
               <div>
-                {selectedBranch && filteredBranchGroups?.length ? (
-                  <div className="pl-5 select-none">
-                    {filteredBranchGroups.map((lockerGroup, groupIndex) => (
+                {selectedBranch && filteredLockerGroups?.length ? (
+                  <div className="pl-5 select-none flex flex-wrap">
+                    {filteredLockerGroups.map((lockerGroup, groupIndex) => (
+                      console.log(lockerGroup, 'lockerGroup'),
                       <React.Fragment key={groupIndex}>
-                        <GroupName name={lockerGroup.groupName} />
-                        <div className="flex flex-wrap mb-4">
-                          {lockerGroup.groupLockers.map((item, itemIndex) => (
-                            <div
-                              key={itemIndex}
-                              className={`mr-2 mb-2 ${selectedLockerId.includes(item.id)
-                                ? 'selected__branch__id'
-                                : ''
-                                }`}
-                              onMouseOver={(event) => {
-                                if (event.buttons === 1 && event.ctrlKey) {
-                                  handleBranchSelectRemove(item.id);
-                                } else if (event.buttons === 1) {
-                                  handleBranchSelectAdd(item.id);
-                                }
-                              }}
-                              onClick={() => handleClickBranchSelect(item.id)}
-                            >
-                              <GenerateLocker item={item} index={itemIndex} />
-                            </div>
-                          ))}
+                        <div
+                          className={`m-1 border-4 rounded-[14px] rounded-lg transition-colors duration-200 ${selectedLockerGroupId.includes(lockerGroup.id)
+                            ? 'border-[#62cb62]'
+                            : 'border-transparent'
+                            }`}
+                          onMouseOver={(event) => {
+                            if (event.buttons === 1 && event.ctrlKey) {
+                              handleBranchSelectRemove(lockerGroup.id);
+                            } else if (event.buttons === 1) {
+                              handleBranchSelectAdd(lockerGroup.id);
+                            }
+                          }}
+                          onClick={() => handleClickBranchSelect(lockerGroup.id)}
+                        >
+                          <div className={`
+                                flex 
+                                bg-[#475456] 
+                                p-3 
+                                rounded-xl 
+                                text-white 
+                                cursor-pointer 
+                            }`}>
+                              {lockerGroup.name}
+                              </div>
                         </div>
                       </React.Fragment>
                     ))}
                   </div>
                 ) : (
-                  <NoData text="No Selected Lockers" />
+                  <NoData text="No Selected Groups" />
                 )}
               </div>
               <div className="section__add">
                 <button
-                  onClick={sendLockerIds}
+                  onClick={sendGroupIds}
                   className="text-white font-bold rounded p-2"
                 >
-                  Add locker
+                  Add groups
                 </button>
               </div>
             </div>

@@ -11,6 +11,7 @@ const initialState = {
   userGroupSelect: localStorage.getItem('userGroupEnabled') === 'true',
   lockerStatusSelect: false,
   lockerGroups: {},
+  filteredLockerGroups: {},
   menuFilter: {},
 };
 
@@ -25,7 +26,11 @@ export const menuSlice = createSlice({
       state.branches = action;
     },
     setLockerGroup: (state, action) => {
-      state.lockerGroups = [{ id: 0, name: "All" }, ...action];
+      state.lockerGroups = action;
+      //  state.lockerGroups = [{ id: 0, name: "All" }, ...action];
+    },
+    setLockerGroupWithFilters: (state, action) => {
+      state.filteredLockerGroups =  state.lockerGroups.filter(group => group.branchId === action.payload);
     },
     setUserGroups: (state, action) => {
       state.userGroups = [{ id: 0, name: "All" }, ...action];
@@ -85,7 +90,8 @@ export const {
   setLoading,
   setUserGroupSelect,
   setLockerStatusSelect,
-  setMenuFilter
+  setMenuFilter,
+  setLockerGroupWithFilters
 } = menuSlice.actions;
 
 export const getLoadingNow = (state) => state.menu.loading;
@@ -96,6 +102,7 @@ export const getSelectGroupSelect = (state) => state.menu.userGroupSelect;
 export const getLockerStatusSelect = (state) => state.menu.lockerStatusSelect;
 export const getMenuFilter = (state) => state.menu.menuFilter;
 export const getLockerGroups = (state) => state.menu.lockerGroups;
+export const getFilteredLockerGroups = (state) => state.menu.filteredLockerGroups;
 
 
 export default menuSlice.reducer;
