@@ -2,7 +2,7 @@
 {
     public class UpdateModuleRequest
     {
-        public string LockerType { get; set; }
+        public int LockerType { get; set; }
 
         public int LockerFrom { get; set; }
 

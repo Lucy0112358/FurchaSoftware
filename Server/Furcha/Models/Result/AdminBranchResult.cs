@@ -6,6 +6,6 @@
 
         public string BranchName { get; set; }
 
-        public List<LockerResult> Lockers { get; set; }
+        public List<int> GroupIds { get; set; }
     }
 }

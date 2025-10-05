@@ -203,7 +203,7 @@ public class MqttService
                             {
                                 Db.Lockers.Add(new Locker
                                 {
-                                    LockerType = "unassigned",
+                                    LockerType = 0,
                                     PasswordHash = "test",
                                     BrainId = brain.Id
                                 });

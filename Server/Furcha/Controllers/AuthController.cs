@@ -108,7 +108,7 @@ namespace FurchaAdminApi.Controllers
         /*
                 [Authorize]*/
         [HttpGet("get-admins")]
-        public ActionResult<ApiResult<List<AdminResult>>> GetAdmins([FromQuery] string name, [FromQuery] int? branchId = null)
+        public ActionResult<ApiResult<List<AdminResult>>> GetAdmins([FromQuery] string? name, [FromQuery] int? branchId = null)
         {
             var adminId = GetClaimValue("AdminId");
             var admins = authenticationService.GetCompanyAdmins(int.Parse(adminId), name, branchId);
@@ -135,6 +135,16 @@ namespace FurchaAdminApi.Controllers
             var admin = authenticationService.GetAdminById(id);
 
             return Ok(ApiResult<ShowAdminResult>.Success(admin));
+        }
+
+        [HttpGet("getLockerTypes")]
+        public ActionResult<ApiResult<List<LockerType>>> GetCompanyLockerTypes()
+        {
+            var adminId = GetClaimValue("AdminId");
+
+            var l = authenticationService.GetLockerTypes(int.Parse(adminId));
+
+            return Ok(ApiResult<List<LockerType>>.Success(l));
         }
 
         [HttpPost("add-company")]

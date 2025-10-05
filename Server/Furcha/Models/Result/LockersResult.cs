@@ -14,7 +14,7 @@
 
         public int? groupid { get; set; }
 
-        public string LockerType { get; set; }
+        public int? LockerType { get; set; }
 
         public int IsActive { get; set; }
 

@@ -15,6 +15,8 @@ public partial class LockerGroup
 
     public string Description { get; set; }
 
+    public virtual ICollection<AdminLockerGroup> AdminLockerGroups { get; set; } = new List<AdminLockerGroup>();
+
     public virtual ICollection<BrainModule> BrainModules { get; set; } = new List<BrainModule>();
 
     public virtual Branch Branch { get; set; }
