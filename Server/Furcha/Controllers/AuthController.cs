@@ -79,7 +79,7 @@ namespace FurchaAdminApi.Controllers
             try
             {
                 var adminId = GetClaimValue("AdminId");
-                request.ModifiedBy = 1;
+                request.ModifiedBy = int.Parse(adminId);
                 authenticationService.CreateOrUpdateAdmin(request);
                 return Ok(ApiResult<Administrator>.Success());
             }
