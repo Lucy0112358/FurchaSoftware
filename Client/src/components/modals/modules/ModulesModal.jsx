@@ -60,7 +60,7 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
       const action = mode === "edit"
         ? updateModule({ id, data:{
           branchId:values.branchId,
-          brainUid:values.brainId
+          // brainUid:values.brainId
         } })
         : addModuleFunc(values);
 

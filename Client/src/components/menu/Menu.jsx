@@ -8,6 +8,7 @@ import LockerMenu from './locker/LockerMenu';
 import ModulesMenu from './modules/ModulesMenu';
 import AdminMenu from './admin/AdminMenu';
 import BranchMenu from './branch/BranchMenu';
+import { getLockerTypes } from '../../redux/api/lockerApi';
 
 
 function Menu() {
@@ -18,6 +19,7 @@ function Menu() {
   useEffect(() => {
     dispatch(getBranches());
     dispatch(getUserGroups());
+    dispatch(getLockerTypes());
   }, []);
 
   useEffect(() => {

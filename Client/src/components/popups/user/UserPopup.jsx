@@ -22,7 +22,7 @@ function UserPopup({ user, onClose, selectedIds }) {
               <h3 className="text-lg font-bold text-gray-800">
                 User #{user.id}
                 <span className="ml-2 inline-block text-sm text-gray-500 bg-gray-100 rounded px-2 py-1">
-                  {user.lockerType}
+                  {user.lockerType.name}
                 </span>
               </h3>
             </div>

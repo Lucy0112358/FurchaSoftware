@@ -39,7 +39,7 @@ function LockerPopup({ locker, onClose, branchId = null }) {
               }
               <SuspendLocker lockers={[locker.id]} onClose={onClose} />
 
-              {locker.lockerType === 'handOver' && (
+              {locker.lockerType === 'handover' && (
                 <HandAction lockers={[locker]} onClose={onClose} />
               )}
 

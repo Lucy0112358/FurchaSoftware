@@ -90,7 +90,7 @@ function LockerTable() {
                                     {item.id}
                                   </td>
                                   <td>{'Locker name'}</td>
-                                  <td>{item.lockerType}</td>
+                                  <td>{item.lockerType?.name}</td>
                                   <td>
                                     {item.users?.map((userName, i) => (
                                       <span key={i}>

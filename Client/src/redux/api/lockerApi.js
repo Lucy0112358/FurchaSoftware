@@ -96,3 +96,19 @@ export const setUser = createAsyncThunk(
 )
 
 
+export const getLockerTypes = createAsyncThunk(
+  'locker/getLockerTypes',
+  async (_, thunkAPI) => {
+      try {
+        const config = {
+          method: "get",
+          url: 'auth/getLockerTypes',
+        };
+       
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)

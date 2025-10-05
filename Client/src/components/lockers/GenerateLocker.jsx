@@ -14,7 +14,7 @@ function GenerateLocker({ item, index }) {
     const nameShort = 'Joohn Brain';
     console.log(item, 'wwwwwwwwwwwwwwwwwwwwwwwww');
     
-    switch(item.lockerType?.toLowerCase()) {
+    switch(item.lockerType?.type.toLowerCase()) {
       case 'personal':
         return <Personal name={name} nameShort={nameShort} lockernumber={incrementedIndex} />;
       case 'temporary':
