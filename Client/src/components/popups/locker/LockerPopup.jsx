@@ -27,7 +27,7 @@ function LockerPopup({ locker, onClose, branchId = null }) {
               <h3 className="text-lg font-bold text-gray-800">
                 Locker #{locker.id}
                 <span className="ml-2 inline-block text-sm text-gray-500 bg-gray-100 rounded px-2 py-1">
-                  {locker.lockerType}
+                  {/* {locker.lockerType} */}
                 </span>
               </h3>
             </div>

@@ -35,7 +35,7 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   const filteredUsers = useSelector(getFilteredUsers);
   const [selectedUser, setSelectedUser] = useState(null);
   const roles = useSelector(getRolesData);
-  const [selectRole, setSelectedRole] = useState();
+  const [selectRole, setSelectedRole] = useState(null);
   const permissions = useSelector(getPermissionsData);
   const [selectedPermissions, setSelectedPermissions] = useState({});
   const [userInfo, setUserInfo] = useState({});
@@ -43,7 +43,6 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
 
 
   //END change for SelectBranch
-  console.log(mode, 'mode', initialData, 'initialData');
 
   useEffect(() => {
     dispatch(filterUserWithOutPaginte({ isAdmin: false }));
@@ -66,6 +65,16 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
     }));
     setRoleOptions(options);
   }, [roles]);
+
+  useEffect(() => {
+    if (initialData) {
+      let roleId = initialData.roleId;
+      if (roleId) {
+        setSelectedRole(roleId);
+        dispatch(getPermissions(roleId));
+      }
+    }
+  }, [initialData]);
 
   useEffect(() => {
     const allPermissions = permissions.flatMap(type => type.permissions);
@@ -266,10 +275,10 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
         [id]: !prev[id],
       };
 
-      const trueIds = Object.entries(updated)
-        .filter(([_, value]) => value)
-        .map(([key]) => key)
-        .join(', ');
+      // const trueIds = Object.entries(updated)
+      //   .filter(([_, value]) => value)
+      //   .map(([key]) => key)
+      //   .join(', ');
 
       // if (trueIds.length) {
       //   sendGroupInfo('Permission', 'permissions', trueIds);
@@ -463,8 +472,8 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
                                 text-white 
                                 cursor-pointer 
                             }`}>
-                              {lockerGroup.name}
-                              </div>
+                            {lockerGroup.name}
+                          </div>
                         </div>
                       </React.Fragment>
                     ))}
