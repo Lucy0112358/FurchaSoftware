@@ -14,6 +14,7 @@ import CloseButton from "../attributes/CloseButton";
 import { useFormik } from 'formik';
 import LockerModal from "../locker/LockerModal";
 import CustomSelect from "../../select/CustomSelect";
+import { getLockerTypesData } from "../../../redux/slice/lockerSlice";
 
 const EditModulesModal = ({ id, onClose }) => {
   const dispatch = useDispatch();
@@ -23,10 +24,17 @@ const EditModulesModal = ({ id, onClose }) => {
   const moduleLocker = useSelector(getModuleLockerData);
 
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
-  const lockerOptions = getLockerOptions().map((lockerType) => ({
-    name: lockerType.type,
-    label: lockerType.type.charAt(0).toUpperCase() + lockerType.type.slice(1),
+  // const lockerOptions = getLockerOptions().map((lockerType) => ({
+  //   name: lockerType.type,
+  //   label: lockerType.type.charAt(0).toUpperCase() + lockerType.type.slice(1),
+  // }));
+
+   const lockerOptions = useSelector(getLockerTypesData).map((lockerType) => ({
+    name: lockerType.id,
+    label: lockerType.name,
   }));
+  
+console.log(lockerOptions, 'lockerOptions22222222');
 
   useEffect(() => {
     dispatch(getLockerGroupsData());

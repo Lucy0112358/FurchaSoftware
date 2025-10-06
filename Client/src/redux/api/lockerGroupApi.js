@@ -7,7 +7,7 @@ export const editLockerGroup = createAsyncThunk(
       try {
         const config = {
           method: "post",
-          url: 'Locker/'+id,
+          url: 'Locker/editLockerGroup/'+id,
           data: data
         };
         
@@ -25,12 +25,11 @@ export const getLockerGroup = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'Locker/'+id,
+          url: 'Locker/getLockerGroup/'+id,
         };
-        
-        // const response = await instance(config);
-        // return response?.data;
-        return {data: {name:"locker group name"}};
+        const response = await instance(config);        
+        return response?.data;
+        // return {data: {name:"locker group name"}};
       } catch (error) {
         return thunkAPI.rejectWithValue(error.response.data.error.both);
       }

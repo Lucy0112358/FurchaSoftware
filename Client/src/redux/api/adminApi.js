@@ -76,7 +76,6 @@ export const adminShow = createAsyncThunk(
   'admin/show',
   async ({ id }, thunkAPI) => {
     try {
-
       const config = {
         method: "get",
         url: 'auth/get-admin-by-id?id=' + id,

@@ -33,10 +33,7 @@ export const lockerSlice = createSlice({
       state.allLockers = action.payload.data;
     },
     setLockerType: (state, action) => {
-      // const types = LockerTypes
-      // console.log(action.payload.data, types, 'action.payload.data');
-
-      // state.lockerTypesData = action.payload.data;
+      state.lockerTypesData = action.payload.data;
     },
     setLockerFilterType: (state, action) => {
       const types = LockerTypes
@@ -69,7 +66,7 @@ export const lockerSlice = createSlice({
         state.loading = true;
       })
       .addCase(getLockerTypes.fulfilled, (state, action) => {
-        // lockerSlice.caseReducers.setLockerType(state, action);
+        lockerSlice.caseReducers.setLockerType(state, action);
         lockerSlice.caseReducers.setLockerFilterType(state, action);
 
       })

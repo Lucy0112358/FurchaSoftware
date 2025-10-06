@@ -211,7 +211,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
               <div className="add__modal__content__part__group mb-4 overflow-x-auto">
                 <div className="flex mr-2">
                   {
-                    branches.length > 0 && (
+                    branches?.length > 0 && (
                       branches.map((branch, index) => {
                         return (
                           branch.name !== 'All' &&

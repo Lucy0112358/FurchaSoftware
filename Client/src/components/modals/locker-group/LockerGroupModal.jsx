@@ -19,7 +19,7 @@ const LockerGroupModal = ({ onClose, id }) => {
 
   useEffect(() => {
     if (id) {
-      dispatch(getLockerGroup({ id }));
+      dispatch(getLockerGroup(id));
     }
   }, [id, dispatch]);
 
@@ -34,7 +34,7 @@ const LockerGroupModal = ({ onClose, id }) => {
     enableReinitialize: true,
     validationSchema,
     onSubmit: (values) => {
-      dispatch(editLockerGroup({ id, ...values }))
+      dispatch(editLockerGroup({ id, data:values }))
         .then((response) => {
           if (response && response.payload.isSuccess) {
             toast.success("Locker Group edited successfully");
