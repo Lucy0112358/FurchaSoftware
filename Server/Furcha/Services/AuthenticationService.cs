@@ -169,15 +169,18 @@ namespace FurchaAdminApi.Services
         {
             var companyId = Db.Administrators.First(x => x.Id == adminId).CompanyId;
             var admins = Db.Administrators
-                  .Include(a => a.User)
-                  .Include(a => a.AdminBranches)
-                  .Where(a => a.CompanyId == companyId
-                           && a.AdminBranches.Any(b => filterByBranchId == null || b.BranchId == filterByBranchId)
-                           && (string.IsNullOrEmpty(name)
-                               || a.User.Name.Contains(name)
-                               || a.User.Surname.Contains(name)))
-                  .OrderByDescending(a => a.Id)
-                  .ToList();
+                 .Include(a => a.User)
+                 .Include(a => a.AdminBranches)
+                 .Where(a =>
+                     a.CompanyId == companyId &&
+                     (filterByBranchId == null ||
+                      a.AdminBranches.Any(b => b.BranchId == filterByBranchId)) &&
+                     (string.IsNullOrEmpty(name) ||
+                      a.User.Name.Contains(name) ||
+                      a.User.Surname.Contains(name)))
+                 .OrderByDescending(a => a.Id)
+                 .ToList();
+
             // _adminRepository.GetAdminsByCompanyId(companyId);
             var result = new List<AdminResult>();
 
@@ -365,7 +368,8 @@ namespace FurchaAdminApi.Services
                 Name = dbAdmin.User.Name,
                 Surname = dbAdmin.User.Surname,
                 IsActive = dbAdmin.IsActive,
-                Permissions = GetRolePermissions((long)dbAdmin.RoleId),
+                PermissionIds = Db.RolePermissions.Include(a => a.Role).Include(p => p.Permission)
+        .Where(rp => rp.RoleId == dbAdmin.RoleId).Select( p => p.Id).ToList(),
                 Branches = dbAdmin.AdminBranches.Select(b => new AdminBranchResult
                 {
                     BranchId = b.BranchId,

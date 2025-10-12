@@ -4,6 +4,7 @@ namespace FurchaAdminApi.Models.Result
 {
     public class LockersResult
     {
+        public int Id { get; set; }
         public string GroupName { get; set; }
         public List<LockerWithUsers> GroupLockers { get; set; }
     }

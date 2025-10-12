@@ -6,6 +6,7 @@
         public bool IsPinRequired { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
+        public string Phone { get; set; }
         public string Surname { get; set; }
         public DateTime? ActiveFrom { get; set; }
         public DateTime? ActiveTo { get; set; }

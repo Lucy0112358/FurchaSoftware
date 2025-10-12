@@ -9,6 +9,7 @@ namespace FurchaAdminApi.Models.Result
         public string Surname { get; set; }
         public DateTime? ActiveTo { get; set; }
         public DateTime? ActiveFrom { get; set; }
+        public string Phone { get; set; }
 
         //here we only send the name of the role, as frontend only needs that information to display in the UI
         public string Role { get; set; }

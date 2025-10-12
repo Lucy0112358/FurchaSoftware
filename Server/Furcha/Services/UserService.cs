@@ -533,7 +533,10 @@ namespace FurchaAdminApi.Services
                     Name = user.Name,
                     Surname = user.Surname,
                     Role = RoleEnum.user.ToString(),
-                    State = user.State.ToString()
+                    State = user.State.ToString(),
+                    ActiveFrom = user.ActiveFrom,
+                    ActiveTo = user.ActiveTo,
+                    Phone = user.Phone
                 };
                 /* }*/
             }
@@ -705,6 +708,7 @@ namespace FurchaAdminApi.Services
                 IsPinRequired = false,
                 Name = user.Name,
                 Surname = user.Surname,
+                Phone = user.Phone,
                 Email = user.Email,
                 ActiveFrom = user.ActiveFrom,
                 ActiveTo = user.ActiveTo,

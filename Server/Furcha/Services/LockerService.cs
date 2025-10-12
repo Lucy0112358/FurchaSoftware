@@ -126,6 +126,7 @@ namespace FurchaAdminApi.Services
 
                     lockerResults.Add(new LockersResult
                     {
+                        Id = group.Id,
                         GroupName = group.Name,
                         GroupLockers = groupLockers
                     });
@@ -139,6 +140,7 @@ namespace FurchaAdminApi.Services
                 {
                     lockerResults.Add(new LockersResult
                     {
+                        Id = 0,
                         GroupName = "Unassigned",
                         GroupLockers = unassignedLockers
                     });
@@ -584,89 +586,98 @@ namespace FurchaAdminApi.Services
 
         public bool UpdateModule(int lockerType, int lockerFrom, int lockerTo, int lockerGroupId, int id)
         {
-            using var transaction = Db.Database.BeginTransaction();
-            try
+            // Create EF Core's retry execution strategy
+            var strategy = Db.Database.CreateExecutionStrategy();
+
+            // Run the logic inside the strategy so it can retry safely if needed
+            return strategy.Execute(() =>
             {
-                var module = Db.BrainModules.Include(m => m.Lockers).FirstOrDefault(x => x.Id == id);
-                if (module == null) throw new Exception("Module not found");
-
-                var oldGroupId = module.GroupId;
-                if (oldGroupId != lockerGroupId)
+                using var transaction = Db.Database.BeginTransaction();
+                try
                 {
-                    var lockersOfOldGroup = Db.Lockers
-                     .Include(l => l.Brain)
-                     .Where(b => b.Brain.GroupId == oldGroupId)
-                     .OrderBy(l => l.Brain.Id)
-                     .ThenBy(l => l.Id)
-                     .ToList();
+                    var module = Db.BrainModules.Include(m => m.Lockers).FirstOrDefault(x => x.Id == id);
+                    if (module == null) throw new Exception("Module not found");
 
-                    for (int i = 0; i < lockersOfOldGroup.Count; i++)
+                    var oldGroupId = module.GroupId;
+                    if (oldGroupId != lockerGroupId)
                     {
-                        lockersOfOldGroup[i].Number = i + 1;
-                    }
-                }
+                        var lockersOfOldGroup = Db.Lockers
+                            .Include(l => l.Brain)
+                            .Where(b => b.Brain.GroupId == oldGroupId)
+                            .OrderBy(l => l.Brain.Id)
+                            .ThenBy(l => l.Id)
+                            .ToList();
 
-                var lockersOfNewGroup = Db.Lockers
-                    .Include(l => l.Brain)
-                    .Where(b => b.Brain.GroupId == lockerGroupId)
-                    .OrderBy(l => l.Brain.Id)
-                    .ThenBy(l => l.Id)
-                    .ToList();
-
-                var lockers = module.Lockers.OrderBy(l => l.Id).ToList();
-                var lockerCount = lockers.Count;
-                if (lockerTo - lockerFrom < lockerCount)
-                    throw new Exception("Wrong locker numbers");
-
-                var modules = lockersOfNewGroup.GroupBy(g => g.BrainId).ToList();
-
-                int index = 0;
-                for (var i = lockerFrom; i <= lockerTo && index < lockerCount; i++, index++)
-                {
-                    lockers[index].Number = i;
-                    lockers[index].LockerType = lockerType;
-                }
-
-                for (int i = 0; i < modules.Count; i++)
-                {
-                    if (i < modules.Count - 1)
-                    {
-                        if (lockerFrom < modules[i].LastOrDefault()?.Number && lockerTo > modules[i + 1].FirstOrDefault()?.Number)
+                        for (int i = 0; i < lockersOfOldGroup.Count; i++)
                         {
-                            throw new Exception("Overlapping locker numbers");
+                            lockersOfOldGroup[i].Number = i + 1;
                         }
                     }
 
-                    if (modules[i].Key == id)
-                        continue;
+                    var lockersOfNewGroup = Db.Lockers
+                        .Include(l => l.Brain)
+                        .Where(b => b.Brain.GroupId == lockerGroupId)
+                        .OrderBy(l => l.Brain.Id)
+                        .ThenBy(l => l.Id)
+                        .ToList();
 
-                    var mLockers = modules[i].ToList();
-                    var moduleLockerCount = mLockers.Count;
+                    var lockers = module.Lockers.OrderBy(l => l.Id).ToList();
+                    var lockerCount = lockers.Count;
+                    if (lockerTo - lockerFrom + 1 < lockerCount)
+                        throw new Exception("Wrong locker numbers");
 
-                    for (var j = 0; j < moduleLockerCount; j++)
+                    var modules = lockersOfNewGroup.GroupBy(g => g.BrainId).ToList();
+
+                    int index = 0;
+                    for (var i = lockerFrom; i <= lockerTo && index < lockerCount; i++, index++)
                     {
-                        if (j > 0)
-                            mLockers[j].Number = mLockers[j - 1].Number + 1;
-                        else if (i == 0)
-                            mLockers[j].Number = 1;
-                        else
-                            mLockers[j].Number = modules[i - 1].LastOrDefault()?.Number + 1 ?? 1;
+                        lockers[index].Number = i;
+                        lockers[index].LockerType = lockerType;
                     }
+
+                    for (int i = 0; i < modules.Count; i++)
+                    {
+                        if (i < modules.Count - 1)
+                        {
+                            if (lockerFrom < modules[i].LastOrDefault()?.Number &&
+                                lockerTo > modules[i + 1].FirstOrDefault()?.Number)
+                            {
+                                throw new Exception("Overlapping locker numbers");
+                            }
+                        }
+
+                        if (modules[i].Key == id)
+                            continue;
+
+                        var mLockers = modules[i].ToList();
+                        var moduleLockerCount = mLockers.Count;
+
+                        for (var j = 0; j < moduleLockerCount; j++)
+                        {
+                            if (j > 0)
+                                mLockers[j].Number = mLockers[j - 1].Number + 1;
+                            else if (i == 0)
+                                mLockers[j].Number = 1;
+                            else
+                                mLockers[j].Number = modules[i - 1].LastOrDefault()?.Number + 1 ?? 1;
+                        }
+                    }
+
+                    module.GroupId = lockerGroupId;
+
+                    Db.SaveChanges();
+                    transaction.Commit();
+
+                    return true;
                 }
-
-                module.GroupId = lockerGroupId;
-
-                Db.SaveChanges();
-
-                transaction.Commit();
-                return true;
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            });
         }
+
 
         public bool DeleteModule(int moduleId)
         {

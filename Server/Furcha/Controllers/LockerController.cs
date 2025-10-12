@@ -202,15 +202,19 @@ namespace FurchaAdminApi.Controllers
         }
 
 
-        [Authorize]
-        /*        [RequiresPermission("ManageLocker")]*/
-        [HttpPost("editLockerGroup/{id}")]
-        public ActionResult Edit( int id, [FromBody] string name)
+        public class EditLockerGroupRequest
         {
-            var g = _lockerService.EditGroup(id, name);
+            public string Name { get; set; }
+        }
 
+        [Authorize]
+        [HttpPost("editLockerGroup/{id}")]
+        public ActionResult Edit(int id, [FromBody] EditLockerGroupRequest request)
+        {
+            var g = _lockerService.EditGroup(id, request.Name);
             return Ok(ApiResult<bool>.Success(g));
         }
+
 
         [Authorize]
         [HttpGet("getLockerGroup/{id}")]
