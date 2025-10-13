@@ -9,6 +9,8 @@ using FurchaBLL.Services;
 using FurchaBLL.Interfaces;
 using FurchaDAL.Models;
 using Microsoft.EntityFrameworkCore;
+using FurchaAdminApi.Services;
+using FurchaAdminApi.Hubs;
 
 namespace FurchaAdminApi
 {
@@ -126,9 +128,12 @@ namespace FurchaAdminApi
             });
 
             builder.Services.AddSingleton<MqttService>();
+            builder.Services.AddSignalR();
+
+            builder.Services.AddScoped<IDoorStateService, SignalRNotificationService>();
 
             var app = builder.Build();
-
+            app.MapHub<DoorStatusHub>("/hubs/doorStatus");
             app.UseSwagger();
             app.UseSwaggerUI();
 

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using FurchaAdminApi.Models.Request;
 using Domain.Attributes;
 using FurchaDAL.Models;
+using FurchaBLL.Interfaces;
 
 namespace FurchaAdminApi.Controllers
 {
@@ -15,11 +16,12 @@ namespace FurchaAdminApi.Controllers
     public class LockerController : BaseController
     {
         private readonly LockerService _lockerService;
+        private readonly IDoorStateService _doorStateService;
 
-        // Inject the LockerService via the constructor
-        public LockerController(LockerService lockerService)
+        public LockerController(LockerService lockerService, IDoorStateService doorStateService)
         {
             _lockerService = lockerService;
+            _doorStateService = doorStateService;
         }
 
         [Authorize]
@@ -206,6 +208,16 @@ namespace FurchaAdminApi.Controllers
         {
             public string Name { get; set; }
         }
+
+        [HttpGet("test-door-status")]
+        public async Task<ActionResult> TestDoorStatusBroadcast(int doorId = 1, string status = "Open")
+        {
+            // Broadcast a test message to all clients
+            await _doorStateService.NotifyDoorStatusAsync(doorId, status);
+
+            return Ok(ApiResult<string>.Success($"Broadcasted door {doorId} status '{status}'"));
+        }
+
 
         [Authorize]
         [HttpPost("editLockerGroup/{id}")]
