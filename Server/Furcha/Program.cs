@@ -41,12 +41,15 @@ namespace FurchaAdminApi
 
             builder.Services.AddCors(options =>
             {
-                options.AddDefaultPolicy(builder =>
-                {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyHeader()
-                           .AllowAnyMethod();
-                });
+                options.AddPolicy("AllowFrontend",
+                    policy =>
+                    {
+                        policy
+                           .WithOrigins("http://10.0.0.37:5173")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials(); // важно!
+                    });
             });
 
             builder.Services.AddScoped<NpgsqlConnection>(provider =>
@@ -115,6 +118,10 @@ namespace FurchaAdminApi
                     }
                 });
             });
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.ListenAnyIP(1010); // HTTP
+            });
 
             builder.Services.AddSingleton<IMqttApiService, MqttApiService>();
             builder.Services.AddSingleton<MqttClientOptions>(sp =>
@@ -133,11 +140,12 @@ namespace FurchaAdminApi
             builder.Services.AddScoped<IDoorStateService, SignalRNotificationService>();
 
             var app = builder.Build();
-            app.MapHub<DoorStatusHub>("/hubs/doorStatus");
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.UseCors();
+            app.UseCors("AllowFrontend");
+            app.MapHub<DoorStatusHub>("/hubs/doorStatus");
+
             app.UseRouting();
             app.UseStaticFiles();
 
