@@ -9,10 +9,11 @@ function Personal({ name, lockernumber, nameShort, item }) {
   return (
     <div
       className="personal__locker"
-      title={`Name: ${nameShort}: locker number: ${lockernumber}`}
+      title={`Name: ${fullName}:`
+    }
     >
       <div className="design-box">
-        <div className="label" title={fullName}>
+        <div className="label">
             {shortName}
           </div>
         <div className="number">{lockernumber}</div>
