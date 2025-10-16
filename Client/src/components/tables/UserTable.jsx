@@ -76,7 +76,7 @@ function UserTable() {
                   </td>
                   <td>
                     {user.userGroups?.map((group, idx) => (
-                      <div key={idx}>{group.groupName}</div>
+                      <div key={idx}>{group.name + ','}</div>
                     ))}
                   </td>
                   <td className={` ${user.state === 'Suspended' ? 'text-red-500' : ''}`}>

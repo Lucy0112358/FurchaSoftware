@@ -18,6 +18,7 @@ console.log(userData, 'userData');
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
+        onClose();
     };
 
     return (

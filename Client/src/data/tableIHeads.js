@@ -26,6 +26,7 @@ export const lockerTable = [
     'User',
     'Status',
     'State',
+    'DoorState',
 ];
 
 export const adminTable = [

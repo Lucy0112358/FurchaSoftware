@@ -15,11 +15,11 @@ function LockerTableGroup() {
   const allLockers = useSelector(getAllLockersData);
 
   const {
-      popup,
-      handleRightClick,
-      handleGlobalClick,
-      closePopup,
-    } = useContextMenu(selectedLockerIds);
+    popup,
+    handleRightClick,
+    handleGlobalClick,
+    closePopup,
+  } = useContextMenu(selectedLockerIds);
 
   const handleBranchSelectAdd = (itemId) => {
     const newSelected = selectedLockerIds.includes(itemId)
@@ -45,7 +45,7 @@ function LockerTableGroup() {
   return (
     <div className='select-none' onContextMenu={(e) => e.preventDefault()}>
       <div className='flex justify-end'>
-       <UnselectLockers />
+        <UnselectLockers />
       </div>
       {allLockers.length ? (
         allLockers.map((locker, index) => {
@@ -75,10 +75,9 @@ function LockerTableGroup() {
 
                   return (
                     <React.Fragment key={groupIndex}>
-                      <GroupName name={lockerGroup.groupName} />
-
+                      <GroupName name={lockerGroup.groupName} id={lockerGroup.id} />
                       <div
-                        className="flex flex-wrap mb-4 ">
+                        className="flex flex-wrap mb-4 mt-4">
                         {lockerGroup.groupLockers.map((item, itemIndex) => (
                           <div
                             key={itemIndex}
@@ -102,7 +101,7 @@ function LockerTableGroup() {
                             }}
                             onClick={() => handleClickBranchSelect(item.id)}
                           >
-                            <GenerateLocker item={item} index={itemIndex} />
+                            <GenerateLocker item={item} index={item.id} doorState={item.doorState || ''} />
 
                           </div>
                         ))}

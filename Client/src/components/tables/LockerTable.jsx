@@ -5,7 +5,7 @@ import NoData from '../no-data/NoData';
 import OfficeName from '../headers/OfficeName';
 import GroupName from '../headers/GroupName';
 import LockerPopup from '../popups/locker/LockerPopup';
-import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '../../redux/slice/lockerSlice';
+import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds, updateLockerDoorState } from '../../redux/slice/lockerSlice';
 import CustomCheckbox from '../checkbox/CustomCheckbox';
 import UnselectLockers from '../button/UnselectLockers';
 import { useContextMenu } from '../../hooks/useContextMenu';
@@ -36,20 +36,21 @@ function LockerTable() {
       .withAutomaticReconnect()
       .build();
 
-    connection.on("DoorStatusChanged", (newStatus) => {
-      console.log("New door status:", newStatus);
-      setStatus(newStatus);
+    connection.on("ReceiveDoorStatus", (doorId, status) => {
+      console.log(`Door ${doorId} status changed: ${status}`);
+
+      dispatch(updateLockerDoorState ({ lockerId: doorId, doorState: status }));
     });
 
     connection
       .start()
       .then(() => console.log("SignalR connected"))
-      .catch((err) => console.error("SignalR connection error: ", err));
+      .catch((err) => console.error("SignalR connection error:", err));
 
     return () => {
       connection.stop();
     };
-  }, []);
+  }, [dispatch]);
 
 
   return (
@@ -126,6 +127,7 @@ function LockerTable() {
                                   <td className={item.state === 'suspended' ? 'text-red-500 capitalize' : 'capitalize'}>
                                     {item.state}
                                   </td>
+                                  <td>{item.doorState || '-'}</td>
                                 </tr>
                               ))}
                             </tbody>

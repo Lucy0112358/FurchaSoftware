@@ -32,6 +32,20 @@ export const lockerSlice = createSlice({
     setLocker: (state, action) => {
       state.allLockers = action.payload.data;
     },
+     updateLockerDoorState: (state, action) => {
+      const { lockerId, doorState } = action.payload;
+      state.allLockers = state.allLockers.map((office) => ({
+        ...office,
+        lockers: office.lockers.map((lockerGroup) => ({
+          ...lockerGroup,
+          groupLockers: lockerGroup.groupLockers.map((locker) =>
+            locker.id === lockerId
+              ? { ...locker, doorState }
+              : locker
+          ),
+        })),
+      }));
+    },
     setLockerType: (state, action) => {
       state.lockerTypesData = action.payload.data;
     },
@@ -96,6 +110,7 @@ export const {
   setLockerFilter,
   setSelectedLockerIds,
   clearFilteredLockerGroups,
+  updateLockerDoorState,
 } = lockerSlice.actions;
 
 export const getLoadingNow = (state) => state.locker.loading;
