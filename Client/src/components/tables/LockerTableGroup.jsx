@@ -90,7 +90,7 @@ function LockerTableGroup() {
                             }}
                             className={`mr-2 mb-2 ${selectedLockerIds.includes(item.id)
                               ? 'selected__branch__id'
-                              : ''
+                              : 'locker__border'
                               }`}
                             onMouseOver={(event) => {
                               if (event.buttons === 1 && event.ctrlKey) {

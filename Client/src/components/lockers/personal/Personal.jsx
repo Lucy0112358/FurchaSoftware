@@ -8,7 +8,7 @@ function Personal({ name, lockernumber, nameShort, item }) {
 
   return (
     <div
-      className="personal__locker"
+      className="personal__locker "
       title={`Name: ${fullName || ''}`
     }
     >

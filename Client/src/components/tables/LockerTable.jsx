@@ -106,7 +106,7 @@ function LockerTable() {
                                   onContextMenu={(e) => handleRightClick(e, item)}
                                   className={itemIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
                                 >
-                                  <td className='flex items-center'>
+                                  <td>
                                     <CustomCheckbox
                                       checked={selectedLockerIds.includes(item.id)}
                                       onChange={() => handleSelectLocker(item.id)}

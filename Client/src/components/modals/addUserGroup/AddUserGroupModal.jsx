@@ -256,7 +256,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
                             key={itemIndex}
                             className={`mr-2 mb-2 ${selectedLockerId.includes(item.id)
                               ? 'selected__branch__id'
-                              : ''
+                              : 'locker__border'
                               }`}
                             onMouseOver={(event) => {
                               if (event.buttons === 1 && event.ctrlKey) {
