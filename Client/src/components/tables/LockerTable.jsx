@@ -29,10 +29,9 @@ function LockerTable() {
       : [...selectedLockerIds, itemId];
     dispatch(setSelectedLockerIds(newSelected));
   };
-  const [status, setStatus] = useState("Unknown");
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://192.168.0.129:1010/hubs/doorStatus")
+      .withUrl(import.meta.env.VITE_SOCKET_URL + "/hubs/doorStatus")
       .withAutomaticReconnect()
       .build();
 
