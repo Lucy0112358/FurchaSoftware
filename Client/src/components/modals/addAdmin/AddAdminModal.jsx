@@ -15,7 +15,7 @@ import CloseButton from "../attributes/CloseButton";
 import { getPermissions, getRoles } from "../../../redux/api/authApi";
 import { getPermissionsData, getRolesData } from "../../../redux/slice/authSlice";
 import CustomSelect from "../../select/CustomSelect";
-import { getAllAdmins, setAdminInfo } from "../../../redux/api/adminApi";
+import { getAllAdmins, setAdminInfo, updateAdminInfo } from "../../../redux/api/adminApi";
 import ShowFormikError from "../../error/ShowFormikError";
 import { fromCamelCasePretty } from "../../../Utils";
 import { getLockerGroupsData } from "../../../redux/api/menuApi";
@@ -26,7 +26,6 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   const [userOptions, setUserOptions] = useState([]);
   const [roleOptions, setRoleOptions] = useState([]);
   const branches = useSelector(getBranchesData);
-  // const filteredBranchGroups = useSelector(getFilteredLockerGroups);
   const [selectedLockerGroupId, setSelectedLockerGroupId] = useState([]);
   const [selectedLockerGroupAddId, setSelectedLockerGroupAddId] = useState({});
   const [userRight, setUserRight] = useState({});
@@ -40,7 +39,6 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   const [selectedPermissions, setSelectedPermissions] = useState({});
   const [userInfo, setUserInfo] = useState({});
   const filteredLockerGroups = useSelector(getFilteredLockerGroups);
-
 
   //END change for SelectBranch
 
@@ -73,8 +71,52 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
         setSelectedRole(roleId);
         dispatch(getPermissions(roleId));
       }
+      let existingGroupIds = initialData.branches?.flatMap(branch => branch.groupIds);
+      setSelectedLockerGroupId(existingGroupIds);
+      const lockerGroupMap = Object.fromEntries(
+        initialData.branches?.map(branch => [branch.branchId, branch.groupIds]) || []
+      );
+
+      setSelectedLockerGroupAddId(lockerGroupMap);
+
+      setSelectedPermissions(prev =>
+        Object.fromEntries(
+          Object.keys(prev).map(key => [
+            key,
+            initialData.permissionIds?.includes(Number(key))
+          ])
+        )
+      );
+
+      setSentGeneralInfo({
+        roleId: initialData.roleId,
+        id: initialData.id,
+        groupIds: existingGroupIds || [],
+      });
+
+      const selectedLockerGroups = { ...lockerGroupMap, [Object.keys(selectedBranch)]: existingGroupIds };
+
+      const generalInfo = Array.isArray(initialData?.branches)
+        ? initialData.branches
+          .filter((branch) => branch.groupIds?.length > 0)
+          .map((branch) => {
+            const branchName = branch?.branchName || "Unknown";
+            const groupIdsString = branch.groupIds.join(",");
+            return `${branchName}: ${groupIdsString}`;
+          })
+          .join("; ")
+        : "";
+
+      setUserRight((prev) => ({
+        ...prev,
+        'Groups': {
+          ...(prev['Groups'] || {}),
+          'groups': generalInfo,
+        },
+      }));
+
     }
-  }, [initialData]);
+  }, [initialData.roleId]);
 
   useEffect(() => {
     const allPermissions = permissions.flatMap(type => type.permissions);
@@ -106,14 +148,28 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
       .join('\n');
   };
 
+  // const validateForm = () => {
+  //   const errors = {};
+  //   if (!selectedUser) {
+  //     errors.user = 'User is required';
+  //   }
+  //   if (!selectRole) {
+  //     errors.role = 'Role is required';
+  //   }
+  //   return errors;
+  // };
+
   const validateForm = () => {
     const errors = {};
-    if (!selectedUser) {
+
+    if (mode !== "edit" && !selectedUser) {
       errors.user = 'User is required';
     }
+
     if (!selectRole) {
       errors.role = 'Role is required';
     }
+
     return errors;
   };
 
@@ -122,6 +178,7 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
     setFormErrors(errors);
 
     if (Object.keys(errors).length > 0) {
+      console.log("Form validation errors:", errors);
       toast.error('Please fill out the form correctly');
       return;
     }
@@ -131,8 +188,9 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
       .map(([id]) => Number(id));
 
     const data = { ...sentGeneralInfo, permissions: selectedPermissionIds }
+    const apiAction = mode === "edit" ? updateAdminInfo : setAdminInfo;
 
-    dispatch(setAdminInfo(data))
+    dispatch(apiAction(data))
       .then((response) => {
         if (response && response.payload?.isSuccess) {
           dispatch(getAllAdmins());
@@ -143,7 +201,6 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
       })
       .catch((error) => console.error('Error updating user info:', error));
   };
-
   const handleSelectBranch = (branch) => {
     setSelectedBranch({ [branch.id]: branch.name });
     const existAddedBranchLockerGroups = selectedLockerGroupAddId[branch.id];
@@ -184,7 +241,6 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   };
 
   const sendGroupIds = () => {
-
     setSelectedLockerGroupAddId((prev) => ({
       ...prev,
       [Object.keys(selectedBranch)]: selectedLockerGroupId,
@@ -448,10 +504,9 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
                 {selectedBranch && filteredLockerGroups?.length ? (
                   <div className="pl-5 select-none flex flex-wrap">
                     {filteredLockerGroups.map((lockerGroup, groupIndex) => (
-                      console.log(lockerGroup, 'lockerGroup'),
                       <React.Fragment key={groupIndex}>
                         <div
-                          className={`m-1 border-4 rounded-[14px] rounded-lg transition-colors duration-200 ${selectedLockerGroupId.includes(lockerGroup.id)
+                          className={`m-1 border-4 rounded-[14px] rounded-lg transition-colors duration-200 ${selectedLockerGroupId?.includes(lockerGroup.id)
                             ? 'border-[#62cb62]'
                             : 'border-transparent'
                             }`}

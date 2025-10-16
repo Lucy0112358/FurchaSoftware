@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { getFilteredUsers } from '../../../redux/slice/userSlice';
 import { filterUserWithOutPaginte } from '../../../redux/api/userApi';
-import { setUser } from '../../../redux/api/lockerApi';
+import { getLockers, setUser } from '../../../redux/api/lockerApi';
 import { toast } from "react-toastify";
 import CustomSelect from '../../select/CustomSelect';
 
@@ -36,6 +36,7 @@ function SetUser({ lockers, onClose, branchId = null }) {
                 .then((response) => {
                     if (response && response.payload.isSuccess) {
                         toast.success("Lockers set successfully");
+                        dispatch(getLockers());
                         onClose();
                     }
                 })

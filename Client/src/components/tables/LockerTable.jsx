@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { lockerTable } from '../../data/tableIHeads';
 import { useDispatch, useSelector } from 'react-redux';
 import NoData from '../no-data/NoData';
@@ -9,6 +9,7 @@ import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '.
 import CustomCheckbox from '../checkbox/CustomCheckbox';
 import UnselectLockers from '../button/UnselectLockers';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import * as signalR from "@microsoft/signalr";
 
 function LockerTable() {
   const dispatch = useDispatch();
@@ -28,9 +29,31 @@ function LockerTable() {
       : [...selectedLockerIds, itemId];
     dispatch(setSelectedLockerIds(newSelected));
   };
+  const [status, setStatus] = useState("Unknown");
+  useEffect(() => {
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl("http://192.168.0.129:1010/hubs/doorStatus")
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on("DoorStatusChanged", (newStatus) => {
+      console.log("New door status:", newStatus);
+      setStatus(newStatus);
+    });
+
+    connection
+      .start()
+      .then(() => console.log("SignalR connected"))
+      .catch((err) => console.error("SignalR connection error: ", err));
+
+    return () => {
+      connection.stop();
+    };
+  }, []);
+
 
   return (
-    <div 
+    <div
       className='table-main select-none'
       onClick={handleGlobalClick}
       onContextMenu={(e) => e.preventDefault()}
@@ -49,7 +72,7 @@ function LockerTable() {
                     {lockerGroup.groupLockers.length !== 0 ? (
                       <>
                         <div className="ml-2 mt-3">
-                          <GroupName name={lockerGroup.groupName} id={5} />
+                          <GroupName name={lockerGroup.groupName} id={lockerGroup.id} />
                         </div>
 
                         <div

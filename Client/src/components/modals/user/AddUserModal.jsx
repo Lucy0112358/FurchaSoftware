@@ -48,8 +48,6 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
 
   useEffect(() => {
     if (mode === "edit" && initialData) {
-      console.log(initialData, 'initialData');
-
       setSentGeneralInfo({
         ...initialData,
         name: initialData.name || '',
@@ -59,6 +57,8 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
         userGroups: initialData.userGroups || [],
         cards: initialData.cards || [],
         lockerIds: initialData.lockerIds || [],
+        activeFrom: initialData.activeFrom ? new Date(initialData.activeFrom).toISOString().slice(0, 10) : '',
+        activeTo: initialData.activeTo ? new Date(initialData.activeTo).toISOString().slice(0, 10) : '',
       });
       setCards(initialData.cards || []);
       setSelectedGroups(
@@ -69,7 +69,6 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
       );
     }
   }, [mode, initialData, userGroups]);
-  console.log(sentGeneralInfo, 'sentGeneralInfo');
 
   const formatUserRightText = () => {
     const userRightsEntries = Object.entries(userRight);
