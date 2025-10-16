@@ -7,7 +7,7 @@ function TemporaryPersonal({ label, lockernumber, item }) {
   const shortName = getNameStartLetter(fullName);
 
   return (
-    <div className="temprorary__locker" title={`Name: ${fullName}`}>
+    <div className="temprorary__locker" title={`Name: ${fullName || ''}`}>
       <div className="locker">
         <div className="locker__number">{lockernumber}</div>
         <div className="mini-part"></div>
