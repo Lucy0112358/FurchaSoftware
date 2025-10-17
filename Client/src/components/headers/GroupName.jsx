@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { CiEdit } from "react-icons/ci";
 import LockerGroupModal from '../modals/locker-group/LockerGroupModal'
 
-function GroupName({ name, id }) {
+function GroupName({ name, id, type="allLocker" }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const handleOpen = () => setIsModalOpen(true)
   const handleClose = () => setIsModalOpen(false)
@@ -25,6 +25,7 @@ function GroupName({ name, id }) {
           isOpen={isModalOpen}
           onClose={handleClose}
           id={id}
+          type={type}
         />
       )}
     </div>

@@ -50,7 +50,7 @@ function ParcelLockerTable() {
                     {lockerGroup.groupLockers.length !== 0 ? (
                       <>
                         <div className="ml-2 mt-3">
-                          <GroupName name={lockerGroup.groupName} id={lockerGroup.id} />
+                          <GroupName name={lockerGroup.groupName} id={lockerGroup.id} type={"parcelLocker"} />
                         </div>
 
                         <div

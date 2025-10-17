@@ -26,7 +26,7 @@ import Manage from '../../../manage/Manage';
 import { getAllBranchesData } from '../../../../redux/slice/branchSlice';
 import { getAllBranches } from '../../../../redux/api/branchApi';
 
-function ParcelMenu() {
+function ParcelModal() {
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
@@ -178,4 +178,4 @@ function ParcelMenu() {
   );
 }
 
-export default ParcelMenu;
+export default ParcelModal;

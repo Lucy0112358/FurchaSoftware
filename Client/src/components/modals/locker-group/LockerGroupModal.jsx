@@ -11,9 +11,9 @@ import * as Yup from "yup";
 import ShowFormikError from "../../error/ShowFormikError";
 import { editLockerGroup, getLockerGroup } from "../../../redux/api/lockerGroupApi";
 import { getLockerGroupData } from "../../../redux/slice/lockerGroupSlice";
-import { getLockers } from "../../../redux/api/lockerApi";
+import { getLockers, getParcelLockers } from "../../../redux/api/lockerApi";
 
-const LockerGroupModal = ({ onClose, id }) => {
+const LockerGroupModal = ({ onClose, id, type }) => {
   const dispatch = useDispatch();
   const lockerGroupData = useSelector(getLockerGroupData);
 
@@ -34,11 +34,15 @@ const LockerGroupModal = ({ onClose, id }) => {
     enableReinitialize: true,
     validationSchema,
     onSubmit: (values) => {
-      dispatch(editLockerGroup({ id, data:values }))
+      dispatch(editLockerGroup({ id, data: values }))
         .then((response) => {
           if (response && response.payload.isSuccess) {
             toast.success("Locker Group edited successfully");
-            dispatch(getLockers())
+            if (type === "allLocker") {
+              dispatch(getLockers())
+            } else if(type === "parcelLocker") {
+              dispatch(getParcelLockers())
+            }
             onClose();
           }
         })
