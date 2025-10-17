@@ -10,6 +10,7 @@ const initialState = {
   selectGroups: {},
   userGroupSelect: localStorage.getItem('userGroupEnabled') === 'true',
   lockerStatusSelect: false,
+  parcelLockerStatusSelect: false,
   lockerGroups: {},
   filteredLockerGroups: {},
   menuFilter: {},
@@ -38,8 +39,8 @@ export const menuSlice = createSlice({
     setUserGroupSelect: (state) => {
       state.userGroupSelect = !state.userGroupSelect
     },
-    setLockerStatusSelect: (state) => {
-      state.lockerStatusSelect = !state.lockerStatusSelect
+    setParcelLockerStatusSelect: (state) => {
+      state.parcelLockerStatusSelect = !state.parcelLockerStatusSelect
     },
     setMenuFilter: (state, action) => {
       state.menuFilter = action.payload;
@@ -90,6 +91,7 @@ export const {
   setLoading,
   setUserGroupSelect,
   setLockerStatusSelect,
+  setParcelLockerStatusSelect,
   setMenuFilter,
   setLockerGroupWithFilters
 } = menuSlice.actions;
@@ -100,6 +102,7 @@ export const getUserGroupsData = (state) => state.menu.userGroups;
 export const getSelectGroups = (state) => state.menu.selectGroups;
 export const getSelectGroupSelect = (state) => state.menu.userGroupSelect;
 export const getLockerStatusSelect = (state) => state.menu.lockerStatusSelect;
+export const getParcelLockerStatusSelect = (state) => state.menu.parcelLockerStatusSelect;
 export const getMenuFilter = (state) => state.menu.menuFilter;
 export const getLockerGroups = (state) => state.menu.lockerGroups;
 export const getFilteredLockerGroups = (state) => state.menu.filteredLockerGroups;

@@ -24,6 +24,27 @@ export const getLockers = createAsyncThunk(
   }
 )
 
+export const getParcelLockers = createAsyncThunk(
+  'locker/getParcelLockers',
+  async (params, thunkAPI) => {
+    const query = { ...params, lockerType: 2 };
+
+    try {
+      const config = {
+        method: "get",
+        url: 'Locker',
+        params: query
+      };
+
+      const response = await instance(config);
+
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)
+
 export const editLockersType = createAsyncThunk(
   'locker/editLockersType',
   async (data, thunkAPI) => {

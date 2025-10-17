@@ -8,24 +8,22 @@ import Unspecified from './unspecified/Unspecified';
 
 function GenerateLocker({ item, index, doorState }) {
   const renderLocker = () => {
-    const incrementedIndex = index + 1;
     const name = 'JB';
     const nameShort = 'Joohn Brain';
-    console.log(item, 'wwwwwwwwwwwwwwwwwwwwwwwww');
     
     switch(item.lockerType?.type.toLowerCase()) {
       case 'personal':
-        return <Personal name={name} nameShort={nameShort} lockernumber={incrementedIndex} item={item} />;
+        return <Personal name={name} nameShort={nameShort} lockernumber={index} item={item} />;
       case 'temporary':
-        return <TemporaryPersonal label={name} lockernumber={incrementedIndex} item={item} />;
+        return <TemporaryPersonal label={name} lockernumber={index} item={item} />;
       case 'common':
-        return <Common label={name} lockernumber={incrementedIndex} doorState={doorState}/>;
+        return <Common label={name} lockernumber={index} doorState={doorState}/>;
       case 'handover':
-        return <Hand lockernumber={incrementedIndex} />;
+        return <Hand lockernumber={index} />;
       case 'parcel':
-        return <Parcel item={item} lockernumber={incrementedIndex} size="L" orderNum="44623598" />;
+        return <Parcel item={item} lockernumber={index} size="L" orderNum="44623598" />;
       case 'unspecified':
-        return <Unspecified lockernumber={incrementedIndex} />;
+        return <Unspecified lockernumber={index} />;
       default:
         return <div>No matching type</div>;
     }

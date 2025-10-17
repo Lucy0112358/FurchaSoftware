@@ -5,14 +5,15 @@ import NoData from '../no-data/NoData';
 import OfficeName from '../headers/OfficeName';
 import GroupName from '../headers/GroupName';
 import LockerPopup from '../popups/locker/LockerPopup';
-import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds, updateLockerDoorState } from '../../redux/slice/lockerSlice';
+import { getAllLockersData, getParcelLockersData, getSelectedLockerIds, setSelectedLockerIds, updateLockerDoorState } from '../../redux/slice/lockerSlice';
 import CustomCheckbox from '../checkbox/CustomCheckbox';
 import UnselectLockers from '../button/UnselectLockers';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import { getParcelLockers } from '../../redux/api/lockerApi';
 
-function LockerTable() {
+function ParcelLockerTable() {
   const dispatch = useDispatch();
-  const allLockers = useSelector(getAllLockersData);
+  const allLockers = useSelector(getParcelLockersData);
   const selectedLockerIds = useSelector(getSelectedLockerIds);
 
   const {
@@ -138,4 +139,4 @@ function LockerTable() {
   );
 }
 
-export default LockerTable;
+export default ParcelLockerTable;

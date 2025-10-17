@@ -9,6 +9,7 @@ import ModulesMenu from './modules/ModulesMenu';
 import AdminMenu from './admin/AdminMenu';
 import BranchMenu from './branch/BranchMenu';
 import { getLockerTypes } from '../../redux/api/lockerApi';
+import ParcelMenu from './locker/parcels/ParcelMenu';
 
 
 function Menu() {
@@ -39,7 +40,9 @@ function Menu() {
                 <ModulesMenu />
                 : path == '/branches' ?
                   <BranchMenu />
-                  : null
+                  : path == '/parcels' ?
+                    <ParcelMenu />
+                    : null
       }
     </div >
   );

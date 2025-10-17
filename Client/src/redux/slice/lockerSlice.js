@@ -1,12 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getLockerGroupsByBranchId } from "../api/branchApi";
-import { getLockers, getLockerTypes } from "../api/lockerApi";
+import { getLockers, getLockerTypes, getParcelLockers } from "../api/lockerApi";
 import { LockerTypes } from "../../enums/Locker/Types";
 // import { getAllGroups } from "../api/groupApi";
 
 const initialState = {
   loading: false,
   allLockers: [],
+  parcelLockers: [],
   lockerFilters: {
     isOpen: null,
   },
@@ -32,7 +33,10 @@ export const lockerSlice = createSlice({
     setLocker: (state, action) => {
       state.allLockers = action.payload.data;
     },
-     updateLockerDoorState: (state, action) => {
+    setParcelLocker: (state, action) => {
+      state.parcelLockers = action.payload.data;
+    },
+    updateLockerDoorState: (state, action) => {
       const { lockerId, doorState } = action.payload;
       state.allLockers = state.allLockers.map((office) => ({
         ...office,
@@ -59,7 +63,7 @@ export const lockerSlice = createSlice({
           id: type.id,
         };
       });
-      
+
       state.lockerFilterTypesData = merged;
     },
 
@@ -87,6 +91,10 @@ export const lockerSlice = createSlice({
       .addCase(getLockers.fulfilled, (state, action) => {
         state.loading = false;
         lockerSlice.caseReducers.setLocker(state, action);
+      })
+      .addCase(getParcelLockers.fulfilled, (state, action) => {
+        state.loading = false;
+        lockerSlice.caseReducers.setParcelLocker(state, action);
       })
       .addCase(getLockers.rejected, (state, action) => {
 
@@ -116,6 +124,7 @@ export const {
 export const getLoadingNow = (state) => state.locker.loading;
 export const getLockerFilter = (state) => state.locker.lockerFilters
 export const getAllLockersData = (state) => state.locker.allLockers;
+export const getParcelLockersData = (state) => state.locker.parcelLockers;
 export const getFilteredLockerGroups = (state) => state.locker.filteredLockerGroups;
 export const getSelectedLockerIds = (state) => state.locker.selectedLockerIds;
 export const getLockerTypesData = (state) => state.locker.lockerTypesData;
