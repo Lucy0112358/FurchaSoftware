@@ -25,8 +25,9 @@ import ModalActionButton from '../../../button/ModalActionButton';
 import Manage from '../../../manage/Manage';
 import { getAllBranchesData } from '../../../../redux/slice/branchSlice';
 import { getAllBranches } from '../../../../redux/api/branchApi';
+import ParcelModal from '../../../modals/locker/parcel/ParcelModal';
 
-function ParcelModal() {
+function ParcelMenu() {
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
@@ -83,7 +84,7 @@ function ParcelModal() {
             text="Store Parcel"
           />
         }
-        {isModalOpen && <LockerModal onClose={() => setIsModalOpen(false)} />}
+        {isModalOpen && <ParcelModal onClose={() => setIsModalOpen(false)} />}
         {/* Filters */}
         <div className="menu__filter flex space-x-4">
           <div className='flex flex-col'>
@@ -178,4 +179,4 @@ function ParcelModal() {
   );
 }
 
-export default ParcelModal;
+export default ParcelMenu;
