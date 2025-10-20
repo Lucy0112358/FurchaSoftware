@@ -120,7 +120,12 @@ public class MqttService
                             var res = Db.SaveChanges();
                             if (res > 0)
                             {
-                              //  _doorStateService.NotifyDoorStatusAsync(dbLocker.Id, "open");
+                                using (var scope = _scopeFactory.CreateScope())
+                                {
+                                    var doorStateService = scope.ServiceProvider.GetRequiredService<IDoorStateService>();
+                                    await doorStateService.NotifyDoorStatusAsync(dbLocker.Id, "open");
+                                }
+
                             }
 
                         }

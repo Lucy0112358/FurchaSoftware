@@ -45,11 +45,16 @@ namespace FurchaAdminApi
                     policy =>
                     {
                         policy
-                           .WithOrigins("http://10.0.0.37:5173")
+                              .SetIsOriginAllowed(_ => true)
                             .AllowAnyHeader()
                             .AllowAnyMethod()
                             .AllowCredentials(); // важно!
                     });
+            });
+            builder.Services.AddSignalR(options =>
+            {
+                options.ClientTimeoutInterval = TimeSpan.FromSeconds(60); // client will wait 60s for server
+                options.KeepAliveInterval = TimeSpan.FromSeconds(15); // send ping every 15s
             });
 
             builder.Services.AddScoped<NpgsqlConnection>(provider =>
@@ -118,10 +123,10 @@ namespace FurchaAdminApi
                     }
                 });
             });
-            builder.WebHost.ConfigureKestrel(options =>
+/*            builder.WebHost.ConfigureKestrel(options =>
             {
                 options.ListenAnyIP(1010); // HTTP
-            });
+            });*/
 
             builder.Services.AddSingleton<IMqttApiService, MqttApiService>();
             builder.Services.AddSingleton<MqttClientOptions>(sp =>
