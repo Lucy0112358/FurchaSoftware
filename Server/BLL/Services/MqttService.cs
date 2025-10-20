@@ -18,7 +18,7 @@ public class MqttService
     private readonly ILogger<MqttService> _logger;
     // private readonly furchaContext Db;
     private readonly IServiceScopeFactory _scopeFactory;
- //   private readonly IDoorStateService _doorStateService;
+    //   private readonly IDoorStateService _doorStateService;
 
     public MqttService(IMqttClient mqttClient, MqttClientOptions mqttOptions, ILogger<MqttService> logger, /*IDoorStateService doorStateService,*/ /*furchaContext db,*/ IServiceScopeFactory scopeFactory)
     {
@@ -27,7 +27,7 @@ public class MqttService
         _logger = logger;
         // Db = db;
         _scopeFactory = scopeFactory;
-       // _doorStateService = doorStateService;
+        // _doorStateService = doorStateService;
     }
 
     public async Task InitializeClient(CancellationToken stoppingToken)
@@ -123,7 +123,7 @@ public class MqttService
                                 using (var scope = _scopeFactory.CreateScope())
                                 {
                                     var doorStateService = scope.ServiceProvider.GetRequiredService<IDoorStateService>();
-                                    await doorStateService.NotifyDoorStatusAsync(dbLocker.Id, "open");
+                                    await doorStateService.NotifyDoorStatusAsync(dbLocker.Id, lockerPayload.Data.Status == 0 ? "Closed" : "Open");
                                 }
 
                             }
