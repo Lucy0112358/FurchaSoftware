@@ -2,9 +2,9 @@
 {
     public class OpenLockerRequest
     {
-        public int Status {  get; set; }   
+        public int Status {  get; set; }   // change to int in db
         
-        public int LockerId { get; set; }
+        public int Number { get; set; }
 
     }
 }

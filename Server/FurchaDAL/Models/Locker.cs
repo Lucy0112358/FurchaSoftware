@@ -13,7 +13,7 @@ public partial class Locker
 
     public bool? IsActive { get; set; }
 
-    public bool? IsOpen { get; set; }
+    public int? IsOpen { get; set; }
 
     public int? LockerStatus { get; set; }
 
@@ -22,6 +22,8 @@ public partial class Locker
     public int? BrainId { get; set; }
 
     public int? LockerType { get; set; }
+
+    public int? ExternalId { get; set; }
 
     public virtual BrainModule Brain { get; set; }
 

@@ -5,6 +5,8 @@
         Success = 1,
         Failure = 2,
         Pending,
-        Unknown
+        Unknown,
+        Create,
+        Update
     }
 }

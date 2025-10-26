@@ -10,6 +10,8 @@ using FurchaBLL.MqttModels.Publish;
 using Microsoft.Extensions.DependencyInjection;
 using MQTTnet.Server;
 using FurchaBLL.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Domain.Entities;
 
 public class MqttService
 {
@@ -115,15 +117,23 @@ public class MqttService
                         using (var Db = furchaContext.Create())
                         {
                             var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<OpenLockerRequest>>(responseMessage);
-                            var dbLocker = Db.Lockers.Where(x => x.Id == lockerPayload.Data.LockerId).FirstOrDefault();
+                            var brainUid = topic.Split("/")[2];
+                            var brain = Db.BrainModules.First(b => b.BrainUid == brainUid);
+
+                            var dbLocker = Db.Lockers.Where(x => x.ExternalId == lockerPayload.Data.Number && x.BrainId == brain.Id).FirstOrDefault();
                             dbLocker.LockerStatus = lockerPayload.Data.Status;
                             var res = Db.SaveChanges();
                             if (res > 0)
                             {
-                                using (var scope = _scopeFactory.CreateScope())
+                                using var httpClient = new HttpClient();
+                                string baseUrl = "http://localhost:1010"; // or http://127.0.0.1:1010
+                                string endpoint = $"/api/locker/test-door-status?doorId={dbLocker.Id}&status={(lockerPayload.Data.Status == 2 ? "Closed" : "Open")}";
+
+                                var response = await httpClient.GetAsync(baseUrl + endpoint);
+
+                                if (!response.IsSuccessStatusCode)
                                 {
-                                    var doorStateService = scope.ServiceProvider.GetRequiredService<IDoorStateService>();
-                                    await doorStateService.NotifyDoorStatusAsync(dbLocker.Id, lockerPayload.Data.Status == 0 ? "Closed" : "Open");
+                                    _logger.LogWarning($"Failed to notify door status. Response: {response.StatusCode}");
                                 }
 
                             }
@@ -138,12 +148,20 @@ public class MqttService
                             lock (_lockerLock)
                             {
                                 var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<OpenLockerRequest>>>(responseMessage);
+                                var brainUid = topic.Split("/")[2];
+                                var brain = Db.BrainModules.First(b => b.BrainUid == brainUid);
+
                                 foreach (var locker in lockersPayload.Data)
                                 {
-                                    var l = Db.Lockers.FirstOrDefault(x => x.Id == locker.LockerId);
+                                    var l = Db.Lockers.Where(x => x.ExternalId == locker.Number && x.BrainId == brain.Id).FirstOrDefault();
                                     if (l != null)
                                     {
                                         l.LockerStatus = locker.Status;
+                                        using var httpClient = new HttpClient();
+                                        string baseUrl = "http://localhost:1010"; // or http://127.0.0.1:1010
+                                        string endpoint = $"/api/locker/test-door-status?doorId={l.Id}&status={(locker.Status == 2 ? "Closed" : "Open")}";
+
+                                        var response = httpClient.GetAsync(baseUrl + endpoint);
                                     }
                                 }
                                 Db.SaveChanges();
@@ -183,7 +201,7 @@ public class MqttService
                                 break;
                             }
 
-                            Db.BrainModules.Add(new BrainModule
+                            Db.BrainModules.Add(new FurchaDAL.Models.BrainModule
                             {
                                 Status = (int)BrainStatuses.New,
                                 CompanyId = companyId,
@@ -211,25 +229,28 @@ public class MqttService
                         {
                             var lockerCount = JsonSerializer.Deserialize<MqttBaseRequest<MqttLockerCount>>(responseMessage);
 
-                            var brain = Db.BrainModules.FirstOrDefault(x => x.BrainUid == lockerCount.Data.BrainUid);
-                            for (int i = 0; i < lockerCount.Data.LockerCount; i++)
+                            var brain = Db.BrainModules.Include(b => b.Lockers).FirstOrDefault(x => x.BrainUid == lockerCount.Data.BrainUid);
+                            if (brain.Lockers.Count < lockerCount.Data.LockerCount)
                             {
-                                Db.Lockers.Add(new Locker
+                                for (int i = 0; i < lockerCount.Data.LockerCount; i++)
                                 {
-                                    LockerType = 0,
-                                    PasswordHash = "test",
-                                    BrainId = brain.Id
-                                });
-                            }
-
-                            var success = Db.SaveChanges();
-                            if (success > 0)
-                            {
-                                PublishToMqtt<int>(new MqttBaseRequest<int>
+                                    Db.Lockers.Add(new FurchaDAL.Models.Locker
+                                    {
+                                        LockerType = 0,
+                                        PasswordHash = "test",
+                                        BrainId = brain.Id,
+                                        ExternalId = i + 1
+                                    });
+                                }
+                                var success = Db.SaveChanges();
+                                if (success > 0)
                                 {
-                                    Operation = (int)OperationTypes.Success,
-                                    Command = (int)CommandTypes.AddLockersToBrain
-                                }, topic.Replace("webserver", "controller"));
+                                    PublishToMqtt<int>(new MqttBaseRequest<int>
+                                    {
+                                        Operation = (int)OperationTypes.Success,
+                                        Command = (int)CommandTypes.AddLockersToBrain
+                                    }, topic.Replace("webserver", "controller"));
+                                }
                             }
                         }
                         break;

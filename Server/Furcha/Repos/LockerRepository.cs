@@ -24,7 +24,7 @@ namespace FurchaAdminApi.Repos
             SELECT l.""Id"", l.GroupId, l.Number, l.""LockerType"", l.""IsActive"", l.""IsOpen"", l.""BranchId"", l.""PasswordHash"", 
                    u.""Name"" AS Name
             FROM furcha.""Locker"" l
-            LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""LockerId""
+            LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""Number""
             LEFT JOIN furcha.""User"" u ON ul.""UserId"" = u.Id
             WHERE l.""BranchId"" = @BranchId";
 
@@ -70,7 +70,7 @@ namespace FurchaAdminApi.Repos
         {
             var sql = @"SELECT l.*
                         FROM furcha.""Locker"" l
-                        INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""LockerId""
+                        INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""Number""
                         WHERE ugl.""UserGroupId"" = @UserGroupId";
 
             var lockers = Query<Locker>(
@@ -90,7 +90,7 @@ namespace FurchaAdminApi.Repos
         {
             var sql = @"SELECT l.*
                         FROM furcha.""Locker"" l
-                        INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""LockerId""
+                        INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""Number""
                         INNER JOIN furcha.""UserGroup"" ug ON ug.""Id"" = ugl.""UserGroupId""
                         INNER JOIN furcha.""User"" u ON u.""UserGroupId"" = ug.""Id""
                         WHERE u.""Id"" = @UserId";
@@ -113,9 +113,9 @@ namespace FurchaAdminApi.Repos
             var sql = @"
                     SELECT DISTINCT l.*
                     FROM furcha.""Locker"" l
-                    LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""LockerId""
+                    LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""Number""
                     LEFT JOIN furcha.""User_UserGroup"" uug ON ul.""UserId"" = uug.""UserId""
-                    LEFT JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""LockerId""
+                    LEFT JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""Number""
                     LEFT JOIN furcha.""UserGroup"" ug ON ug.""Id"" = ugl.""UserGroupId""
                     WHERE ul.""UserId"" = @UserId OR uug.""UserId"" = @UserId";
 
@@ -170,7 +170,7 @@ namespace FurchaAdminApi.Repos
                     SELECT DISTINCT lg.*
                     FROM furcha.""LockerGroup"" lg
                     INNER JOIN furcha.""Locker"" l ON lg.""Id"" = l.groupid
-                    INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""LockerId""
+                    INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""Number""
                     WHERE ugl.""UserGroupId"" = @UserGroupId";
 
             var lockerGroups = Query<LockerGroup>(
@@ -225,7 +225,7 @@ namespace FurchaAdminApi.Repos
                         l.""PasswordHash"",
                         u.""Name""
                     FROM furcha.""Locker"" l 
-                    LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""LockerId""
+                    LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""Number""
                     LEFT JOIN furcha.""User"" u ON ul.""UserId"" = u.Id
                     WHERE (l.""LockerType"" = @LockerType OR @LockerType IS NULL)
                       AND (l.""groupid"" = @LockerGroupId OR @LockerGroupId IS NULL)
