@@ -138,3 +138,65 @@ export const getLockerTypes = createAsyncThunk(
     }
   }
 )
+
+export const getParcelMessages = createAsyncThunk(
+  'locker/getParcelMessages',
+  async (_, thunkAPI) => {
+    try {
+      const config = {
+        method: "get",
+        url: 'Locker/getParcelMessages',
+      };
+      return {
+        data: [
+          { id: 1, title: "Parcel Delivered", content: "Your parcel has been delivered.", parcelType: 1 },
+          { id: 2, title: "Parcel Pickup", content: "Please collect your parcel within 3 days.", parcelType: 1 },
+          { id: 3, title: "Parcel Pickup2", content: "Your parcel is ready for pickup.", parcelType: 2 }
+        ]
+      } 
+
+      // const response = await instance(config);
+      // return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)
+
+export const updateMessage = createAsyncThunk(
+  'locker/updateMessage',
+  async (data, thunkAPI) => {
+    try {
+       const config = {
+        method: "post",
+        data: data,
+        url: 'Locker/updateMessage',
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)
+
+export const createMessage = createAsyncThunk(
+  'locker/createMessage',
+  async (data, thunkAPI) => {
+    console.log(data);
+    alert(1)
+    try {
+       const config = {
+        method: "post",
+        data: data,
+        url: 'Locker/createMessage',
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)

@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getLockerGroupsByBranchId } from "../api/branchApi";
-import { getLockers, getLockerTypes, getParcelLockers } from "../api/lockerApi";
+import { getLockers, getLockerTypes, getParcelLockers, getParcelMessages } from "../api/lockerApi";
 import { LockerTypes } from "../../enums/Locker/Types";
 // import { getAllGroups } from "../api/groupApi";
 
@@ -11,6 +11,10 @@ const initialState = {
   lockerFilters: {
     isOpen: null,
   },
+  parcelLockerFilters: {
+    isOpen: null,
+  },
+  lockerMessages: [],
   filteredLockerGroups: [],
   selectedLockerIds: [],
   lockerTypesData: {},
@@ -30,9 +34,16 @@ export const lockerSlice = createSlice({
       //   ...action.payload,}
       state.lockerFilters = action.payload
     },
+    setParcelLockerFilter: (state, action) => {
+      state.parcelLockerFilters = action.payload
+    },
     setLocker: (state, action) => {
       state.allLockers = action.payload.data;
     },
+    setLockerMessage: (state, action) => {
+      state.lockerMessages = action.payload.data;
+    },
+    
     setParcelLocker: (state, action) => {
       state.parcelLockers = action.payload.data;
     },
@@ -92,6 +103,9 @@ export const lockerSlice = createSlice({
         state.loading = false;
         lockerSlice.caseReducers.setLocker(state, action);
       })
+      .addCase(getParcelMessages.fulfilled, (state, action) => {
+        lockerSlice.caseReducers.setLockerMessage(state, action);
+      })
       .addCase(getParcelLockers.fulfilled, (state, action) => {
         state.loading = false;
         lockerSlice.caseReducers.setParcelLocker(state, action);
@@ -116,18 +130,22 @@ export const lockerSlice = createSlice({
 export const {
   setLoading,
   setLockerFilter,
+  setParcelLockerFilter,
   setSelectedLockerIds,
   clearFilteredLockerGroups,
   updateLockerDoorState,
+  setLockerMessage
 } = lockerSlice.actions;
 
 export const getLoadingNow = (state) => state.locker.loading;
 export const getLockerFilter = (state) => state.locker.lockerFilters
+export const getParcelLockerFilter = (state) => state.locker.parcelLockerFilters
 export const getAllLockersData = (state) => state.locker.allLockers;
 export const getParcelLockersData = (state) => state.locker.parcelLockers;
 export const getFilteredLockerGroups = (state) => state.locker.filteredLockerGroups;
 export const getSelectedLockerIds = (state) => state.locker.selectedLockerIds;
 export const getLockerTypesData = (state) => state.locker.lockerTypesData;
 export const getFilterLockerTypesData = (state) => state.locker.lockerFilterTypesData;
+export const getLockerMessages = (state) => state.locker.lockerMessages;
 
 export default lockerSlice.reducer;

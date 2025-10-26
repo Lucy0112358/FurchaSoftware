@@ -42,6 +42,9 @@ export const menuSlice = createSlice({
     setParcelLockerStatusSelect: (state) => {
       state.parcelLockerStatusSelect = !state.parcelLockerStatusSelect
     },
+      setLockerStatusSelect: (state) => {
+      state.lockerStatusSelect = !state.lockerStatusSelect
+    },
     setMenuFilter: (state, action) => {
       state.menuFilter = action.payload;
     }

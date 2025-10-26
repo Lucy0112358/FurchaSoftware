@@ -14,10 +14,13 @@ import LockerStatus from '.././components/lockerStatus/LockerStatus';
 import Connection from '../../../connection/Connection';
 import {
   getLockerFilter,
+  getParcelLockerFilter,
+  getParcelLockersData,
   setLockerFilter,
+  setParcelLockerFilter,
   setSelectedLockerIds
 } from '../../../../redux/slice/lockerSlice';
-import { getLockers } from '../../../../redux/api/lockerApi';
+import { getLockers, getParcelLockers } from '../../../../redux/api/lockerApi';
 import CustomSelect from '../../../select/CustomSelect';
 import UserInfoModal from '../../../userInfo/UserInfoModal';
 import { useHasPermission } from '../../../../hooks/useHasPermission';
@@ -26,10 +29,13 @@ import Manage from '../../../manage/Manage';
 import { getAllBranchesData } from '../../../../redux/slice/branchSlice';
 import { getAllBranches } from '../../../../redux/api/branchApi';
 import ParcelModal from '../../../modals/locker/parcel/ParcelModal';
+import { LuMessageSquare } from "react-icons/lu";
+import ParcelMessageModal from '../../../modals/locker/parcelMessage/ParcelMessageModal';
 
 function ParcelMenu() {
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [inputValue, setInputValue] = useState('');
   const [debounceTimeout, setDebounceTimeout] = useState(null);
@@ -37,8 +43,9 @@ function ParcelMenu() {
   const branches = useSelector(getAllBranchesData);
   const lockerGroups = useSelector(getLockerGroups);
   const lockerViewEnabled = useSelector(getLockerStatusSelect);
-  const lockerFilters = useSelector(getLockerFilter);
+  const lockerFilters = useSelector(getParcelLockerFilter);
   const { hasPermission } = useHasPermission();
+console.log(lockerFilters,111111111);
 
   const branchOptions = Array.isArray(branches)
     ? branches?.map(branch => ({ label: branch.name, value: branch.id }))
@@ -51,8 +58,8 @@ function ParcelMenu() {
 
   const addFilters = (value, key) => {
     const updatedFilters = { ...lockerFilters, [key]: value };
-    dispatch(getLockers(updatedFilters));
-    dispatch(setLockerFilter(updatedFilters));
+    dispatch(getParcelLockers(updatedFilters));
+    dispatch(setParcelLockerFilter(updatedFilters));
   };
 
   const handleFilterName = (e) => {
@@ -96,7 +103,7 @@ function ParcelMenu() {
               />
               <label className="text-white block">Branch</label>
             </div>
-          
+
           </div>
           <div className='flex flex-col'>
             <div className='menu__filter__search'>
@@ -144,6 +151,16 @@ function ParcelMenu() {
             </div>
           </div>
         </div> */}
+        {
+          <div className="flex flex-col items-center cursor-pointer">
+            <LuMessageSquare
+              className="menu__message__icon"
+              onClick={() => setIsMessageModalOpen(true)}
+            />
+            <p className="text-white">Messages</p>
+          </div>
+        }
+        {isMessageModalOpen && <ParcelMessageModal onClose={() => setIsMessageModalOpen(false)} />}
 
         {/* User Info & Manage Toggle */}
         <div className="flex items-center text-white flex-col">
@@ -165,7 +182,6 @@ function ParcelMenu() {
             />
             <label className="text-white block">Branch</label>
           </div>
-        
           <div className='menu__filter__search'>
             <input
               type="text"

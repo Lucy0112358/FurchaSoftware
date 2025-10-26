@@ -28,6 +28,8 @@ function GeneralAddModal() {
         <AddUserGroupModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
+          mode="edit"
+          editData={5}
         />
       ) : (
         <AddUserModal
