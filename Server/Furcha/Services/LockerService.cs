@@ -92,7 +92,7 @@ namespace FurchaAdminApi.Services
                         (lockerType == null || l.LockerType == lockerType) &&
                         (lockerGroupId == null || l.Brain.GroupId == lockerGroupId) &&
                         l.Brain.BranchId == branch.Id &&
-                        (isOpen == null || l.IsOpen == (isOpen == 1))
+                        (isOpen == null || l.IsOpen == 1)
                     )
                     .Select(l => new LockerWithUsers
                     {
@@ -101,7 +101,7 @@ namespace FurchaAdminApi.Services
                         groupid = l.Brain.GroupId,
                         LockerType = l.LockerTypeNavigation,
                         IsActive = l.IsActive == true ? 1 : 0,
-                        IsOpen = l.IsOpen == true ? 1 : 0,
+                        IsOpen = l.IsOpen == 1 ? 1 : 0,
                         BranchId = l.Brain.BranchId ?? 0,
                         PasswordHash = l.PasswordHash,
                         Users = l.Users
@@ -171,7 +171,7 @@ namespace FurchaAdminApi.Services
                      number = (long)(l.Number ?? 0),
                      LockerType = l.LockerTypeNavigation,
                      IsActive = l.IsActive == true ? 1 : 0,
-                     IsOpen = l.IsOpen == true ? 1 : 0,
+                     IsOpen = l.IsOpen == 1 ? 1 : 0,
                      BranchId = l.Brain.BranchId ?? 0,
                      PasswordHash = l.PasswordHash,
                      Users = l.Users.Select(u => u.Name).Distinct().ToList()
