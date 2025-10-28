@@ -126,7 +126,7 @@ public class MqttService
                             if (res > 0)
                             {
                                 using var httpClient = new HttpClient();
-                                string baseUrl = "http://localhost:1010"; // or http://127.0.0.1:1010
+                                string baseUrl = "http://192.168.0.129:1010"; // or http://127.0.0.1:1010
                                 string endpoint = $"/api/locker/test-door-status?doorId={dbLocker.Id}&status={(lockerPayload.Data.Status == 2 ? "Closed" : "Open")}";
 
                                 var response = await httpClient.GetAsync(baseUrl + endpoint);
