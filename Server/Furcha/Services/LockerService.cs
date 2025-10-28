@@ -502,7 +502,7 @@ namespace FurchaAdminApi.Services
                 Data = lockerIds
             };
 
-            await _mqttService.PublishToMqtt<List<int>>(mqttRequest, "1"); // take from claims
+            await _mqttService.PublishToMqtt<List<int>>(mqttRequest, "controller/469d54ff-f67d-4aa2-91df-3349a960233a/0025004A3133510933373933"); // take from claims
         }
 
         public void SetUser(List<int> lockerIds, int userId)
