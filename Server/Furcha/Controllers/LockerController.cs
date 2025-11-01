@@ -178,8 +178,8 @@ namespace FurchaAdminApi.Controllers
         [HttpPost("open-lockers")]
         public IActionResult OpenLockers([FromBody] List<int> lockerIds)
         {
-
-            _lockerService.OpenLockers(lockerIds);
+            var adminId = GetClaimValue("AdminId");
+            _lockerService.OpenLockers(lockerIds, int.Parse(adminId));
             return Ok(ApiResult<string>.Success("Lockers edited successfully."));
         }
 
