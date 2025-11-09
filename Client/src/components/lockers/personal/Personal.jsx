@@ -14,7 +14,7 @@ function Personal({ name, lockernumber, nameShort, item }) {
     >
       <div className="design-box">
         <div className="label">
-            {shortName}
+            {shortName || <p style={{fontSize:'9px', color:'red'}}>{'Free'}</p>}
           </div>
         <div className="number">{lockernumber}</div>
       </div>

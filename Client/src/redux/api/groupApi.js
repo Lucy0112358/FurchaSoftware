@@ -52,3 +52,51 @@ export const suspendUserGroups = createAsyncThunk(
     }
 )
 
+export const userGroupShow = createAsyncThunk(
+  'group/show',
+  async ({ id }, thunkAPI) => {
+    try {
+      const config = {
+        method: "get",
+        url: 'User/user-groups/' + id,
+      };
+      // const response = await instance(config);
+      // return response?.data?.data;
+      return {
+        "name": "Group name",
+        "branches" : [ 
+          {
+            "id": 1,
+            "name": "Talin branch",
+            "lockers": [10,11, 12]
+          },
+          {
+            "id": 2,
+            "name": "Gyumri branch",
+            "lockers": [6, 8, 9]
+          }
+        ]
+      }
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)
+
+export const updateUserGroupInfo = createAsyncThunk(
+  'group/updateUserGroup',
+  async (data, thunkAPI) => {
+    try {
+      const config = {
+        method: "post",
+        url: 'User/edit-userGroup',
+        data: data
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)

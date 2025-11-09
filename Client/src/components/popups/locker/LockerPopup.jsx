@@ -33,7 +33,7 @@ function LockerPopup({ locker, onClose, branchId = null }) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Edit lockers={[locker]} onClose={onClose} />
+              {/* <Edit lockers={[locker]} onClose={onClose} /> */}
               {
                 hasPermission(['LVL3_Admin'], ['Open_Locker']) && <OpenLocker lockers={[locker.id]} onClose={onClose} />
               }

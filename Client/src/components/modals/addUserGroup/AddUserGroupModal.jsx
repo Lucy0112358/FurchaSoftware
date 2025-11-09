@@ -17,7 +17,7 @@ import ShowFormikError from "../../error/ShowFormikError";
 import { getAllGroups } from "../../../redux/api/groupApi";
 
 
-const  AddUserGroupModal = ({ isOpen, onClose, type, id }) => {
+const  AddUserGroupModal = ({isOpen, onClose, mode = "add", initialData = {}}) => {
   if (!isOpen) return null;
   const dispatch = useDispatch();
   const branches = useSelector(getBranchesData);

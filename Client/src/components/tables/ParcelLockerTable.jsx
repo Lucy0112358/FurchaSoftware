@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { lockerTable } from '../../data/tableIHeads';
+import { lockerTable, parcelLockerTable } from '../../data/tableIHeads';
 import { useDispatch, useSelector } from 'react-redux';
 import NoData from '../no-data/NoData';
 import OfficeName from '../headers/OfficeName';
@@ -69,7 +69,7 @@ function ParcelLockerTable() {
                           >
                             <thead>
                               <tr className="outlet__table__header">
-                                {lockerTable.map((header, headerIndex) => (
+                                {parcelLockerTable.map((header, headerIndex) => (
                                   <th key={headerIndex} className="text-left">
                                     {header}
                                   </th>
@@ -101,6 +101,8 @@ function ParcelLockerTable() {
                                     ))}
                                   </td>
                                   <td>{item.isOpen ? 'open' : 'closed'}</td>
+                                  <td>{'L'}</td>
+                                  <td>{1351651561}</td>
                                   <td className={item.state === 'suspended' ? 'text-red-500 capitalize' : 'capitalize'}>
                                     {item.state}
                                   </td>

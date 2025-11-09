@@ -29,6 +29,18 @@ export const lockerTable = [
     'DoorState',
 ];
 
+export const parcelLockerTable = [
+    'ID',
+    'Name',
+    'Type',
+    'User',
+    'Status',
+    'Size',
+    'Order Number',
+    'State',
+    'DoorState',
+];
+
 export const adminTable = [
     'ID',
     'Name',
