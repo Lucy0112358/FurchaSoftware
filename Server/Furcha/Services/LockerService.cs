@@ -493,16 +493,33 @@ namespace FurchaAdminApi.Services
             Db.SaveChanges();
         }
 
-        public async void OpenLockers(List<int> lockerIds)
+        public async void OpenLockers(List<int> lockerIds, int adminId)
         {
-            var mqttRequest = new MqttBaseRequest<List<int>>
-            {
-                Command = (int)CommandTypes.OpenLockersFromAdmin,
-                ReceivedDate = DateTime.Now,
-                Data = lockerIds
-            };
+            var brainUid = string.Empty;
+            var lockers = Db.Lockers.Include(l => l.Brain).Where(l => lockerIds.Contains(l.Id)).ToList();
+            var lockersByBrain = lockers.GroupBy(l => l.Brain.BrainUid);
+            var companyUid = "469d54ff-f67d-4aa2-91df-3349a960233a";// Db.Administrators.Include(a => a.Company).Select(a => a.Company.AccountUid).FirstOrDefault();
 
-            await _mqttService.PublishToMqtt<List<int>>(mqttRequest, "controller/469d54ff-f67d-4aa2-91df-3349a960233a/0025004A3133510933373933"); // take from claims
+            foreach (var brainLockers in lockersByBrain)
+            {
+                var ids = brainLockers.Select(l => l.ExternalId).ToList();
+
+                var data = new LockerData
+                {
+                    Count = ids.Count,
+                    Type = "Locker",
+                    Ids = ids
+                };
+
+                var mqttRequest = new MqttBaseRequest<LockerData>
+                {
+                    Command = (int)CommandTypes.OpenLockersFromAdmin,
+                    ReceivedDate = DateTime.UtcNow,
+                    Data = data
+                };
+
+                await _mqttService.PublishToMqtt(mqttRequest, $"controller/{companyUid}/{brainLockers.Key}");
+            }
         }
 
         public void SetUser(List<int> lockerIds, int userId)

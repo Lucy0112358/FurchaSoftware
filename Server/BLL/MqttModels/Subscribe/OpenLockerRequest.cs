@@ -7,4 +7,10 @@
         public int Number { get; set; }
 
     }
+    public class LockerData
+    {
+        public int Count { get; set; }
+        public string Type { get; set; } 
+        public List<int?> Ids { get; set; } 
+    }
 }

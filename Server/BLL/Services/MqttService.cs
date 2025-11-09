@@ -236,7 +236,7 @@ public class MqttService
                                 {
                                     Db.Lockers.Add(new FurchaDAL.Models.Locker
                                     {
-                                        LockerType = 0,
+                                        LockerType = 1,
                                         PasswordHash = "test",
                                         BrainId = brain.Id,
                                         ExternalId = i + 1
