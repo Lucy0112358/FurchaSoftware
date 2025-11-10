@@ -87,7 +87,7 @@ function LockerTable() {
                                       checked={selectedLockerIds.includes(item.id)}
                                       onChange={() => handleSelectLocker(item.id)}
                                     />
-                                    {item.id}
+                                    {itemIndex + 1}
                                   </td>
                                   <td>{'Locker name'}</td>
                                   <td>{item.lockerType?.name}</td>

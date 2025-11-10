@@ -26,6 +26,46 @@ export const signin = createAsyncThunk(
   }
 );
 
+export const editAuthUser = createAsyncThunk(
+  "auth/edit",
+  async (data, thunkAPI) => {
+    try {
+      const config = {
+        method: "post",
+        url: "auth/edid-profile",
+        data: data,
+      };
+
+      const response = await instance(config);
+     
+      await thunkAPI.dispatch(getAuthUser());
+      return true;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+);
+
+export const changePassword = createAsyncThunk(
+  "auth/changePassword",
+  async (data, thunkAPI) => {
+    try {
+      const config = {
+        method: "post",
+        url: "auth/change-password",
+        data: data,
+      };
+
+      const response = await instance(config);
+     
+      await thunkAPI.dispatch(getAuthUser());
+      return true;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+);
+
 export const getAuthUser = createAsyncThunk(
   'auth/getAuthUser',
   async (_, thunkAPI) => {

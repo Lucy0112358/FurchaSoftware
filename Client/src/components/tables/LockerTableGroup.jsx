@@ -101,7 +101,7 @@ function LockerTableGroup() {
                             }}
                             onClick={() => handleClickBranchSelect(item.id)}
                           >
-                            <GenerateLocker item={item} index={item.id} doorState={item.doorState || ''} />
+                            <GenerateLocker item={item} index={ itemIndex + 1} doorState={item.doorState || ''} />
 
                           </div>
                         ))}
