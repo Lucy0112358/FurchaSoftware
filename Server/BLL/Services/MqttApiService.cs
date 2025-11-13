@@ -36,7 +36,7 @@ namespace FurchaBLL.Services
                 .WithTopic(topic)
                 .WithPayload(payload)
                 .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.ExactlyOnce)
-                .WithRetainFlag()
+                .WithRetainFlag(false)
                 .Build();
 
             await _mqttClient.PublishAsync(message);
