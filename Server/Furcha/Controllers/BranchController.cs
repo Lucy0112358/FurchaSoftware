@@ -69,7 +69,7 @@ namespace FurchaAdminApi.Controllers
 
       //  [Authorize]
      //   [RequiresPermission("CreateBranch")]
-        [HttpPut("branches")]
+        [HttpPost("edit-branch")]
         public ActionResult<ApiResult<bool>> EditBranch([FromQuery] int id, [FromBody] CreateBranchRequest request)
         {
            // var AdminId = GetClaimValue("AdminId");
@@ -80,7 +80,7 @@ namespace FurchaAdminApi.Controllers
 
       //  [Authorize]
       //  [RequiresPermission("DeleteBranch")]
-        [HttpDelete("branches/{id}")]
+        [HttpPost("delete-branch/{id}")]
         public ActionResult<ApiResult<bool>> DeleteBranch(int id)
         {
          //   var AdminId = GetClaimValue("AdminId");

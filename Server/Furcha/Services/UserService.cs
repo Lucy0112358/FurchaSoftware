@@ -379,14 +379,24 @@ namespace FurchaAdminApi.Services
             return groupResults;
         }
 
-        public List<UserResult> SearchUsersOfAdmin(string name, int adminId)
+        public List<UserResult> SearchUsersOfAdmin(string? name, int adminId)
         {
-
             var users = GetUsersForAdminBasedOnRole(adminId);
+
+            if (string.IsNullOrWhiteSpace(name))
+                return users; // return all users
+
+            name = name.Trim();
+
             var filteredUsers = users
-                  .Where(u => u.Name.Contains(name, StringComparison.OrdinalIgnoreCase)
-                           || u.Surname.Contains(name, StringComparison.OrdinalIgnoreCase))
-                  .ToList();
+                .Where(u =>
+                    (!string.IsNullOrEmpty(u.Name) &&
+                     u.Name.Contains(name, StringComparison.OrdinalIgnoreCase)) ||
+
+                    (!string.IsNullOrEmpty(u.Surname) &&
+                     u.Surname.Contains(name, StringComparison.OrdinalIgnoreCase))
+                )
+                .ToList();
 
             return filteredUsers;
         }
@@ -522,9 +532,10 @@ namespace FurchaAdminApi.Services
                 {
                     AssignLockersToUser(newUser.LockerIds, user.Id);
                 }
-
-                AssignUserGroupsToUser(newUser.UserGroups, user.Id);
-
+                if (newUser.UserGroups != null)
+                {
+                    AssignUserGroupsToUser(newUser.UserGroups, user.Id);
+                }
                 //    transactionScope.Complete();
 
                 return new UserResult

@@ -79,7 +79,7 @@ namespace FurchaAdminApi.Controllers
 
         [Authorize]
         [HttpGet("search-user")]
-        public ActionResult<ApiResult<List<UserResult>>> SearchUsersOfAdmin([FromQuery] string name)
+        public ActionResult<ApiResult<List<UserResult>>> SearchUsersOfAdmin([FromQuery] string? name)
         {
             var adminId = GetClaimValue("AdminId");
 

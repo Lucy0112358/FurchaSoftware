@@ -61,7 +61,7 @@ namespace FurchaAdminApi.Services
            int? branchId,
            int? lockerType,
            int? lockerGroupId,
-           int? isOpen = null,
+           int? status = null,
            string? userName = null,
            int? adminId = null)
         {
@@ -86,13 +86,14 @@ namespace FurchaAdminApi.Services
 
             foreach (var branch in adminBranches)
             {
-                var lockers = Db.Lockers
+                var lockers = Db.Lockers.Include(l => l.Users)
                     .Include(l => l.Brain).Include(l => l.LockerTypeNavigation)
                     .Where(l =>
                         (lockerType == null || l.LockerType == lockerType) &&
                         (lockerGroupId == null || l.Brain.GroupId == lockerGroupId) &&
+                        (userName == null || l.Users.Any(u => u.Name.Contains(userName))) &&   // FIXED
                         l.Brain.BranchId == branch.Id &&
-                        (isOpen == null || l.IsOpen == 1)
+                        (status == null || l.LockerStatus == status)
                     )
                     .Select(l => new LockerWithUsers
                     {
@@ -100,12 +101,12 @@ namespace FurchaAdminApi.Services
                         number = (long)(l.Number ?? 0),
                         groupid = l.Brain.GroupId,
                         LockerType = l.LockerTypeNavigation,
-                        IsActive = l.IsActive == true ? 1 : 0,
+                        IsActive = (int)l.IsActive,
+                        Status = (int)l.LockerStatus,
                         IsOpen = l.IsOpen == 1 ? 1 : 0,
                         BranchId = l.Brain.BranchId ?? 0,
                         PasswordHash = l.PasswordHash,
-                        Users = l.Users
-                            .Where(u => u != null)
+                        Users = l.Users                            
                             .Select(u => u.Name)
                             .ToList()
                     })
@@ -170,7 +171,8 @@ namespace FurchaAdminApi.Services
                      groupid = l.Brain.GroupId,
                      number = (long)(l.Number ?? 0),
                      LockerType = l.LockerTypeNavigation,
-                     IsActive = l.IsActive == true ? 1 : 0,
+                     IsActive = (int)l.IsActive,
+                     Status = (int)l.LockerStatus,
                      IsOpen = l.IsOpen == 1 ? 1 : 0,
                      BranchId = l.Brain.BranchId ?? 0,
                      PasswordHash = l.PasswordHash,
@@ -487,7 +489,7 @@ namespace FurchaAdminApi.Services
                 var locker = Db.Lockers.FirstOrDefault(l => l.Id == id);
                 if (locker == null) continue;
 
-                locker.IsActive = locker.IsActive == true ? false : true;
+                locker.IsActive = locker.IsActive;
             }
 
             Db.SaveChanges();

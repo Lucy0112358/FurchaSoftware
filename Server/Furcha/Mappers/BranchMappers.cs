@@ -1,36 +1,41 @@
-﻿using Domain.Entities;
-using FurchaAdminApi.Models.Result;
+﻿using FurchaAdminApi.Models.Result;
+using FurchaDAL.Models;
 
 namespace FurchaAdminApi.Mappers
 {
     public static class BranchMappers
     {
-/*        public static AllBranchResult ToAllBranchResult(this Branch branch, string address, List<string> lockerTypes, int count)
+        /*        public static AllBranchResult ToAllBranchResult(this Branch branch, string address, List<string> lockerTypes, int count)
+                {
+                    return new AllBranchResult
+                    {
+                        Id = branch.Id,
+                        Name = branch.Name,
+                        Address = address,
+                        LockerTypes = lockerTypes,
+                        Comment = branch.Comment,
+                        LockersCount = count,
+                        Mode = branch.Mode,
+                    };
+                }*/
+        public static AllBranchResult ToAllBranchResult(
+      this FurchaDAL.Models.Branch branch,
+      string street,
+      List<LockerTypeResult> lockerTypes,
+      int lockersCount)
         {
             return new AllBranchResult
             {
                 Id = branch.Id,
                 Name = branch.Name,
-                Address = address,
-                LockerTypes = lockerTypes,
+                Address = street,
                 Comment = branch.Comment,
-                LockersCount = count,
-                Mode = branch.Mode,
-            };
-        }*/
-
-        public static AllBranchResult ToAllBranchResult(this FurchaDAL.Models.Branch branch, string address, List<int?> lockerTypes, int count)
-        {
-            return new AllBranchResult
-            {
-                Id = branch.Id,
-                Name = branch.Name,
-                Address = address,
                 LockerTypes = lockerTypes,
-                Comment = branch.Comment,
-                LockersCount = count,
-                Mode = (int)branch.Mode,
+                LockersCount = lockersCount,
+                Mode = branch.Mode ?? 0   // 👈 FIXED
             };
         }
+
+
     }
 }

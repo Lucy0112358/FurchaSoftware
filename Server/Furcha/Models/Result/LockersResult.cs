@@ -19,9 +19,11 @@ namespace FurchaAdminApi.Models.Result
 
         public LockerType LockerType { get; set; }
 
-        public int IsActive { get; set; }
+        public int IsActive { get; set; } // active / suspended
 
-        public int IsOpen { get; set; }
+        public int Status { get; set; } // free / occcupied
+
+        public int IsOpen { get; set; } // door state
 
         public int BranchId { get; set; }
 

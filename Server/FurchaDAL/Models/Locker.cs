@@ -11,7 +11,7 @@ public partial class Locker
 
     public string PasswordHash { get; set; }
 
-    public bool? IsActive { get; set; }
+    public int? IsActive { get; set; }
 
     public int? IsOpen { get; set; }
 

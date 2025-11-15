@@ -29,9 +29,9 @@ namespace FurchaAdminApi.Controllers
         public ActionResult<ApiResult<List<OfficeResult>>> Get(
             int? branchId = null,
             int? lockerType = null,
-            int? lockerGroupId = null,
-            int? isOpen = null,
-            string? userName = null
+            int? groupId = null,
+            int? status = null,
+            string? name = null
           )
         {
             var adminId = GetClaimValue("AdminId");
@@ -39,9 +39,9 @@ namespace FurchaAdminApi.Controllers
             var lockers = _lockerService.GetLockersByFilters(
                 branchId,
                 lockerType,
-                lockerGroupId,
-                isOpen,
-                userName,
+                groupId,
+                status,
+                name,
                 int.Parse(adminId)
             );
 
