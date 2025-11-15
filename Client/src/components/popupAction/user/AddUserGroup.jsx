@@ -65,7 +65,7 @@ function AddUserGroup({ ids, onClose }) {
                     className='bg-gray-600 text-white rounded cursor-pointer'
                     onClick={() => setShowConfirm(true)}
                 >
-                    Save Group
+                    Add Group
                 </button>
             }
 

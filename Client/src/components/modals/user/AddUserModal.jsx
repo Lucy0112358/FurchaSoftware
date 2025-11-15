@@ -111,7 +111,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
       }
     }
     if (!sentGeneralInfo.phone || !sentGeneralInfo.phone.trim()) errors.phone = 'Phone is required';
-    if (!sentGeneralInfo.userGroups || !sentGeneralInfo.userGroups.length) errors.userGroups = 'At least one User Group must be selected';
+    // if (!sentGeneralInfo.userGroups || !sentGeneralInfo.userGroups.length) errors.userGroups = 'At least one User Group must be selected';
     return errors;
   };
 

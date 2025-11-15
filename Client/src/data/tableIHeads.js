@@ -21,12 +21,11 @@ export const userTableGroups = [
 
 export const lockerTable = [
     'ID',
-    'Name',
     'Type',
     'User',
+    'Door status',
     'Status',
-    'State',
-    'DoorState',
+    'Locker mode',
 ];
 
 export const parcelLockerTable = [

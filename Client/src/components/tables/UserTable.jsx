@@ -7,6 +7,7 @@ import CustomCheckbox from '../checkbox/CustomCheckbox';
 import UnselectIds from '../button/UnselectIds';
 import UserPopup from '../popups/user/UserPopup';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import { format, parseISO } from 'date-fns';
 
 function UserTable() {
   const allUsers = useSelector(getAllUsersData);
@@ -71,19 +72,19 @@ function UserTable() {
                   </td>
                   <td>
                     {user.branches?.map((branch, idx) => (
-                      <div key={idx}>{branch.name}</div>
+                      branch.name
                     ))}
                   </td>
-                  <td>
+                  <td className='w-[157px]'>
                     {user.userGroups?.map((group, idx) => (
-                      <div key={idx}>{group.name + ','}</div>
+                      group.name + ', '
                     ))}
                   </td>
-                  <td className={` ${user.state === 'Suspended' ? 'text-red-500' : ''}`}>
-                    {user.state}
+                  <td className={user.state === 1 ? 'text-green-500' : 'text-red-500 '}>
+                    {user.state === 1 ? 'Active' : 'Suspended'}
                   </td>
-                  <td>{user.activeTo? user.activeTo : '-'}</td>
-                  <td>{user.activeFrom ? user.activeFrom : '-'}</td>
+                  <td>{user.activeTo ? format(parseISO(user.activeTo), 'yyyy-MM-dd') : '-'}</td>
+                  <td>{user.activeFrom ? format(parseISO(user.activeFrom), 'yyyy-MM-dd') : '-'}</td>
                 </tr>
               ))}
             </tbody>
@@ -98,7 +99,12 @@ function UserTable() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <UserPopup user={popup.target} onClose={closePopup} selectedIds={selectedUserIds} />
+              <UserPopup
+                user={popup.target}
+                onClose={closePopup}
+                selectedIds={selectedUserIds}
+                setSelectedUserIds={setSelectedUserIds}
+              />
             </div>
           )}
         </div> : <NoData text="No Users" />

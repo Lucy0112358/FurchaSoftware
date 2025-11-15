@@ -9,7 +9,7 @@ function LockerStatus({ addFilters }) {
     if(selectedStatus === 'all') {
       selectedStatus = null;
     }
-    addFilters(selectedStatus, 'isOpen');
+    addFilters(selectedStatus, 'status');
   };
 
   return (
@@ -18,7 +18,7 @@ function LockerStatus({ addFilters }) {
         <label className="flex flex-col ">
           <input
             type="radio"
-            name="isOpen"
+            name="status"
             value="all"
             checked={status === 'all'}
             onChange={() => handleStatusChange ('all')}
@@ -29,7 +29,7 @@ function LockerStatus({ addFilters }) {
         <label className="flex flex-col ">
           <input
             type="radio"
-            name="isOpen"
+            name="status"
             value="free"
             checked={status === LockerStatusEnum.free}
             onChange={() => handleStatusChange (LockerStatusEnum.free)}
@@ -40,7 +40,7 @@ function LockerStatus({ addFilters }) {
         <label className="flex flex-col ">
           <input
             type="radio"
-            name="isOpen"
+            name="status"
             value={LockerStatusEnum.occupied}
             checked={status === LockerStatusEnum.occupied}
             onChange={() => handleStatusChange (LockerStatusEnum.occupied)}

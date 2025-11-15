@@ -4,84 +4,86 @@ import instance from "../../config/axios/axiosConfig";
 export const getLockerGroupsByBranchId = createAsyncThunk(
   'branch/getLockerGroupsByBranchId',
   async (id, thunkAPI) => {
-      try {
-        const config = {
-          method: "get",
-          url: `Locker/GetGroupsWithLockers?branchId=${id}`,
-        };
-       
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
+    try {
+      const config = {
+        method: "get",
+        url: `Locker/GetGroupsWithLockers?branchId=${id}`,
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
     }
+  }
 )
 
 export const getAllBranches = createAsyncThunk(
   'branch/getAllBranches',
   async (params, thunkAPI) => {
-      try {
-        const config = {
-          method: "get",
-          url: 'Branch/branches',
-          params: {...params}
-        };
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
+    try {
+      const config = {
+        method: "get",
+        url: 'Branch/branches',
+        params: { ...params }
+      };
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
     }
+  }
 )
 
 export const createBranch = createAsyncThunk(
   'branch/createBranch',
   async (data, thunkAPI) => {
-      try {
-        const config = {
-          method: "post",
-          data: data,
-          url: 'Branch/create-branch',
-        };
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
+    try {
+      const config = {
+        method: "post",
+        data: data,
+        url: 'Branch/create-branch',
+      };
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
     }
+  }
 )
 
 export const deleteBranch = createAsyncThunk(
   'branch/deleteBranch',
   async (id, thunkAPI) => {
-      try {
-        const config = {
-          method: "delete",
-          url: 'Branch/branches/' + id,
-        };
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
+    try {
+      const config = {
+        method: "post",
+        url: 'branch/delete-branch/' + id,
+      };
+      const response = await instance(config);
+      await thunkAPI.dispatch(getAllBranches());
+      return response?.data;
+
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
     }
+  }
 )
 
 export const getBranch = createAsyncThunk(
   'branch/getBranch',
   async (id, thunkAPI) => {
-      try {
-        const config = {
-          method: "get",
-          url: 'Branch/branches/' + id,
-        };
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
+    try {
+      const config = {
+        method: "get",
+        url: 'Branch/branches/' + id,
+      };
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
     }
+  }
 )
 
 export const updateBranch = createAsyncThunk(
@@ -90,8 +92,8 @@ export const updateBranch = createAsyncThunk(
     try {
       const { id, ...payload } = data;
       const config = {
-        method: "put",
-        url: `Branch/branches/${id}`,
+        method: "post",
+        url: `branch/edit-branch?id=${id}`,
         data: payload,
       };
 

@@ -29,7 +29,7 @@ function BranchMenu() {
         setDebounceTimeout(
             setTimeout(() => {
                 dispatch(getAllBranches({ 'name': name }));
-            }, 1000)
+            }, 500)
         );
     };
 

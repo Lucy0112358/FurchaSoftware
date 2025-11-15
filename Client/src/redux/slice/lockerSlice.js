@@ -38,6 +38,8 @@ export const lockerSlice = createSlice({
       state.parcelLockerFilters = action.payload
     },
     setLocker: (state, action) => {
+      console.log('setLocker');
+      
       state.allLockers = action.payload.data;
     },
     setLockerMessage: (state, action) => {
@@ -101,6 +103,7 @@ export const lockerSlice = createSlice({
       })
       .addCase(getLockers.fulfilled, (state, action) => {
         state.loading = false;
+      console.log('getLockers.fulfilled');
         lockerSlice.caseReducers.setLocker(state, action);
       })
       .addCase(getParcelMessages.fulfilled, (state, action) => {

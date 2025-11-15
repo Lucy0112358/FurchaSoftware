@@ -14,6 +14,7 @@ function LockerTable() {
   const dispatch = useDispatch();
   const allLockers = useSelector(getAllLockersData);
   const selectedLockerIds = useSelector(getSelectedLockerIds);
+  console.log(allLockers, 77777);
 
   const {
     popup,
@@ -89,7 +90,6 @@ function LockerTable() {
                                     />
                                     {itemIndex + 1}
                                   </td>
-                                  <td>{'Locker name'}</td>
                                   <td>{item.lockerType?.name}</td>
                                   <td>
                                     {item.users?.map((userName, i) => (
@@ -99,11 +99,13 @@ function LockerTable() {
                                       </span>
                                     ))}
                                   </td>
-                                  <td>{item.isOpen ? 'open' : 'closed'}</td>
-                                  <td className={item.state === 'suspended' ? 'text-red-500 capitalize' : 'capitalize'}>
-                                    {item.state}
+                                  <td>{item.isOpen === 1 ? 'Open' : 'Closed'}</td>
+                                  <td className={item.status === 1 ? 'text-green-500' : 'text-red-500 '}>
+                                    {item.status === 1 ? 'Free' : 'Occupied'}
                                   </td>
-                                  <td className='capitalize'>{item.doorState || '-'}</td>
+                                  <td className={item.isActive === 1 ? 'text-green-500' : 'text-red-500'}>
+                                    {item.isActive === 1 ? 'Active' : 'Suspended'}
+                                  </td>
                                 </tr>
                               ))}
                             </tbody>

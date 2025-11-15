@@ -29,25 +29,33 @@ function UserMenu() {
     const [debounceTimeout, setDebounceTimeout] = useState(null);
     const fileInputRef = useRef(null);
 
+    const branchOptions = Array.isArray(branches)
+        ? [{ label: 'All branches', value: null }, ...branches.map(branch => ({ label: branch.name, value: branch.id }))]
+        : [{ label: '', value: null }];
+
+    const groupOptions = Array.isArray(userGroups)
+        ? [{ label: 'All groups', value: null }, ...userGroups.map(group => ({ label: group.name, value: group.id }))]
+        : [{ label: '', value: null }];
+
     const handleSelectChange = (selectedOption) => {
         setSelectedBranch(selectedOption);
-        addFilters(selectedOption, 'branchId')
-    }
+        addFilters(selectedOption?.value, 'branchId');
+    };
+
     const handleGroupsSelectChange = (selectedOption) => {
         setSelectedGroups(selectedOption);
-        addFilters(selectedOption, 'groupId')
-        // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
+        addFilters(selectedOption?.value, 'groupId');
     };
 
     useEffect(() => {
         userGroupEnabled ? dispatch(getAllGroups()) : dispatch(getAllUsers());
     }, [userGroupEnabled]);
 
-    const addFilters = (selectedOption, key) => {
+    const addFilters = (value, key) => {
         setFilters((prevFilters) => {
             const updatedFilters = {
                 ...prevFilters,
-                [key]: selectedOption.value,
+                [key]: value,
             };
 
             dispatch(userFilter(updatedFilters));
@@ -72,19 +80,18 @@ function UserMenu() {
     };
 
     const handleFilterName = (e) => {
-        let name = e.target.value;
-        setFilters({})
+        const name = e.target.value;
         setInputValue(name);
-        if (debounceTimeout) {
-            clearTimeout(debounceTimeout);
-        }
 
-        setDebounceTimeout(
-            setTimeout(() => {
-                dispatch(filterUserByName({ 'name': name }));
-            }, 1000)
-        );
+        if (debounceTimeout) clearTimeout(debounceTimeout);
+
+        const timeout = setTimeout(() => {
+            addFilters(name, 'name');
+        }, 500);
+
+        setDebounceTimeout(timeout);
     };
+
 
     const handleUserGroupSelect = () => {
         const newValue = !userGroupEnabled;
@@ -123,10 +130,7 @@ function UserMenu() {
                     <div className='flex flex-col'>
                         <div className='menu__filter__select'>
                             <CustomSelect
-                                options={(Array.isArray(branches) ? branches : []).map(branch => ({
-                                    label: branch.name,
-                                    value: branch.id,
-                                }))}
+                                options={branchOptions}
                                 value={selectedBranch}
                                 onChange={handleSelectChange}
                             />
@@ -134,10 +138,8 @@ function UserMenu() {
                         </div>
                         <div className='menu__filter__select'>
                             <CustomSelect
-                                options={(Array.isArray(userGroups) ? userGroups : []).map(group => ({
-                                    label: group.name,
-                                    value: group.id,
-                                }))}
+                                options={groupOptions}
+
                                 value={selectedGroups}
                                 onChange={handleGroupsSelectChange}
                             />

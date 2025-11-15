@@ -6,7 +6,7 @@ import State from '../../popupAction/user/State';
 import AddUserGroup from '../../popupAction/user/AddUserGroup';
 
 
-function UserPopup({ user, onClose, selectedIds }) {
+function UserPopup({ user, onClose, selectedIds, setSelectedUserIds }) {
 
   return (
     <div
@@ -29,7 +29,7 @@ function UserPopup({ user, onClose, selectedIds }) {
 
             <div className="flex flex-col gap-2">
               <Edit id={user.id} onClose={onClose} />
-              <Delete ids={[user.id]} onClose={onClose} />
+              <Delete ids={[user.id]} onClose={onClose} setSelectedUserIds={setSelectedUserIds} />
               <State user={user} onClose={onClose} />
               <AddUserGroup ids={[user.id]} onClose={onClose} />
             </div>

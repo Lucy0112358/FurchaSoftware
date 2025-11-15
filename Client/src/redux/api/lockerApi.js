@@ -12,10 +12,10 @@ export const getLockers = createAsyncThunk(
       };
 
       const response = await instance(config);
-      let data = response?.data;
-      data.data[0].lockers[10].groupLockers.forEach((door) => {
-        door.doorState = 'closed';
-      });
+      // let data = response?.data;
+      // data?.data[0]?.lockers[10].groupLockers.forEach((door) => {
+      //   door.doorState = 'closed';
+      // });
 
       return response?.data;
     } catch (error) {

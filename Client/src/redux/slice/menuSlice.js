@@ -28,13 +28,12 @@ export const menuSlice = createSlice({
     },
     setLockerGroup: (state, action) => {
       state.lockerGroups = action;
-      //  state.lockerGroups = [{ id: 0, name: "All" }, ...action];
     },
     setLockerGroupWithFilters: (state, action) => {
       state.filteredLockerGroups =  state.lockerGroups.filter(group => group.branchId === action.payload);
     },
     setUserGroups: (state, action) => {
-      state.userGroups = [{ id: 0, name: "All" }, ...action];
+      state.userGroups = action;
     },
     setUserGroupSelect: (state) => {
       state.userGroupSelect = !state.userGroupSelect

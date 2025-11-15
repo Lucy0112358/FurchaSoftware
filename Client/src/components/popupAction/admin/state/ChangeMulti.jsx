@@ -8,7 +8,7 @@ import { changeAdminState, getAllAdmins } from '../../../../redux/api/adminApi';
 function ChangeMulti({ ids = [], onClose }) {
     const [selectedStateValue, setSelectedStateValue] = useState(null);
     const options = [
-        { label: 'Select state', value: null },
+        { label: 'Update State', value: null },
         { label: 'Active', value: 1 },
         { label: 'Suspended', value: 2 },
     ];
@@ -43,7 +43,7 @@ function ChangeMulti({ ids = [], onClose }) {
         <>
             <CustomSelect
                 options={options}
-                defaultValue={{ label: 'Select state', value: null }}
+                defaultValue={{ label: 'Update State', value: null }}
                 onChange={handleChangeState}
             />
             {

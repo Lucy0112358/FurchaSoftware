@@ -41,13 +41,14 @@ function LockerMenu() {
   const lockerFilters = useSelector(getLockerFilter);
   const { hasPermission } = useHasPermission();
 
+
   const branchOptions = Array.isArray(branches)
-    ? branches?.map(branch => ({ label: branch.name, value: branch.id }))
-    : [];
+    ? [{ label: 'All branches', value: null }, ...branches.map(branch => ({ label: branch.name, value: branch.id }))]
+    : [{ label: '', value: null }];
 
   const groupOptions = Array.isArray(lockerGroups)
-    ? lockerGroups?.map(group => ({ label: group.name, value: group.id }))
-    : [];
+    ? [{ label: 'All groups', value: null }, ...lockerGroups.map(group => ({ label: group.name, value: group.id }))]
+    : [{ label: '', value: null }];
 
   const handleSelectChange = (selectedOption) => {
     setSelectedBranch(selectedOption);
