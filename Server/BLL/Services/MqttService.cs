@@ -298,7 +298,7 @@ public class MqttService
         var message = new MqttApplicationMessageBuilder()
             .WithTopic("$CONTROL/dynamic-security/v1")
             .WithPayload(payload)
-            .WithRetainFlag(true)
+            .WithRetainFlag(false)
             .Build();
 
         var result = await _mqttClient.PublishAsync(message, CancellationToken.None);
@@ -316,7 +316,7 @@ public class MqttService
             var message = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
                 .WithPayload(payload)
-                .WithRetainFlag(true)
+                .WithRetainFlag(false)
                 .Build();
 
             await _mqttClient.PublishAsync(message);
