@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getBranches, getLockerGroupsData, getUserGroups, setUserGroup, userFilter } from "../api/menuApi";
+import { getBranches, getLockerGroupsData, getUserGroups, setUserGroup } from "../api/menuApi";
 import { userSlice } from "./userSlice";
 // import { APP_BASE_URL } from "../../config";
 

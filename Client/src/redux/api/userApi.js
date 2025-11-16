@@ -1,13 +1,14 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import instance from "../../config/axios/axiosConfig";
 
-export const getAllUsers = createAsyncThunk(
-  'user/getAllUsers',
-  async (_, thunkAPI) => {
+export const getUsers = createAsyncThunk(
+  'user/getUsers',
+  async (params, thunkAPI) => {
     try {
       const config = {
         method: "get",
-        url: 'User/company-users',
+        url: 'user/users',
+        params: { ...params },
       };
 
       const response = await instance(config);

@@ -7,8 +7,7 @@ import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import { getBranchesData } from "../../../redux/slice/menuSlice";
-import { userFilter } from "../../../redux/api/menuApi";
-import { getAllUsers, setUserInfo, updateUserInfo } from "../../../redux/api/userApi";
+import { getUsers, setUserInfo, updateUserInfo } from "../../../redux/api/userApi";
 import { IoMdAdd } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
 import AddUserGroupModal from "../addUserGroup/AddUserGroupModal";
@@ -225,7 +224,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
       .then(res => {
         if (res?.payload?.isSuccess) {
           toast.success("User updated successfully");
-          dispatch(getAllUsers());
+          dispatch(getUsers());
           onClose();
         } else {
           toast.error(res.error?.message || "Error occurred");
@@ -256,7 +255,8 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
     const ids = selectedOption.map(o => o.value);
     setSentGeneralInfo(prev => ({ ...prev, userGroups: ids }));
     sendGroupInfo('User Groups', 'userGroups', ids);
-    if (selectedOption.length) dispatch(userFilter({ filterByGroupId: selectedOption[0].value }));
+    // TODO: Check filter application
+    // if (selectedOption.length) dispatch(userFilter({ filterByGroupId: selectedOption[0].value }));
   };
 
   const handleSelectBranch = (branch) => {

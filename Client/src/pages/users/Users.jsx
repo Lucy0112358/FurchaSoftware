@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllUsers } from "../../redux/api/userApi";
+import { getUsers } from "../../redux/api/userApi";
 import { getSelectGroupSelect } from "../../redux/slice/menuSlice";
 import UserTable from "../../components/tables/UserTable";
 import './user.css';
@@ -11,7 +11,7 @@ const Users = () => {
   const userGroupSelected = useSelector(getSelectGroupSelect);
 
   useEffect(() => {
-    dispatch(getAllUsers());
+    dispatch(getUsers());
   }, []);
 
   return (

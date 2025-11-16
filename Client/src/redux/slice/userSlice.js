@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { filterUserWithOutPaginte, getAllUsers, setUserInfo, userShow } from "../api/userApi";
-import { filterUserByName, userFilter } from "../api/menuApi";
+import { filterUserWithOutPaginte, getUsers, setUserInfo, userShow } from "../api/userApi";
+// import { userFilter } from "../api/menuApi";
 // import { getUserSites } from "../api/userApi";
 // import { APP_BASE_URL } from "../../config";
 
@@ -32,14 +32,14 @@ export const userSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      .addCase(getAllUsers.pending, (state) => {
+      .addCase(getUsers.pending, (state) => {
         state.loading = true;
       })
-      .addCase(getAllUsers.fulfilled, (state, action) => {
+      .addCase(getUsers.fulfilled, (state, action) => {
         state.loading = false;
         userSlice.caseReducers.setUser(state, action);
       })
-      .addCase(getAllUsers.rejected, (state, action) => {
+      .addCase(getUsers.rejected, (state, action) => {
         state.errorMessage = action.payload;
         state.loading = false;
       })
@@ -58,12 +58,9 @@ export const userSlice = createSlice({
         state.errorMessage = action.payload;
         state.loading = false;
       })
-      .addCase(userFilter.fulfilled, (state, action) => {
-        userSlice.caseReducers.setUser(state, action);
-      })
-      .addCase(filterUserByName.fulfilled, (state, action) => {
-        userSlice.caseReducers.setUser(state, action);
-      })
+      // .addCase(userFilter.fulfilled, (state, action) => {
+      //   userSlice.caseReducers.setUser(state, action);
+      // })
       .addCase(filterUserWithOutPaginte.fulfilled, (state, action) => {
         state.filteredUsers = action.payload;
       })

@@ -2,9 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import '../menu.css';
 import { assets } from '../../../assets/assets';
 import { useDispatch, useSelector } from 'react-redux';
-import { filterUserByName, getBranches, getLockerGroupsData, getUserGroups, userFilter } from '../../../redux/api/menuApi';
+import { getBranches, getLockerGroupsData, getUserGroups } from '../../../redux/api/menuApi';
 import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter, setUserGroupSelect } from '../../../redux/slice/menuSlice';
-import { getAllUsers } from '../../../redux/api/userApi';
+import { getUsers } from '../../../redux/api/userApi';
 import { getAllGroups } from '../../../redux/api/groupApi';
 import GeneralAddModal from '../../modals/GeneralAddModal';
 import { TbPlugConnected } from "react-icons/tb";
@@ -48,7 +48,7 @@ function UserMenu() {
     };
 
     useEffect(() => {
-        userGroupEnabled ? dispatch(getAllGroups()) : dispatch(getAllUsers());
+        userGroupEnabled ? dispatch(getAllGroups()) : dispatch(getUsers());
     }, [userGroupEnabled]);
 
     const addFilters = (value, key) => {
@@ -58,7 +58,7 @@ function UserMenu() {
                 [key]: value,
             };
 
-            dispatch(userFilter(updatedFilters));
+            dispatch(getUsers(updatedFilters));
             return updatedFilters;
         });
     }
@@ -101,7 +101,7 @@ function UserMenu() {
         if (newValue) {
             dispatch(getAllGroups());
         } else {
-            dispatch(getAllUsers());
+            dispatch(getUsers());
         }
     };
 
