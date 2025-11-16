@@ -83,8 +83,8 @@ function UserTable() {
                   <td className={user.state === 1 ? 'text-green-500' : 'text-red-500 '}>
                     {user.state === 1 ? 'Active' : 'Suspended'}
                   </td>
-                  <td>{user.activeTo ? format(parseISO(user.activeTo), 'yyyy-MM-dd') : '-'}</td>
                   <td>{user.activeFrom ? format(parseISO(user.activeFrom), 'yyyy-MM-dd') : '-'}</td>
+                  <td>{user.activeTo ? format(parseISO(user.activeTo), 'yyyy-MM-dd') : '-'}</td>
                 </tr>
               ))}
             </tbody>

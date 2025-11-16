@@ -7,8 +7,8 @@ export const userTable = [
     'Branch',
     'User Group',
     'State',
-    'Active To',
     'Active From',
+    'Active To',
 ];
 
 export const userTableGroups = [

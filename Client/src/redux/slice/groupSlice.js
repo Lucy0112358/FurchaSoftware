@@ -40,7 +40,7 @@ export const {
 } = groupSlice.actions;
 
 export const getLoadingNow = (state) => state.group.loading;
-export const getUserGroupData = (state) => state.user.getUserGroup;
+export const getUserGroupData = (state) => state.group.getUserGroup;
 export const getAllGroupsData = (state) => state.group.allGroup;
 
 export default groupSlice.reducer;

@@ -26,7 +26,7 @@ export const setUserInfo = createAsyncThunk(
     try {
       const config = {
         method: "post",
-        url: 'User/add-user',
+        url: 'user/add-user',
         data: data
       };
 
@@ -44,7 +44,7 @@ export const updateUserInfo = createAsyncThunk(
     try {
       const config = {
         method: "post",
-        url: 'User/edit-user',
+        url: 'user/edit-user',
         data: data
       };
 
@@ -62,7 +62,7 @@ export const filterUserWithOutPaginte = createAsyncThunk(
     try {
       const config = {
         method: "get",
-        url: 'User/filtered-users',
+        url: 'user/filtered-users',
         params: { ...params },
       };
 
@@ -93,7 +93,7 @@ export const deleteUsers = createAsyncThunk(
     try {
       const config = {
         method: "post",
-        url: 'User/delete-users',
+        url: 'user/delete-users',
         data: { ids: ids }
       };
       const response = await instance(config);
@@ -110,7 +110,7 @@ export const changeUserState = createAsyncThunk(
     try {
       const config = {
         method: "post",
-        url: 'User/change-state',
+        url: 'user/change-state',
         data: { ids: ids, state: state }
       };
       const response = await instance(config);
@@ -129,7 +129,7 @@ export const changeUserGroup = createAsyncThunk(
     try {
       const config = {
         method: "patch",
-        url: 'User/change-group',
+        url: 'user/change-group',
         data: { ids: ids, groupId: groupId }
       };
       const response = await instance(config);

@@ -7,7 +7,7 @@ export const getAllGroups = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'User/user-groups'
+          url: 'user/user-groups'
         };
        
         const response = await instance(config);
@@ -23,8 +23,8 @@ export const deleteUserGroups = createAsyncThunk(
   async (ids, thunkAPI) => {
       try {
         const config = {
-          method: "delete",
-          url: 'User/deleteUserGroups',
+          method: "post",
+          url: 'user/delete-user-groups',
           data: { ids: ids }
         };
         const response = await instance(config);
@@ -41,7 +41,7 @@ export const suspendUserGroups = createAsyncThunk(
       try {
         const config = {
           method: "post",
-          url: 'User/suspendUserGroups',
+          url: 'user/suspend-user-groups',
           data: { ids: ids }
         };
         const response = await instance(config);
@@ -58,12 +58,13 @@ export const userGroupShow = createAsyncThunk(
     try {
       const config = {
         method: "get",
-        url: 'User/user-groups/' + id,
+        url: 'user/user-groups/' + id,
       };
       // const response = await instance(config);
+      
       // return response?.data?.data;
       return {
-        "name": "Group name",
+        "name": "Meeting Group",
         "branches" : [ 
           {
             "id": 1,
@@ -89,7 +90,7 @@ export const updateUserGroupInfo = createAsyncThunk(
     try {
       const config = {
         method: "post",
-        url: 'User/edit-userGroup',
+        url: 'user/edit-user-group',
         data: data
       };
 

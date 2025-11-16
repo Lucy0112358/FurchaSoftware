@@ -11,6 +11,7 @@ import BranchMenu from './branch/BranchMenu';
 import { getLockerTypes } from '../../redux/api/lockerApi';
 import ParcelMenu from './locker/parcels/ParcelMenu';
 import ProfileMenu from './profile/ProfileMenu';
+import UserMenuContainer from './user/UserMenuContainer';
 
 
 function Menu() {
@@ -32,7 +33,7 @@ function Menu() {
     <div >
       {
         path == '/' || path == '/users' ?
-          <UserMenu />
+          <UserMenuContainer />
           : path == '/lockers' ?
             <LockerMenu />
             : path == '/admins' ?

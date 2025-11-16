@@ -10,7 +10,6 @@ import { getBranchesData } from "../../../redux/slice/menuSlice";
 import { getUsers, setUserInfo, updateUserInfo } from "../../../redux/api/userApi";
 import { IoMdAdd } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
-import AddUserGroupModal from "../addUserGroup/AddUserGroupModal";
 import { getLockerGroupsByBranchId } from "../../../redux/api/branchApi";
 import { clearFilteredLockerGroups, getFilteredLockerGroups } from "../../../redux/slice/lockerSlice";
 import GroupName from "../../headers/GroupName";
@@ -22,6 +21,7 @@ import CustomSelect from "../../select/CustomSelect";
 import ShowFormikError from "../../error/ShowFormikError";
 import { getAllGroupsData } from "../../../redux/slice/groupSlice";
 import { getAllGroups } from "../../../redux/api/groupApi";
+import AddUserGroupModal from "./addUserGroup/AddUserGroupModal";
 
 const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
   if (!isOpen) return null;

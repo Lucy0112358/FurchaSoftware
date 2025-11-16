@@ -3,17 +3,18 @@ import AddUserModal from '../../modals/user/AddUserModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserData } from '../../../redux/slice/userSlice';
 import { userShow } from '../../../redux/api/userApi';
-import AddUserGroupModal from '../../modals/addUserGroup/AddUserGroupModal';
+import AddUserGroupModal from '../../modals/user/addUserGroup/AddUserGroupModal';
+import { userGroupShow } from '../../../redux/api/groupApi';
+import { getUserGroupData } from '../../../redux/slice/groupSlice';
 
 function Edit({ id, onClose }) {
     const dispatch = useDispatch();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const data = useSelector(getUserData);
-console.log(data, 'userData');
+    const data = useSelector(getUserGroupData);
 
     useEffect(() => {
         if (id) {
-            dispatch(userShow({id}));
+            dispatch(userGroupShow({id}));
         }
     }, [id]);
 
@@ -21,6 +22,9 @@ console.log(data, 'userData');
         setIsModalOpen(false);
         onClose();
     };
+
+    console.log(data, 'data');
+    
 
     return (
         <>

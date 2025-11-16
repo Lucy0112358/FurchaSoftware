@@ -1,20 +1,20 @@
 import React, { useState } from "react";
 import './addUserGroup.css';
-import '../modal.css';
+import '../../modal.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
+import { getAddUserInfo, setAddUserInfo } from "../../../../redux/slice/userSlice";
 import 'react-tabs/style/react-tabs.css';
-import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
-import { setUserGroup } from "../../../redux/api/menuApi";
-import { getFilteredLockerGroups } from "../../../redux/slice/lockerSlice";
-import NoData from "../../no-data/NoData";
-import { getLockerGroupsByBranchId } from "../../../redux/api/branchApi";
-import GroupName from "../../headers/GroupName";
-import GenerateLocker from "../../lockers/GenerateLocker";
+import { getBranchesData, getUserGroupsData } from "../../../../redux/slice/menuSlice";
+import { getFilteredLockerGroups } from "../../../../redux/slice/lockerSlice";
+import NoData from "../../../no-data/NoData";
+import { getLockerGroupsByBranchId } from "../../../../redux/api/branchApi";
+import GroupName from "../../../headers/GroupName";
+import GenerateLocker from "../../../lockers/GenerateLocker";
 import { toast } from "react-toastify";
-import CloseButton from "../attributes/CloseButton";
-import ShowFormikError from "../../error/ShowFormikError";
-import { getAllGroups } from "../../../redux/api/groupApi";
+import { setUserGroup } from "../../../../redux/api/menuApi";
+import { getAllGroups } from "../../../../redux/api/groupApi";
+import ShowFormikError from "../../../error/ShowFormikError";
+import CloseButton from "../../attributes/CloseButton";
 
 
 const  AddUserGroupModal = ({isOpen, onClose, mode = "add", initialData = {}}) => {

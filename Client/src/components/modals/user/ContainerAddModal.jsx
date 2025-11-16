@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { assets } from '../../assets/assets';
-import AddUserModal from './user/AddUserModal';
+import { assets } from '../../../assets/assets';
+import AddUserModal from './AddUserModal';
 import { useSelector } from 'react-redux';
-import { getSelectGroupSelect } from '../../redux/slice/menuSlice';
+import { getSelectGroupSelect } from '../../../redux/slice/menuSlice';
 import AddUserGroupModal from './addUserGroup/AddUserGroupModal';
 
-function GeneralAddModal() {
+function  ContainerAddModal() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const userGroupEnabled = useSelector(getSelectGroupSelect);
 
@@ -28,8 +28,6 @@ function GeneralAddModal() {
         <AddUserGroupModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          mode="edit"
-          editData={5}
         />
       ) : (
         <AddUserModal
@@ -41,4 +39,4 @@ function GeneralAddModal() {
   );
 }
 
-export default GeneralAddModal;
+export default ContainerAddModal;

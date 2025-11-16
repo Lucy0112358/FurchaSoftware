@@ -6,7 +6,6 @@ import Suspend from '../../popupAction/userGroup/Suspend';
 
 
 function UserGroupPopup({ userGroup, onClose, selectedIds }) {
-
   return (
     <div
       className="bg-white shadow-xl rounded-lg p-5 w-72 border border-gray-200"
@@ -24,7 +23,7 @@ function UserGroupPopup({ userGroup, onClose, selectedIds }) {
             </div>
 
             <div className="flex flex-col gap-2">
-               <Edit groups={userGroup} onClose={onClose} />
+               <Edit id={userGroup.id} onClose={onClose} />
                <Delete ids={[userGroup.id]} onClose={onClose} />
                <Suspend ids={[userGroup.id]} onClose={onClose} />
             </div>

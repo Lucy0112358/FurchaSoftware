@@ -17,34 +17,20 @@ import { getAllBranchesData } from '../../../redux/slice/branchSlice';
 import { getAllBranches } from '../../../redux/api/branchApi';
 
 
-function UserMenu() {
+function UserGroupMenu() {
     const dispatch = useDispatch();
     const [selectedBranch, setSelectedBranch] = useState(null);
-    const [selectedGroups, setSelectedGroups] = useState(null);
     const userGroupEnabled = useSelector(getSelectGroupSelect);
     const [filters, setFilters] = useState({});
     const branches = useSelector(getAllBranchesData);
-    const userGroups = useSelector(getUserGroupsData);
-    const [inputValue, setInputValue] = useState('');
-    const [debounceTimeout, setDebounceTimeout] = useState(null);
-    const fileInputRef = useRef(null);
 
     const branchOptions = Array.isArray(branches)
         ? [{ label: 'All branches', value: null }, ...branches.map(branch => ({ label: branch.name, value: branch.id }))]
         : [{ label: '', value: null }];
 
-    const groupOptions = Array.isArray(userGroups)
-        ? [{ label: 'All groups', value: null }, ...userGroups.map(group => ({ label: group.name, value: group.id }))]
-        : [{ label: '', value: null }];
-
     const handleSelectChange = (selectedOption) => {
         setSelectedBranch(selectedOption);
         addFilters(selectedOption?.value, 'branchId');
-    };
-
-    const handleGroupsSelectChange = (selectedOption) => {
-        setSelectedGroups(selectedOption);
-        addFilters(selectedOption?.value, 'groupId');
     };
 
     useEffect(() => {
@@ -67,31 +53,6 @@ function UserMenu() {
         dispatch(getAllBranches());
         dispatch(getLockerGroupsData());
     }, []);
-
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            console.log('Выбран файл:', file.name);
-        }
-    };
-
-    const handleFileClick = () => {
-        fileInputRef.current.click();
-    };
-
-    const handleFilterName = (e) => {
-        const name = e.target.value;
-        setInputValue(name);
-
-        if (debounceTimeout) clearTimeout(debounceTimeout);
-
-        const timeout = setTimeout(() => {
-            addFilters(name, 'name');
-        }, 500);
-
-        setDebounceTimeout(timeout);
-    };
-
 
     const handleUserGroupSelect = () => {
         const newValue = !userGroupEnabled;
@@ -136,46 +97,10 @@ function UserMenu() {
                             />
                             <label className="text-white block">Branch</label>
                         </div>
-                        <div className='menu__filter__select'>
-                            <CustomSelect
-                                options={groupOptions}
-
-                                value={selectedGroups}
-                                onChange={handleGroupsSelectChange}
-                            />
-                            <label className="text-white block">User Group</label>
-                        </div>
-                    </div>
-                    <div className='menu__filter__search'>
-                        <input
-                            type="text"
-                            value={inputValue}
-                            onChange={handleFilterName}
-                            className="w-full rounded"
-                        />
-                        <label className="text-white block">Search User</label>
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center space-y-2">
-                    <div className="flex space-x-2">
-                        <div className="menu__file__uploader">
-                            <img src={assets.import_icon} className="cursor-pointer" onClick={handleFileClick} alt="import" />
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                style={{ display: 'none' }}
-                                onChange={handleFileChange}
-                            />
-                        </div>
-                        <div className="menu__file__uploader">
-                            <img src={assets.export_icon} className="cursor-pointer" alt="export" />
-                        </div>
-                    </div>
-                    <div>
-                        <span className='text-white'>Export/Import</span>
-                    </div>
-                </div>
+
 
                 {/* <div className='menu__connection__and__manage'> */}
                 <div className="menu__connection flex items-start text-white">
@@ -201,32 +126,11 @@ function UserMenu() {
                 <div className='flex justify-between'>
                     <div className='menu__filter__select'>
                         <CustomSelect
-                            options={(Array.isArray(branches) ? branches : []).map(branch => ({
-                                label: branch.name,
-                                value: branch.id,
-                            }))}
+                            options={branchOptions}
                             value={selectedBranch}
                             onChange={handleSelectChange}
                         />
                         <label className="text-white block">Branch</label>
-                    </div>
-                    <div className='menu__filter__select'>
-                        <CustomSelect
-                            options={(Array.isArray(userGroups) ? userGroups : []).map(group => ({
-                                label: group.name,
-                                value: group.id,
-                            }))}
-                            value={selectedGroups}
-                            onChange={handleGroupsSelectChange}
-                        />
-                        <label className="text-white block">User Group</label>
-                    </div>
-                    <div className='menu__filter__search'>
-                        <input
-                            type="text"
-                            className="w-full p-2 rounded"
-                        />
-                        <label className="text-white block">Search User</label>
                     </div>
                 </div>
 
@@ -235,4 +139,4 @@ function UserMenu() {
     );
 }
 
-export default UserMenu
+export default UserGroupMenu
