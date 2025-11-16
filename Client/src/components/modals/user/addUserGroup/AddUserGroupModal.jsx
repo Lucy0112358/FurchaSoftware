@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Formik, Form, Field } from "formik";
+import * as Yup from "yup";
 import './addUserGroup.css';
 import '../../modal.css';
 import { useDispatch, useSelector } from 'react-redux';
@@ -17,7 +19,7 @@ import ShowFormikError from "../../../error/ShowFormikError";
 import CloseButton from "../../attributes/CloseButton";
 
 
-const  AddUserGroupModal = ({isOpen, onClose, mode = "add", initialData = {}}) => {
+const AddUserGroupModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
   if (!isOpen) return null;
   const dispatch = useDispatch();
   const branches = useSelector(getBranchesData);
@@ -26,12 +28,66 @@ const  AddUserGroupModal = ({isOpen, onClose, mode = "add", initialData = {}}) =
     branches: [],
     name: '',
   });
+  console.log(sentGeneralInfo, "sentGeneralInfo");
+
   const filteredBranchGroups = useSelector(getFilteredLockerGroups)
   const [selectedLockerId, setSelectedLockerId] = useState([]);
   const userInfo = useSelector(getAddUserInfo);
   const [groupRight, setGroupRight] = useState({});
   const [formErrors, setFormErrors] = useState({});
   const [selectedLockerAddId, setSelectedLockerAddId] = useState({});
+
+  useEffect(() => {
+    if (mode === "edit" && initialData) {
+      setSentGeneralInfo({
+        ...initialData,
+        name: initialData.name || '',
+      });
+
+      const lockerMap = {};
+      initialData.branches.forEach(branch => {
+        lockerMap[branch.id] = branch.lockers || [];
+      });
+      setSelectedLockerAddId(lockerMap);
+      setSentGeneralInfo(prev => ({
+        ...prev,
+        lockerIds: Object.values(lockerMap).flat()
+      }));
+
+      const generalInfo = initialData.branches
+        .map(branch => `${branch.name}: ${branch.lockers.join(",")}`)
+        .join("; ");
+      console.log(generalInfo, "generalInfo");
+      setAddUserInfo({
+        'Locker': {
+          ...userInfo['Locker'],
+          ['lockers']: Object.values(lockerMap).flat(),
+        },
+      })
+
+      setSentGeneralInfo((prev) => ({
+        ...prev,
+        'lockerIds': Object.values(lockerMap).flat(),
+      }));
+
+      setGroupRight((prev) => ({
+        ...prev,
+        'Locker': {
+          ...(prev['Locker'] || {}),
+          'lockers': generalInfo,
+        },
+      }));
+
+    }
+  }, [mode, initialData]);
+
+  const validateForm = () => {
+    const errors = {};
+    if (!sentGeneralInfo.name || !sentGeneralInfo.name.trim()) errors.name = 'Name is required';
+    return errors;
+  };
+
+
 
   const addAllInfoForUserGroup = (part, key, value) => {
     const updatedUserInfo = {
@@ -121,6 +177,13 @@ const  AddUserGroupModal = ({isOpen, onClose, mode = "add", initialData = {}}) =
   };
 
   const addUserGroup = () => {
+    const errors = validateForm();
+    setFormErrors(errors);
+    if (Object.keys(errors).length) {
+      toast.error('Please fill out the form correctly');
+      return;
+    }
+
     dispatch(setUserGroup(sentGeneralInfo))
       .then((response) => {
         if (response && response.payload.isSuccess) {
@@ -176,6 +239,9 @@ const  AddUserGroupModal = ({isOpen, onClose, mode = "add", initialData = {}}) =
     }
     return null;
   };
+  const validationSchema = Yup.object({
+    name: Yup.string().required("Name is required"),
+  });
 
   return (
     <div
@@ -192,19 +258,42 @@ const  AddUserGroupModal = ({isOpen, onClose, mode = "add", initialData = {}}) =
         </div>
         <div>
           {/* User Group Info */}
-          <div className="add__modal__content__part">
-            <span>User Group Info</span>
-            <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-              <div>
-                <input
-                  placeholder="Group Name"
-                  type="text"
-                  onChange={(e) => sendGroupInfo('Group', 'name', e.target.value)}
-                  className="w-full p-1 border rounded"
-                />
-              </div>
-            </div>
-          </div>
+          <Formik
+            initialValues={{ name: sentGeneralInfo.name || "" }}
+            enableReinitialize
+            validationSchema={validationSchema}
+            onSubmit={(values) => {
+              sendGroupInfo("Group", "name", values.name);
+              addUserGroup();
+            }}
+          >
+            {({ errors, touched, handleSubmit, setFieldValue, values }) => (
+              <Form id="groupForm" onSubmit={handleSubmit}>
+                <div className="add__modal__content__part">
+                  <span>User Group Info</span>
+                  <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
+                    <div>
+                      <Field
+                        name="name"
+                        placeholder="Group Name"
+                        type="text"
+                        className="w-full p-1 border rounded"
+                        value={values.name}
+                        onChange={(e) => {
+                          setFieldValue("name", e.target.value);
+                          sendGroupInfo("Group", "name", e.target.value);
+                        }}
+                      />
+
+                      {errors.name && touched.name && (
+                        <ShowFormikError message={errors.name} />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Form>
+            )}
+          </Formik>
           <div className="flex justify-between flex-col" onContextMenu={(e) => e.preventDefault()}>
             <div className="add__modal__content__part__select w-full">
               <span>Branches</span>
@@ -318,9 +407,16 @@ const  AddUserGroupModal = ({isOpen, onClose, mode = "add", initialData = {}}) =
             </button>
           </div>
           <div className="modal__button">
-            <button
+            {/* <button
               className="bg-gray-600 text-white rounded"
               onClick={addUserGroup}
+            >
+              Save
+            </button> */}
+            <button
+              className="bg-gray-600 text-white rounded"
+              type="submit"
+              form="groupForm"
             >
               Save
             </button>

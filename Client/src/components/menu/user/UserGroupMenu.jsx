@@ -44,7 +44,7 @@ function UserGroupMenu() {
                 [key]: value,
             };
 
-            dispatch(getUsers(updatedFilters));
+            dispatch(getAllGroups(updatedFilters));
             return updatedFilters;
         });
     }

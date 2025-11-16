@@ -13,17 +13,17 @@ function GenerateLocker({ item, index, doorState }) {
     
     switch(item.lockerType?.type.toLowerCase()) {
       case 'personal':
-        return <Personal name={name} nameShort={nameShort} lockernumber={index} item={item} />;
+        return <Personal name={name} nameShort={nameShort} lockernumber={item.number} item={item} />;
       case 'temporary':
-        return <TemporaryPersonal label={name} lockernumber={index} item={item} />;
+        return <TemporaryPersonal label={name} lockernumber={item.number} item={item} />;
       case 'common':
-        return <Common label={name} lockernumber={index} doorState={doorState}/>;
+        return <Common label={name} lockernumber={item.number} doorState={doorState}/>;
       case 'handover':
-        return <Hand lockernumber={index} />;
+        return <Hand lockernumber={item.number} />;
       case 'parcel':
-        return <Parcel item={item} lockernumber={index} size="L" orderNum="44623598" />;
+        return <Parcel item={item} lockernumber={item.number} size="L" orderNum="44623598" />;
       case 'unspecified':
-        return <Unspecified lockernumber={index} />;
+        return <Unspecified lockernumber={item.number} />;
       default:
         return <div>No matching type</div>;
     }

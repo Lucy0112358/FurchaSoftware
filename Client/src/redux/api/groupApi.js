@@ -3,15 +3,17 @@ import instance from "../../config/axios/axiosConfig";
 
 export const getAllGroups = createAsyncThunk(
   'group/getAllGroups',
-  async (data, thunkAPI) => {
+  async (params, thunkAPI) => {
     try {
       const config = {
         method: "get",
-        url: 'user/user-groups'
+        url: 'user/user-groups',
+        params: { ...params },
       };
 
       const response = await instance(config);
-      return response?.data;
+      
+      return response?.data || [];
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data.error.both);
     }
@@ -71,13 +73,8 @@ export const userGroupShow = createAsyncThunk(
           {
             "id": 1,
             "name": "Talin branch",
-            "lockers": [10, 11, 12]
+            "lockers": [132, 133, 135]
           },
-          {
-            "id": 2,
-            "name": "Gyumri branch",
-            "lockers": [6, 8, 9]
-          }
         ]
       }
     } catch (error) {
