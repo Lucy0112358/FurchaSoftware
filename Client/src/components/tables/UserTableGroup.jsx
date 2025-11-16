@@ -63,6 +63,7 @@ function UserTableGroup() {
                       {group.id}
                     </td>
                     <td>{group.name}</td>
+                    <td>{group.userCount}</td>
                     <td>
                       {group.permittedLockers?.map((locker, idx) => (
                         <>
@@ -76,8 +77,8 @@ function UserTableGroup() {
                         <div key={idx}>{branch}</div>
                       ))}
                     </td>
-                    <td className={`${group.state === 'Suspended' ? 'text-red-500' : ''}`}>
-                      {group.state}
+                    <td className={group.state === 1 ? 'text-green-500' : 'text-red-500 '}>
+                      {group.state === 1 ? 'Active' : 'Suspended'}
                     </td>
                   </tr>
                 ))}

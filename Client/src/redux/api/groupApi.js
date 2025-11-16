@@ -4,52 +4,54 @@ import instance from "../../config/axios/axiosConfig";
 export const getAllGroups = createAsyncThunk(
   'group/getAllGroups',
   async (data, thunkAPI) => {
-      try {
-        const config = {
-          method: "get",
-          url: 'user/user-groups'
-        };
-       
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
+    try {
+      const config = {
+        method: "get",
+        url: 'user/user-groups'
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
     }
+  }
 )
 
 export const deleteUserGroups = createAsyncThunk(
   'group/deleteUserGroups',
   async (ids, thunkAPI) => {
-      try {
-        const config = {
-          method: "post",
-          url: 'user/delete-user-groups',
-          data: { ids: ids }
-        };
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
+    try {
+      const config = {
+        method: "post",
+        url: 'user/delete-user-groups',
+        data: { ids: ids }
+      };
+      const response = await instance(config);
+      await thunkAPI.dispatch(getAllGroups());
+
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
     }
+  }
 )
 
 export const suspendUserGroups = createAsyncThunk(
   'group/suspendUserGroups',
   async (ids, thunkAPI) => {
-      try {
-        const config = {
-          method: "post",
-          url: 'user/suspend-user-groups',
-          data: { ids: ids }
-        };
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
+    try {
+      const config = {
+        method: "post",
+        url: 'user/suspend-user-groups',
+        data: { ids: ids }
+      };
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
     }
+  }
 )
 
 export const userGroupShow = createAsyncThunk(
@@ -61,15 +63,15 @@ export const userGroupShow = createAsyncThunk(
         url: 'user/user-groups/' + id,
       };
       // const response = await instance(config);
-      
+
       // return response?.data?.data;
       return {
         "name": "Meeting Group",
-        "branches" : [ 
+        "branches": [
           {
             "id": 1,
             "name": "Talin branch",
-            "lockers": [10,11, 12]
+            "lockers": [10, 11, 12]
           },
           {
             "id": 2,

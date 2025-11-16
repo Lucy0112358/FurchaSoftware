@@ -14,6 +14,7 @@ export const userTable = [
 export const userTableGroups = [
     'User Group ID',
     'User Group Name',
+    'User Count',
     'Permitted Lockers',
     'Branch',
     'State',

@@ -13,11 +13,11 @@ function Delete({ ids, onClose }) {
             dispatch(deleteUserGroups(ids))
                 .unwrap()
                 .then((res) => {
-                    toast.success(res.message);
+                    toast.success("User group(s) deleted successfully");
                     onClose();
                 })
                 .catch((err) => {
-                    toast.error(err?.message || "Ошибка при удалении");
+                    toast.error(err?.message || "Error deleting user group(s)");
                 });
         }
     };
