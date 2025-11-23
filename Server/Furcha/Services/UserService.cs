@@ -512,21 +512,97 @@ namespace FurchaAdminApi.Services
             return result;
         }
 
-        public UserGroupResult AddUserGroup(UserGroupRequest userGroupRequest)
+        public UserGroupResult AddUserGroup(UserGroupRequest request)
         {
-            var group = AddUserGroupToDb(userGroupRequest);
+            // 1. Create group
+            var group = AddUserGroupToDb(request);
 
-            var result = new UserGroupResult
+            // 2. Insert branches
+            if (request.Branches?.Any() == true)
             {
-                PermittedLockers = new List<LockerGroupResult>(),
-                Name = group.Name,
-                BranchNames = new List<string>(),
-                State = (int)group.State,
-                Id = group.Id
-            };
+                var branchLinks = request.Branches
+                    .Select(branchId => new UserGroupBranch
+                    {
+                        UserGroupId = group.Id,
+                        BranchId = branchId
+                    })
+                    .ToList();
 
-            return result;
+                Db.UserGroupBranches.AddRange(branchLinks);
+                Db.SaveChanges();
+            }
+
+            // 3. Insert lockers
+            List<int> insertedLockerIds = new();
+
+            if (request.LockerIds?.Any() == true)
+            {
+                // Validate
+                var validLockerIds = Db.Lockers.Select(l => l.Id).ToHashSet();
+                insertedLockerIds = request.LockerIds
+                    .Where(id => validLockerIds.Contains(id))
+                    .ToList();
+
+                var lockerLinks = insertedLockerIds
+                    .Select(lockerId => new UserGroupLocker
+                    {
+                        UserGroupId = group.Id,
+                        LockerId = lockerId
+                    })
+                    .ToList();
+
+                Db.UserGroupLockers.AddRange(lockerLinks);
+                Db.SaveChanges();
+            }
+
+            // 4. Build result
+
+            // ---- Branch names ----
+            var branchNames = Db.Branches
+                .Join(Db.UserGroupBranches,
+                      b => b.Id,
+                      ugb => ugb.BranchId,
+                      (b, ugb) => new { b, ugb })
+                .Where(x => x.ugb.UserGroupId == group.Id)
+                .Select(x => x.b.Name)
+                .ToList();
+
+            // ---- Locker groups ----
+            var lockerGroups = Db.LockerGroups
+                .Include(lg => lg.BrainModules)
+                    .ThenInclude(bm => bm.Lockers)
+                .Where(lg => lg.BrainModules
+                    .SelectMany(bm => bm.Lockers)
+                    .Any(l => insertedLockerIds.Contains(l.Id)))
+                .ToList();
+
+            var lockerGroupResults = lockerGroups
+                .Select(lg => new LockerGroupResult
+                {
+                    LockerGroupName = lg.Name,
+
+                    LockersFromGroup = lg.BrainModules
+                        .SelectMany(bm => bm.Lockers)
+                        .Where(l => insertedLockerIds.Contains(l.Id))
+                        .Select(l => new PermittedLockerResult
+                        {
+                            LockerId = l.Id,
+                            LockerNumber = (int)l.Number
+                        })
+                        .ToList()
+                })
+                .ToList();
+
+            return new UserGroupResult
+            {
+                Id = group.Id,
+                Name = group.Name,
+                State = (int)group.State,
+                BranchNames = branchNames,
+                PermittedLockers = lockerGroupResults
+            };
         }
+
 
         private FurchaDAL.Models.UserGroup AddUserGroupToDb(UserGroupRequest userGroupRequest)
         {
