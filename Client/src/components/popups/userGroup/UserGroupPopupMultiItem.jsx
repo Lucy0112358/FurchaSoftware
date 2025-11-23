@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Delete from '../../popupAction/userGroup/Delete';
-import Suspend from '../../popupAction/userGroup/Suspend';
+import ChangeState from '../../popupAction/userGroup/ChangeState';
 
 function UserGroupPopupMultiItem({ selectedIds, onClose }) {
   return (
@@ -18,7 +18,8 @@ function UserGroupPopupMultiItem({ selectedIds, onClose }) {
       </div>
       <div className='flex flex-col gap-2'>
         <Delete ids={selectedIds} onClose={onClose} />
-        <Suspend ids={selectedIds} onClose={onClose} />
+        <ChangeState ids={selectedIds} action='Suspend' onClose={onClose} />
+        <ChangeState ids={selectedIds} action='Active' onClose={onClose} />
       </div>
     </div>
   )

@@ -2,10 +2,15 @@ import React from 'react';
 import Edit from '../../popupAction/userGroup/Edit';
 import Delete from '../../popupAction/userGroup/Delete';
 import UserGroupPopupMultiItem from './UserGroupPopupMultiItem';
-import Suspend from '../../popupAction/userGroup/Suspend';
+import { getUserGroupData } from '../../../redux/slice/groupSlice';
+import ChangeState from '../../popupAction/userGroup/ChangeState';
+import { useSelector } from 'react-redux';
 
 
 function UserGroupPopup({ userGroup, onClose, selectedIds }) {
+    const groupData = useSelector(getUserGroupData);
+console.log(groupData, 11111);
+
   return (
     <div
       className="bg-white shadow-xl rounded-lg p-5 w-72 border border-gray-200"
@@ -25,7 +30,7 @@ function UserGroupPopup({ userGroup, onClose, selectedIds }) {
             <div className="flex flex-col gap-2">
                <Edit id={userGroup.id} onClose={onClose} />
                <Delete ids={[userGroup.id]} onClose={onClose} />
-               <Suspend ids={[userGroup.id]} onClose={onClose} />
+               <ChangeState ids={[userGroup.id]} action={groupData.state == 1 ? 'Suspend' : 'Active'} onClose={onClose} />
             </div>
           </>
         )

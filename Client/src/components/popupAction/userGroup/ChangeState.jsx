@@ -2,22 +2,25 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from "react-toastify";
 import ConfirmModal from '../../confirm/ConfirmModal';
-import { suspendUserGroups } from '../../../redux/api/groupApi';
+import { getAllGroups, changeGroupsState } from '../../../redux/api/groupApi';
+import { getUserGroupData } from '../../../redux/slice/groupSlice';
 
-function Suspend({ ids, onClose }) {
+function ChangeState({ ids, action = 'Suspend', onClose }) {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 
-    const handleDelete = () => {
+    const handleChangeState = () => {
         if (ids?.length > 0) {
-            dispatch(suspendUserGroups(ids))
+            const data = { ids, state: action === 'Suspend' ? 2 : 1 };
+            dispatch(changeGroupsState(data))
                 .unwrap()
                 .then((res) => {
                     toast.success(res.message);
+                    dispatch(getAllGroups());
                     onClose();
                 })
                 .catch((err) => {
-                    toast.error(err?.message || "Ошибка при удалении");
+                    toast.error(err?.message || "Something went wrong");
                 });
         }
     };
@@ -28,14 +31,14 @@ function Suspend({ ids, onClose }) {
                 className='bg-gray-600 text-white rounded cursor-pointer'
                 onClick={() => setShowConfirm(true)}
             >
-                Suspend user group(s)
+                {action} user group(s)
             </button>
 
             {showConfirm && (
                 <ConfirmModal
-                    message={'Are you sure you want to suspend the user group?'}
+                    message={'Are you sure you want to change the user group state?'}
                     onConfirm={() => {
-                        handleDelete();
+                        handleChangeState();
                         setShowConfirm(false);
                     }}
                     onCancel={() => setShowConfirm(false)}
@@ -45,4 +48,4 @@ function Suspend({ ids, onClose }) {
     );
 }
 
-export default Suspend;
+export default ChangeState;

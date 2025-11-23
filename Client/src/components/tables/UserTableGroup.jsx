@@ -68,7 +68,6 @@ function UserTableGroup() {
                       {group.permittedLockers?.map((locker, idx) => (
                         <>
                           <div key={idx}>{locker.lockerGroupName}</div>
-                          <span>(1-16)</span>
                         </>
                       ))}
                     </td>

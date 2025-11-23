@@ -13,8 +13,7 @@ import { getLockerGroupsByBranchId } from "../../../../redux/api/branchApi";
 import GroupName from "../../../headers/GroupName";
 import GenerateLocker from "../../../lockers/GenerateLocker";
 import { toast } from "react-toastify";
-import { setUserGroup } from "../../../../redux/api/menuApi";
-import { getAllGroups } from "../../../../redux/api/groupApi";
+import { getAllGroups, setUserGroup, updateUserGroupInfo } from "../../../../redux/api/groupApi";
 import ShowFormikError from "../../../error/ShowFormikError";
 import CloseButton from "../../attributes/CloseButton";
 
@@ -28,7 +27,7 @@ const AddUserGroupModal = ({ isOpen, onClose, mode = "add", initialData = {} }) 
     branches: [],
     name: '',
   });
-  console.log(sentGeneralInfo, "sentGeneralInfo");
+  console.log(sentGeneralInfo,initialData,  "sentGeneralInfo");
 
   const filteredBranchGroups = useSelector(getFilteredLockerGroups)
   const [selectedLockerId, setSelectedLockerId] = useState([]);
@@ -176,7 +175,25 @@ const AddUserGroupModal = ({ isOpen, onClose, mode = "add", initialData = {} }) 
     dispatch(getLockerGroupsByBranchId(branch.id));
   };
 
-  const addUserGroup = () => {
+  // const addUserGroup = () => {
+  //   const errors = validateForm();
+  //   setFormErrors(errors);
+  //   if (Object.keys(errors).length) {
+  //     toast.error('Please fill out the form correctly');
+  //     return;
+  //   }
+
+  //   dispatch(setUserGroup(sentGeneralInfo))
+  //     .then((response) => {
+  //       if (response && response.payload.isSuccess) {
+  //         dispatch(getAllGroups());
+  //         onClose()
+  //       }
+  //     })
+  //     .catch((error) => console.error('Error updating user info:', error));
+  // }
+
+  const saveUserGroup = () => {
     const errors = validateForm();
     setFormErrors(errors);
     if (Object.keys(errors).length) {
@@ -184,15 +201,17 @@ const AddUserGroupModal = ({ isOpen, onClose, mode = "add", initialData = {} }) 
       return;
     }
 
-    dispatch(setUserGroup(sentGeneralInfo))
-      .then((response) => {
-        if (response && response.payload.isSuccess) {
-          dispatch(getAllGroups());
-          onClose()
-        }
-      })
-      .catch((error) => console.error('Error updating user info:', error));
-  }
+    const action = mode === "edit"
+      ? updateUserGroupInfo({ ...sentGeneralInfo, id: initialData.id })
+      : setUserGroup(sentGeneralInfo);
+
+    dispatch(action).then((response) => {
+      if (response?.payload?.isSuccess) {
+        dispatch(getAllGroups());
+        onClose();
+      }
+    });
+  };
 
   const sendGroupInfo = (part, key, value) => {
     addAllInfoForUserGroup(part, key, value);
@@ -264,7 +283,7 @@ const AddUserGroupModal = ({ isOpen, onClose, mode = "add", initialData = {} }) 
             validationSchema={validationSchema}
             onSubmit={(values) => {
               sendGroupInfo("Group", "name", values.name);
-              addUserGroup();
+              saveUserGroup();
             }}
           >
             {({ errors, touched, handleSubmit, setFieldValue, values }) => (
@@ -407,12 +426,6 @@ const AddUserGroupModal = ({ isOpen, onClose, mode = "add", initialData = {} }) 
             </button>
           </div>
           <div className="modal__button">
-            {/* <button
-              className="bg-gray-600 text-white rounded"
-              onClick={addUserGroup}
-            >
-              Save
-            </button> */}
             <button
               className="bg-gray-600 text-white rounded"
               type="submit"

@@ -35,24 +35,6 @@ export const getUserGroups = createAsyncThunk(
     }
 )
 
-// TODO: Change location to UserGroupApi
-export const setUserGroup = createAsyncThunk(
-  'menu/setUserGroup',
-  async (data, thunkAPI) => {
-      try {
-        const config = {
-          method: "post",
-          url: 'User/add-user-group',
-          data: data
-        };
-        
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
-    }
-)
 
 export const setLockerGroup = createAsyncThunk(
   'menu/setLockerGroup',

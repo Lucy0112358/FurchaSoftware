@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getBranches, getLockerGroupsData, getUserGroups, setUserGroup } from "../api/menuApi";
+import { getBranches, getLockerGroupsData, getUserGroups } from "../api/menuApi";
 import { userSlice } from "./userSlice";
 // import { APP_BASE_URL } from "../../config";
 
@@ -62,12 +62,6 @@ export const menuSlice = createSlice({
       .addCase(getUserGroups.fulfilled, (state, action) => {
         menuSlice.caseReducers.setUserGroups(state, action.payload.data);
         // state.userBranch = action.payload;
-      })
-      .addCase(setUserGroup.fulfilled, (state, action) => {
-        console.log(action.payload.data)
-      })
-      .addCase(setUserGroup.rejected, (state, action) => {
-       
       })
     //   .addCase(signin.pending, (state) => {
     //     state.loading = true;
