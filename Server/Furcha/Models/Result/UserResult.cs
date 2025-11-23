@@ -13,7 +13,7 @@ namespace FurchaAdminApi.Models.Result
 
         //here we only send the name of the role, as frontend only needs that information to display in the UI
         public string Role { get; set; }
-        public string State { get; set; }
+        public int State { get; set; }
         public List<CardResult> Cards { get; set; }
         public List<UserGroupResult> UserGroups { get; set; }
         public List<BranchResult> Branches { get; set; }

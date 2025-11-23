@@ -8,5 +8,9 @@
         {
             get; set;
         }
+        public List<int> LockerIds
+        {
+            get; set;
+        }
     }
 }

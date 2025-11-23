@@ -6,6 +6,7 @@
         Closed = 2,
         Suspended,
         Hacked,
-        LongOpen
+        LongOpen,
+        Active
     }
 }

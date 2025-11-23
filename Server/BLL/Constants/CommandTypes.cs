@@ -2,14 +2,16 @@
 {
     public enum CommandTypes
     {
-        OpenLocker = 1,
-        CloseLocker,
+        UpdateDoorStatus = 1,
         OpenLockersFromAdmin,
         SynchronizeUsers,
         CreateUserFromAdmin,
         CreateAccount,
         CreateBrainModule,
-        AddLockersToBrain
-       
+        AddLockersToBrain,
+        SendAuthDataForOpen,
+        SuspendUser,
+        SuspendLocker,       
+        AddUser
     }
 }

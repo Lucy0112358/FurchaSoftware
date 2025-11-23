@@ -6,6 +6,7 @@
         public string Name { get; set; }
         public List<LockerGroupResult> PermittedLockers { get; set; } 
         public List<string> BranchNames { get; set; } 
-        public string State { get; set; }
+        public int State { get; set; }
+        public int UserCount { get; set; }
     }
 }

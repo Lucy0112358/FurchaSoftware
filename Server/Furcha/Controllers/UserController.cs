@@ -42,16 +42,17 @@ namespace FurchaAdminApi.Controllers
         }
 
         [Authorize]
-        [HttpGet("filtered-users")]
+        [HttpGet("users")]
         public ActionResult<ApiResult<List<UserResult>>> GetFilteredUsersWithPagination(
               [FromQuery] int? groupId = null,
               [FromQuery] int? branchId = null,
               [FromQuery] bool? isAdmin = null,
+              [FromQuery] string? name = null,
               [FromQuery] int pageNumber = 1,
               [FromQuery] int page = 100)
         {
             var adminId = GetClaimValue("AdminId");
-            var users = userService.GetFilteredUsersByPagination(int.Parse(adminId), groupId, branchId, isAdmin, pageNumber, page);
+            var users = userService.GetFilteredUsersByPagination(int.Parse(adminId), groupId, branchId, isAdmin, name, pageNumber, page);
 
             if (users == null || !users.Any())
             {
@@ -63,15 +64,19 @@ namespace FurchaAdminApi.Controllers
 
         [Authorize]
         [HttpGet("user-groups")]
-        public ActionResult<ApiResult<List<UserGroupResult>>> GetUserGroupsByAdminId()
+        public ActionResult<ApiResult<List<UserGroupResult>>> GetUserGroupsByAdminId([FromQuery] int? branchId = null)
         {
             var adminId = GetClaimValue("AdminId");
 
-            var userGroups = userService.GetUserGroupsForAdminBasedOnRole(int.Parse(adminId));
+            var userGroups = userService.GetUserGroupsForAdminBasedOnRole(
+                int.Parse(adminId),
+                branchId
+            );
 
-            if (userGroups == null)
+            if (userGroups == null || !userGroups.Any())
             {
-                return Ok(ApiResult<List<UserGroupResult>>.ErrorResult("No user groups found for the current admin permissions"));
+                return Ok(ApiResult<List<UserGroupResult>>.ErrorResult(
+                    "No user groups found for the current admin permissions"));
             }
 
             return Ok(ApiResult<List<UserGroupResult>>.Success(userGroups));
@@ -136,7 +141,7 @@ namespace FurchaAdminApi.Controllers
         }
 
         [Authorize]
-        [RequiresPermission("ManageUserGroup")]
+/*        [RequiresPermission("ManageUserGroup")]*/
         [HttpPost("add-user-group")]
         public ActionResult<ApiResult<UserGroupResult>> AddUserGroup([FromBody] UserGroupRequest userGroupRequest)
         {
@@ -178,10 +183,26 @@ namespace FurchaAdminApi.Controllers
             return Ok(true);
         }
 
+        [HttpPost("delete-user-groups")]
+        public IActionResult DeleteUserGroupss([FromBody] DeleteAdminRequest request)
+        {
+            userService.DeleteUserGroups(request.Ids);
+
+            return Ok(true);
+        }
+
         [HttpPost("change-state")]
         public IActionResult SetUserState([FromBody] ChangeAdminStateRequest request)
         {
             userService.SetUserState(request.Ids, request.State);
+
+            return Ok();
+        }
+
+        [HttpPost("suspend-user-groups")]
+        public IActionResult SuspendUserGroups([FromBody] ChangeAdminStateRequest request)
+        {
+            userService.SuspendUserGroups(request.Ids, request.State);
 
             return Ok();
         }
@@ -194,6 +215,20 @@ namespace FurchaAdminApi.Controllers
             return Ok();
         }
 
+        [Authorize]
+        /*     [RequiresPermission("ManageUserGroup")]*/
+        [HttpGet("user-groups/{id}")]
+        public ActionResult<ApiResult<GetUserGroupResult>> GetUserGroupById(int id)
+        {
+            var result = userService.GetUserGroupById(id);
+
+            if (result == null)
+                return NotFound(ApiResult<GetUserGroupResult>.ErrorResult("User group not found."));
+
+            return Ok(ApiResult<GetUserGroupResult>.Success(result));
+        }
+
+
         [HttpGet("{id}")]
         public ActionResult<ApiResult<SingleUserResult>> GetUserById(int id)
         {
@@ -203,11 +238,11 @@ namespace FurchaAdminApi.Controllers
 
                 return Ok(ApiResult<SingleUserResult>.Success(u));
             }
-            catch (ArgumentException ex) 
+            catch (ArgumentException ex)
             {
                 return NotFound((ex.Message));
             }
-            catch (InvalidOperationException ex) 
+            catch (InvalidOperationException ex)
             {
                 return BadRequest((ex.Message));
             }
@@ -217,6 +252,35 @@ namespace FurchaAdminApi.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost("edit-user-group")]
+        public ActionResult<ApiResult<UserGroupResult>> EditUserGroup([FromBody] EditUserGroupRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(ApiResult<UserGroupResult>.ErrorResult("Invalid data."));
+            }
+
+            try
+            {
+                var result = userService.EditUserGroup(request);
+
+                if (result == null)
+                {
+                    return BadRequest(ApiResult<UserGroupResult>.ErrorResult("Group could not be updated."));
+                }
+
+                return Ok(ApiResult<UserGroupResult>.Success(result));
+            }
+            catch (BaseException ex)
+            {
+                return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ex.Message));
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, ApiResult<UserGroupResult>.ErrorResult("Unexpected server error."));
+            }
+        }
 
     }
 }

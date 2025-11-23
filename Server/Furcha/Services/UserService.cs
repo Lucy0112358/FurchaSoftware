@@ -1,5 +1,4 @@
-﻿using Domain.Entities;
-using Domain.Enums;
+﻿using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
@@ -8,15 +7,8 @@ using FurchaBLL.Constants;
 using FurchaBLL.Interfaces;
 using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.EntityFrameworkCore;
-using Mono.TextTemplating;
-using System;
-using System.ComponentModel.Design;
-using System.Linq;
-using System.Transactions;
 using User = FurchaDAL.Models.User;
-
 
 namespace FurchaAdminApi.Services
 {
@@ -40,9 +32,17 @@ namespace FurchaAdminApi.Services
             _mqttService = mqttService;
             Db = db;
         }
-        private List<User> GetUsersByIdsBranchAndGroup(List<int> userIds, int? branchId, int? groupId, bool? isAdmin)
+        private List<User> GetUsersByIdsBranchAndGroup(
+       List<int> userIds,
+       int? branchId,
+       int? groupId,
+       bool? isAdmin,
+       string? name)
         {
-            var query = Db.Users.Include(u => u.UserBranches).Include(u => u.Administrators)
+            var query = Db.Users
+                .Include(u => u.UserBranches)
+                .Include(u => u.Administrators)
+                .Include(u => u.UserGroups)
                 .Where(u => userIds.Contains(u.Id));
 
             if (branchId.HasValue)
@@ -58,6 +58,26 @@ namespace FurchaAdminApi.Services
             if (groupId.HasValue)
             {
                 query = query.Where(u => u.UserGroups.Any(ug => ug.Id == groupId.Value));
+            }
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                name = name.Trim();
+
+                query = query.Where(u =>
+                    (
+                        u.Name != null &&
+                        EF.Functions.Like(u.Name, "%" + name + "%")
+                    ) ||
+                    (
+                        u.Surname != null &&
+                        EF.Functions.Like(u.Surname, "%" + name + "%")
+                    ) ||
+                    (
+                        (u.Name + " " + u.Surname).Trim() != "" &&
+                        EF.Functions.Like((u.Name + " " + u.Surname), "%" + name + "%")
+                    )
+                );
             }
 
             return query.ToList();
@@ -100,28 +120,89 @@ namespace FurchaAdminApi.Services
                 Name = user.Name,
                 Surname = user.Surname,
                 Role = roleName,
-                State = user.State.ToString(),
+                State = user.State,
                 Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
                 UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, Name = group.Name }).ToList(),
                 Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
             };
         }
 
-        public bool DeleteUsers(List<int> ids)
+        public bool DeleteUserGroups(List<int> ids)
         {
-            var admins = Db.Administrators.Where(a => ids.Contains(a.UserId ?? 0)).ToList();
-            if (admins.Any())
-                Db.Administrators.RemoveRange(admins);
+            foreach (var id in ids)
+            {
+                var group = Db.UserGroups
+                    .Include(g => g.UserGroupBranches)
+                    .Include(g => g.UserGroupLockers)
+                    .Include(g => g.Users) // many-to-many
+                    .FirstOrDefault(g => g.Id == id);
 
-            var users = Db.Users.Where(u => ids.Contains(u.Id)).ToList();
-            if (users.Any())
-                Db.Users.RemoveRange(users);
+                if (group == null)
+                    continue;
+
+                // 1. Remove one-to-many: UserGroupBranches
+                if (group.UserGroupBranches.Any())
+                    Db.UserGroupBranches.RemoveRange(group.UserGroupBranches);
+
+                // 2. Remove one-to-many: UserGroupLockers
+                if (group.UserGroupLockers.Any())
+                    Db.UserGroupLockers.RemoveRange(group.UserGroupLockers);
+
+                // 3. Clear many-to-many: UserGroup ↔ Users
+                if (group.Users.Any())
+                    group.Users.Clear(); // removes rows from the join table
+
+                // 4. Finally delete the group itself
+                Db.UserGroups.Remove(group);
+            }
 
             Db.SaveChanges();
             return true;
         }
 
-        public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, bool? isAdmin = null, int pageNumber = 1, int pageSize = 10)
+
+        public bool DeleteUsers(List<int> ids)
+        {
+            foreach (var id in ids)
+            {
+                var user = Db.Users
+                    .Include(u => u.Administrators)
+                    .Include(u => u.Cards)
+                    .Include(u => u.UserBranches)
+                    .Include(u => u.UserGroups)   // many-to-many
+                    .Include(u => u.Lockers)      // many-to-many
+                    .FirstOrDefault(u => u.Id == id);
+
+                if (user == null)
+                    continue;
+
+                // 1. Remove related administrators
+                if (user.Administrators.Any())
+                    Db.Administrators.RemoveRange(user.Administrators);
+
+                // 2. Remove one-to-many: UserBranches
+                if (user.UserBranches.Any())
+                    Db.UserBranches.RemoveRange(user.UserBranches);
+
+                // 3. Remove one-to-many: Cards
+                if (user.Cards.Any())
+                    Db.Cards.RemoveRange(user.Cards);
+
+                // 4. Clear many-to-many: User ↔ UserGroups
+                user.UserGroups.Clear();
+
+                // 5. Clear many-to-many: User ↔ Lockers
+                user.Lockers.Clear();
+
+                // 6. Finally delete the user
+                Db.Users.Remove(user);
+            }
+
+            Db.SaveChanges();
+            return true;
+        }
+
+        public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, bool? isAdmin = null, string? name = null, int pageNumber = 1, int pageSize = 10)
         {
             var companyId = Db.Administrators.First(x => x.Id == adminId).CompanyId;
 
@@ -129,7 +210,7 @@ namespace FurchaAdminApi.Services
 
             var userIds = users.Select(x => x.Id).ToList();
 
-            var filteredUsers = GetUsersByIdsBranchAndGroup(userIds, filterByBranchId, filterByGroupId, isAdmin);
+            var filteredUsers = GetUsersByIdsBranchAndGroup(userIds, filterByBranchId, filterByGroupId, isAdmin, name);
 
             var pagedUsers = filteredUsers.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
 
@@ -153,7 +234,7 @@ namespace FurchaAdminApi.Services
                     ActiveTo = user.ActiveTo,
                     Surname = user.Surname,
                     Role = RoleEnum.user.ToString(),
-                    State = user.State.ToString(),
+                    State = user.State,
                     Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
                     UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, Name = group.Name }).ToList(),
                     Branches = branches.Select(branch => new BranchResult { Id = branch.Id, Name = branch.Name }).ToList()
@@ -199,7 +280,7 @@ namespace FurchaAdminApi.Services
             if (admin.RoleId == (int)RoleEnum.LVL5_MasterAdmin)
             {
                 users = GetUsersForLVL5Admin(admin.CompanyId);
-            }           
+            }
             else
             {
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
@@ -231,7 +312,7 @@ namespace FurchaAdminApi.Services
                         .Select(ub => ub.User)
                         .Distinct()
                         .ToList();
-         
+
             return users;
         }
 
@@ -256,9 +337,9 @@ namespace FurchaAdminApi.Services
             return users;
         }
 
-        public List<UserGroupResult>? GetUserGroupsForAdminBasedOnRole(int adminId)
+        public List<UserGroupResult>? GetUserGroupsForAdminBasedOnRole(int adminId, int? branchId = null)
         {
-            var admin = Db.Administrators.Where(a => a.Id == adminId).FirstOrDefault();
+            var admin = Db.Administrators.FirstOrDefault(a => a.Id == adminId);
 
             if (admin == null)
             {
@@ -267,6 +348,9 @@ namespace FurchaAdminApi.Services
 
             var groups = new List<FurchaDAL.Models.UserGroup>();
 
+            // --------------------
+            // ROLE-BASED FETCHING
+            // --------------------
             if (admin.RoleId == (long)RoleEnum.LVL5_MasterAdmin)
             {
                 groups = Db.UserGroups
@@ -277,17 +361,13 @@ namespace FurchaAdminApi.Services
             {
                 var adminBranches = Db.AdminBranches
                      .Where(ab => ab.AdministratorId == admin.Id)
-                     .Select(ab => ab.Branch)
+                     .Select(ab => ab.BranchId)
+                     .Distinct()
                      .ToList();
-
-                var distinctBranchIds = adminBranches
-                                 .Select(ub => ub.Id)
-                                 .Distinct()
-                                 .ToList();
 
                 groups = Db.UserGroups
                      .Where(ug => ug.UserGroupBranches
-                         .Any(ugb => distinctBranchIds.Contains(ugb.BranchId)))
+                         .Any(ugb => adminBranches.Contains(ugb.BranchId)))
                      .Distinct()
                      .ToList();
             }
@@ -296,20 +376,17 @@ namespace FurchaAdminApi.Services
                 var adminBranches = Db.Branches
                      .Include(b => b.AdminBranches)
                      .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == admin.Id))
+                     .Select(b => b.Id)
+                     .Distinct()
                      .ToList();
-               
-                var distinctBranchIds = adminBranches
-                                 .Select(ub => ub.Id)
-                                 .Distinct()
-                                 .ToList();
 
-                if (distinctBranchIds.Count > 1)
+                if (adminBranches.Count > 1)
                 {
                     throw new BaseException(ErrorCodeEnum.AdminHasMoreBranchesThanPermitted);
                 }
 
                 groups = Db.UserGroups
-                    .Where(ug => ug.UserGroupBranches.Any(ugb => distinctBranchIds.Contains(ugb.BranchId)))
+                    .Where(ug => ug.UserGroupBranches.Any(ugb => adminBranches.Contains(ugb.BranchId)))
                     .Distinct()
                     .ToList();
             }
@@ -318,66 +395,75 @@ namespace FurchaAdminApi.Services
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
             }
 
+            // ------------------------------------
+            // OPTIONAL BRANCH FILTERING ADDED HERE
+            // ------------------------------------
+            if (branchId.HasValue)
+            {
+                groups = groups
+                    .Where(g => Db.UserGroupBranches
+                        .Any(ugb => ugb.UserGroupId == g.Id && ugb.BranchId == branchId.Value))
+                    .ToList();
+            }
+
+            // ----------------------------
+            // BUILD RESULT OUTPUT
+            // ----------------------------
             var groupResults = new List<UserGroupResult>();
 
             foreach (var group in groups)
             {
                 var userGroupId = group.Id;
-                var companyName = Db.Companies.Where(c => c.Id == group.CompanyId).First();
+
                 var groupBranches = (from b in Db.Branches
                                      join ugb in Db.UserGroupBranches on b.Id equals ugb.BranchId
                                      where ugb.UserGroupId == userGroupId
                                      select b)
-                   .Distinct()
-                   .ToList();
-                var permittedLockers = _lockerService.GetPermittedLockersOfUserGroup(ugId: group.Id);
-                var permittedLockerResults = new List<PermittedLockerResult>();
-                foreach (var permittedLocker in permittedLockers)
-                {
-                    var permittedLockerResult = new PermittedLockerResult()
-                    {
-                        LockerId = permittedLocker.Id,
-                        LockerNumber = (int)permittedLocker.Number
-                    };
+                    .Distinct()
+                    .ToList();
 
-                    permittedLockerResults.Add(permittedLockerResult);
-                }
+                var permittedLockers = _lockerService.GetPermittedLockersOfUserGroup(ugId: group.Id);
+
+                var permittedLockerResults = permittedLockers
+                    .Select(pl => new PermittedLockerResult
+                    {
+                        LockerId = pl.Id,
+                        LockerNumber = (int)pl.Number
+                    })
+                    .ToList();
 
                 var lockerGroups = Db.LockerGroups
-        .Where(lg => Db.Lockers.Include(x => x.Brain)
-            .Where(l => l.Brain.GroupId == lg.Id)
-            .Join(Db.UserGroupLockers,
-                  locker => locker.Id,
-                  ugl => ugl.LockerId,
-                  (locker, ugl) => ugl)
-            .Any(ugl => ugl.UserGroupId == group.Id))
-        .Distinct()
-        .ToList(); 
-                var lockerGroupResults = new List<LockerGroupResult>();
-                foreach (var item in lockerGroups)
-                {
-                    var res = new LockerGroupResult()
+                    .Where(lg => Db.Lockers.Include(x => x.Brain)
+                        .Where(l => l.Brain.GroupId == lg.Id)
+                        .Join(Db.UserGroupLockers,
+                              locker => locker.Id,
+                              ugl => ugl.LockerId,
+                              (locker, ugl) => ugl)
+                        .Any(ugl => ugl.UserGroupId == group.Id))
+                    .Distinct()
+                    .ToList();
+
+                var lockerGroupResults = lockerGroups
+                    .Select(lg => new LockerGroupResult
                     {
-                        LockerGroupName = item.Name
-                    };
+                        LockerGroupName = lg.Name
+                    })
+                    .ToList();
 
-                    lockerGroupResults.Add(res);
-                }
-
-                var userGroupResult = new UserGroupResult
+                groupResults.Add(new UserGroupResult
                 {
                     Id = group.Id,
                     Name = group.Name,
                     PermittedLockers = lockerGroupResults,
-                    BranchNames = groupBranches.Select(item => item.Name).ToList(),
-                    State = group.State.ToString(),
-                };
-
-                groupResults.Add(userGroupResult);
+                    BranchNames = groupBranches.Select(b => b.Name).ToList(),
+                    State = (int)group.State,
+                    UserCount = Db.Users.Count(u => u.UserGroups.Any(ug => ug.Id == group.Id))
+                });
             }
 
             return groupResults;
         }
+
 
         public List<UserResult> SearchUsersOfAdmin(string? name, int adminId)
         {
@@ -435,7 +521,7 @@ namespace FurchaAdminApi.Services
                 PermittedLockers = new List<LockerGroupResult>(),
                 Name = group.Name,
                 BranchNames = new List<string>(),
-                State = group.State.ToString(),
+                State = (int)group.State,
                 Id = group.Id
             };
 
@@ -544,7 +630,7 @@ namespace FurchaAdminApi.Services
                     Name = user.Name,
                     Surname = user.Surname,
                     Role = RoleEnum.user.ToString(),
-                    State = user.State.ToString(),
+                    State = user.State,
                     ActiveFrom = user.ActiveFrom,
                     ActiveTo = user.ActiveTo,
                     Phone = user.Phone
@@ -675,6 +761,17 @@ namespace FurchaAdminApi.Services
             return result;
         }
 
+        public void SuspendUserGroups(List<int> ids, int state)
+        {
+            var users = Db.UserGroups.Where(a => ids.Contains(a.Id)).ToList();
+
+            foreach (var u in users)
+            {
+                u.State = state;
+            }
+
+            Db.SaveChanges();
+        }
         public void SetUserState(List<int> ids, int state)
         {
             var users = Db.Users.Where(a => ids.Contains(a.Id)).ToList();
@@ -686,22 +783,24 @@ namespace FurchaAdminApi.Services
 
             Db.SaveChanges();
         }
-
         public void ChangeUsersGroup(List<int> ids, int groupId)
         {
+            var group = Db.UserGroups.FirstOrDefault(g => g.Id == groupId);
+            if (group == null)
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "UserGroup not found");
+
             var users = Db.Users
                 .Include(u => u.UserGroups)
                 .Where(u => ids.Contains(u.Id))
                 .ToList();
 
-            var group = Db.UserGroups.FirstOrDefault(g => g.Id == groupId);
-            if (group == null)
-                throw new Exception("UserGroup not found");
-
-            foreach (var u in users)
+            foreach (var user in users)
             {
-                if (!u.UserGroups.Any(g => g.Id == groupId))
-                    u.UserGroups.Add(group);
+                bool alreadyHasGroup = user.UserGroups.Any(g => g.Id == groupId);
+                if (alreadyHasGroup)
+                    continue;
+
+                user.UserGroups.Add(group);
             }
 
             Db.SaveChanges();
@@ -734,6 +833,165 @@ namespace FurchaAdminApi.Services
                 }).ToList(),
             };
         }
+
+        public GetUserGroupResult? GetUserGroupById(int id)
+        {
+            var group = Db.UserGroups
+     .Include(g => g.UserGroupBranches)
+     .FirstOrDefault(g => g.Id == id);
+
+            if (group == null)
+                return null;
+
+            // Get lockers permitted for this group
+            var permittedLockers = _lockerService.GetPermittedLockersOfUserGroup(group.Id);
+
+            // First load all branches for these branch IDs
+            var branchIds = group.UserGroupBranches
+                .Select(ugb => ugb.BranchId)
+                .ToList();
+
+            var branches = Db.Branches
+                .Where(b => branchIds.Contains(b.Id))
+                .ToList();
+
+            var branchResults = group.UserGroupBranches
+                .Select(ugb => new UserGroupsBranch
+                {
+                    Id = ugb.BranchId,
+                    Name = branches.First(b => b.Id == ugb.BranchId).Name,
+                    Lockers = permittedLockers
+                        .Where(l => l.Brain.BranchId == ugb.BranchId)
+                        .Select(l => l.Id)
+                        .ToList()
+                })
+                .ToList();
+
+
+            return new GetUserGroupResult
+            {
+                Id = id,
+                Name = group.Name,
+                Branches = branchResults
+            };
+        }
+
+        public UserGroupResult EditUserGroup(EditUserGroupRequest req)
+        {
+            var group = Db.UserGroups
+                .Include(g => g.UserGroupBranches)
+                .Include(g => g.UserGroupLockers)
+                .FirstOrDefault(g => g.Id == req.Id);
+
+            if (group == null)
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "User group not found.");
+
+            // -----------------------------
+            // Update name
+            // -----------------------------
+            group.Name = req.Name;
+
+            // -----------------------------
+            // Update BRANCHES
+            // -----------------------------
+            var existingBranchIds = group.UserGroupBranches
+                .Select(x => x.BranchId)
+                .ToList();
+
+            // Remove old branches
+            var branchesToRemove = group.UserGroupBranches
+                .Where(ugb => !req.Branches.Contains(ugb.BranchId))
+                .ToList();
+
+            if (branchesToRemove.Any())
+                Db.UserGroupBranches.RemoveRange(branchesToRemove);
+
+            // Add new branches
+            var branchesToAdd = req.Branches
+                .Where(branchId => !existingBranchIds.Contains(branchId))
+                .Select(branchId => new UserGroupBranch
+                {
+                    UserGroupId = group.Id,
+                    BranchId = branchId
+                })
+                .ToList();
+
+            if (branchesToAdd.Any())
+                Db.UserGroupBranches.AddRange(branchesToAdd);
+
+            // -----------------------------
+            // Update LOCKERS
+            // -----------------------------
+            var existingLockerIds = group.UserGroupLockers
+                .Select(x => x.LockerId)
+                .ToList();
+
+            // Remove old lockers
+            var lockersToRemove = group.UserGroupLockers
+                .Where(ugl => !req.LockerIds.Contains(ugl.LockerId))
+                .ToList();
+
+            if (lockersToRemove.Any())
+                Db.UserGroupLockers.RemoveRange(lockersToRemove);
+
+            // Add new lockers
+            var lockersToAdd = req.LockerIds
+                .Where(lockerId => !existingLockerIds.Contains(lockerId))
+                .Select(lockerId => new UserGroupLocker
+                {
+                    UserGroupId = group.Id,
+                    LockerId = lockerId
+                })
+                .ToList();
+
+            if (lockersToAdd.Any())
+                Db.UserGroupLockers.AddRange(lockersToAdd);
+
+            Db.SaveChanges();
+
+            // -----------------------------
+            // Build result: Branch names
+            // -----------------------------
+            var branchNames = Db.Branches
+                .Join(Db.UserGroupBranches,
+                      b => b.Id,
+                      ugb => ugb.BranchId,
+                      (b, ugb) => new { b, ugb })
+                .Where(x => x.ugb.UserGroupId == group.Id)
+                .Select(x => x.b.Name)
+                .ToList();
+
+            // -----------------------------
+            // Build result: Locker groups
+            // -----------------------------
+            var lockerGroups = Db.LockerGroups
+                .Where(lg =>
+                    Db.Lockers
+                        .Where(l => req.LockerIds.Contains(l.Id))
+                        .Any(l => l.Brain.GroupId == lg.Id))
+                .ToList();
+
+            var lockerGroupResults = lockerGroups
+                .Select(lg => new LockerGroupResult
+                {
+                    LockerGroupName = lg.Name
+                })
+                .ToList();
+
+            // -----------------------------
+            // Final return object
+            // -----------------------------
+            return new UserGroupResult
+            {
+                Id = group.Id,
+                Name = group.Name,
+                State = (int)group.State,
+                BranchNames = branchNames,
+                PermittedLockers = lockerGroupResults,
+                UserCount = Db.Users.Count(u => u.UserGroups.Any(ug => ug.Id == group.Id))
+            };
+        }
+
 
     }
 }

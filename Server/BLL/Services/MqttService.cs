@@ -113,7 +113,7 @@ public class MqttService
                 var message = JsonSerializer.Deserialize<MqttBaseRequest<object>>(responseMessage);
                 switch ((CommandTypes)message.Command)
                 {
-                    case CommandTypes.OpenLocker:
+                    case CommandTypes.UpdateDoorStatus:
                         using (var Db = furchaContext.Create())
                         {
                             var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<OpenLockerRequest>>(responseMessage);
