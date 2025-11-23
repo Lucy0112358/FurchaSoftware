@@ -432,23 +432,37 @@ namespace FurchaAdminApi.Services
                     })
                     .ToList();
 
+                var permittedLockerIds = Db.UserGroupLockers
+                    .Where(ugl => ugl.UserGroupId == group.Id)
+                    .Select(ugl => ugl.LockerId)
+                    .ToList();
+
                 var lockerGroups = Db.LockerGroups
-                    .Where(lg => Db.Lockers.Include(x => x.Brain)
-                        .Where(l => l.Brain.GroupId == lg.Id)
-                        .Join(Db.UserGroupLockers,
-                              locker => locker.Id,
-                              ugl => ugl.LockerId,
-                              (locker, ugl) => ugl)
-                        .Any(ugl => ugl.UserGroupId == group.Id))
+                    .Include(lg => lg.BrainModules)
+                        .ThenInclude(bm => bm.Lockers)
+                    .Where(lg =>
+                        lg.BrainModules
+                            .SelectMany(bm => bm.Lockers)
+                            .Any(l => permittedLockerIds.Contains(l.Id)))
                     .Distinct()
                     .ToList();
 
                 var lockerGroupResults = lockerGroups
                     .Select(lg => new LockerGroupResult
                     {
-                        LockerGroupName = lg.Name
+                        LockerGroupName = lg.Name,
+                        LockersFromGroup = lg.BrainModules
+                            .SelectMany(bm => bm.Lockers)
+                            .Where(l => permittedLockerIds.Contains(l.Id))
+                            .Select(l => new PermittedLockerResult
+                            {
+                                LockerId = l.Id,
+                                LockerNumber = (int)l.Number
+                            })
+                            .ToList()
                     })
                     .ToList();
+
 
                 groupResults.Add(new UserGroupResult
                 {
@@ -865,22 +879,38 @@ namespace FurchaAdminApi.Services
             if (group == null)
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "UserGroup not found");
 
-            var users = Db.Users
+            var usersCurrentlyInGroup = Db.Users
+                .Include(u => u.UserGroups)
+                .Where(u => u.UserGroups.Any(g => g.Id == groupId))
+                .ToList();
+
+            var usersToRemoveGroupFrom = usersCurrentlyInGroup
+                .Where(u => !ids.Contains(u.Id))
+                .ToList();
+
+            foreach (var user in usersToRemoveGroupFrom)
+            {
+                var groupToRemove = user.UserGroups.First(g => g.Id == groupId);
+                user.UserGroups.Remove(groupToRemove);
+            }
+
+            var targetUsers = Db.Users
                 .Include(u => u.UserGroups)
                 .Where(u => ids.Contains(u.Id))
                 .ToList();
 
-            foreach (var user in users)
+            foreach (var user in targetUsers)
             {
-                bool alreadyHasGroup = user.UserGroups.Any(g => g.Id == groupId);
-                if (alreadyHasGroup)
-                    continue;
-
-                user.UserGroups.Add(group);
+                bool alreadyInGroup = user.UserGroups.Any(g => g.Id == groupId);
+                if (!alreadyInGroup)
+                {
+                    user.UserGroups.Add(group);
+                }
             }
 
             Db.SaveChanges();
         }
+
 
         public SingleUserResult GetUserById(int id)
         {
