@@ -965,18 +965,31 @@ namespace FurchaAdminApi.Services
             // Build result: Locker groups
             // -----------------------------
             var lockerGroups = Db.LockerGroups
-                .Where(lg =>
-                    Db.Lockers
-                        .Where(l => req.LockerIds.Contains(l.Id))
-                        .Any(l => l.Brain.GroupId == lg.Id))
-                .ToList();
+             .Include(lg => lg.BrainModules)
+                 .ThenInclude(b => b.Lockers)
+             .Where(lg =>
+                 Db.Lockers
+                     .Where(l => req.LockerIds.Contains(l.Id))
+                     .Any(l => l.Brain.GroupId == lg.Id))
+             .ToList();
 
             var lockerGroupResults = lockerGroups
                 .Select(lg => new LockerGroupResult
                 {
-                    LockerGroupName = lg.Name
+                    LockerGroupName = lg.Name,
+
+                    LockersFromGroup = lg.BrainModules
+                        .SelectMany(b => b.Lockers)           // FLATTEN
+                        .Where(l => req.LockerIds.Contains(l.Id))  // ONLY permitted lockers
+                        .Select(l => new PermittedLockerResult
+                        {
+                            LockerId = l.Id,
+                            LockerNumber = (int)l.Number
+                        })
+                        .ToList()
                 })
                 .ToList();
+
 
             // -----------------------------
             // Final return object
