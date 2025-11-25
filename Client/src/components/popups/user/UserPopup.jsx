@@ -6,7 +6,7 @@ import State from '../../popupAction/user/State';
 import AddUserGroup from '../../popupAction/user/AddUserGroup';
 
 
-function UserPopup({ user, onClose, selectedIds, setSelectedUserIds }) {
+function UserPopup({ user, onClose, selectedIds, clearSelected }) {
 
   return (
     <div
@@ -14,7 +14,7 @@ function UserPopup({ user, onClose, selectedIds, setSelectedUserIds }) {
       onClick={(e) => e.stopPropagation()}
     >
       {selectedIds?.length > 0 ? (
-        <UserPopupMultiItem selectedIds={selectedIds} onClose={onClose} />
+        <UserPopupMultiItem selectedIds={selectedIds} clearSelected={clearSelected} onClose={onClose} />
       ) : (
         user && (
           <>
@@ -29,7 +29,7 @@ function UserPopup({ user, onClose, selectedIds, setSelectedUserIds }) {
 
             <div className="flex flex-col gap-2">
               <Edit id={user.id} onClose={onClose} />
-              <Delete ids={[user.id]} onClose={onClose} setSelectedUserIds={setSelectedUserIds} />
+              <Delete ids={[user.id]} onClose={onClose} clearSelected={clearSelected} />
               <State user={user} onClose={onClose} />
               <AddUserGroup ids={[user.id]} onClose={onClose} />
             </div>

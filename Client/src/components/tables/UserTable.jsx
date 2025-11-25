@@ -102,8 +102,8 @@ function UserTable() {
               <UserPopup
                 user={popup.target}
                 onClose={closePopup}
+                clearSelected={() => setSelectedUserIds([])}
                 selectedIds={selectedUserIds}
-                setSelectedUserIds={setSelectedUserIds}
               />
             </div>
           )}

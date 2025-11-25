@@ -3,7 +3,7 @@ import State from '../../popupAction/user/State';
 import Delete from '../../popupAction/user/Delete';
 import AddUserGroup from '../../popupAction/user/AddUserGroup';
 
-function UserPopupMultiItem({ selectedIds, onClose }) {
+function UserPopupMultiItem({ selectedIds, clearSelected, onClose }) {
   return (
     <div className="bg-white rounded-xl max-w-md mx-auto">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Edit Selected Users</h2>
@@ -18,7 +18,7 @@ function UserPopupMultiItem({ selectedIds, onClose }) {
         </div>
       </div>
       <div className='flex flex-col gap-2'>
-        <Delete ids={selectedIds} onClose={onClose} />
+        <Delete ids={selectedIds} clearSelected={clearSelected} onClose={onClose} />
         <State ids={selectedIds} onClose={onClose} />
         <AddUserGroup ids={selectedIds} onClose={onClose} />
       </div>

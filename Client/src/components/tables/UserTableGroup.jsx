@@ -95,6 +95,7 @@ function UserTableGroup() {
               >
                 <UserGroupPopup
                   userGroup={popup.target}
+                  clearSelected={() => setSelectedIds([])}
                   onClose={closePopup}
                   selectedIds={selectedIds}
                 />

@@ -7,9 +7,8 @@ import ChangeState from '../../popupAction/userGroup/ChangeState';
 import { useSelector } from 'react-redux';
 
 
-function UserGroupPopup({ userGroup, onClose, selectedIds }) {
+function UserGroupPopup({ userGroup, clearSelected , onClose, selectedIds }) {
     const groupData = useSelector(getUserGroupData);
-console.log(groupData, 11111);
 
   return (
     <div
@@ -17,7 +16,7 @@ console.log(groupData, 11111);
       onClick={(e) => e.stopPropagation()}
     >
       {selectedIds?.length > 0 ? (
-        <UserGroupPopupMultiItem selectedIds={selectedIds} onClose={onClose} />
+        <UserGroupPopupMultiItem selectedIds={selectedIds}  clearSelected ={clearSelected } onClose={onClose} />
       ) : (
         userGroup && (
           <>
@@ -29,7 +28,7 @@ console.log(groupData, 11111);
 
             <div className="flex flex-col gap-2">
                <Edit id={userGroup.id} onClose={onClose} />
-               <Delete ids={[userGroup.id]} onClose={onClose} />
+               <Delete ids={[userGroup.id]} clearSelected ={clearSelected } onClose={onClose} />
                <ChangeState ids={[userGroup.id]} action={groupData.state == 1 ? 'Suspend' : 'Active'} onClose={onClose} />
             </div>
           </>
