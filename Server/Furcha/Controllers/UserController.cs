@@ -192,28 +192,76 @@ namespace FurchaAdminApi.Controllers
         }
 
         [HttpPost("change-state")]
-        public IActionResult SetUserState([FromBody] ChangeAdminStateRequest request)
+        public ActionResult<ApiResult<bool>> SetUserState([FromBody] ChangeAdminStateRequest request)
         {
-            userService.SetUserState(request.Ids, request.State);
+            if (request == null || request.Ids == null || !request.Ids.Any())
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult("Invalid request data."));
+            }
 
-            return Ok();
+            try
+            {
+                userService.SetUserState(request.Ids, request.State);
+                return Ok(ApiResult<bool>.Success(true));
+            }
+            catch (BaseException ex)
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResult<bool>.ErrorResult("Unexpected server error."));
+            }
         }
 
-        [HttpPost("suspend-user-groups")]
-        public IActionResult SuspendUserGroups([FromBody] ChangeAdminStateRequest request)
+        [HttpPost("change-groups-state")]
+        public ActionResult<ApiResult<bool>> SuspendUserGroups([FromBody] ChangeAdminStateRequest request)
         {
-            userService.SuspendUserGroups(request.Ids, request.State);
+            if (request == null || request.Ids == null || !request.Ids.Any())
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult("Invalid request data."));
+            }
 
-            return Ok();
+            try
+            {
+                userService.SuspendUserGroups(request.Ids, request.State);
+                return Ok(ApiResult<bool>.Success(true));
+            }
+            catch (BaseException ex)
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResult<bool>.ErrorResult("Unexpected server error."));
+            }
         }
+
+
 
         [HttpPatch("change-group")]
-        public IActionResult ChangeUserGroup([FromBody] ChangeUsersGroupRequest request)
+        public ActionResult<ApiResult<bool>> ChangeUserGroup([FromBody] ChangeUsersGroupRequest request)
         {
-            userService.ChangeUsersGroup(request.Ids, request.GroupId);
+            if (request == null || request.Ids == null || !request.Ids.Any())
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult("Invalid request data."));
+            }
 
-            return Ok();
+            try
+            {
+                userService.ChangeUsersGroup(request.Ids, request.GroupId);
+                return Ok(ApiResult<bool>.Success(true));
+            }
+            catch (BaseException ex)
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResult<bool>.ErrorResult("Unexpected server error."));
+            }
         }
+
 
         [Authorize]
         /*     [RequiresPermission("ManageUserGroup")]*/

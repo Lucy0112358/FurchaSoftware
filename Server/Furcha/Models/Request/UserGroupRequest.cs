@@ -4,10 +4,6 @@
     {
         public string Name { get; set; }
         public int AdminId { get; set; }
-        public List<int> Branches
-        {
-            get; set;
-        }
         public List<int> LockerIds
         {
             get; set;

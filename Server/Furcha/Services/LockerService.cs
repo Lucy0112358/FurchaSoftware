@@ -37,15 +37,18 @@ namespace FurchaAdminApi.Services
         /// </summary>
         /// <param name="ugId">The ID of the user mLockers.</param>
         /// <returns>A list of permitted editingLockers for the user mLockers.</returns>
-        public List<FurchaDAL.Models.Locker> GetPermittedLockersOfUserGroup(int ugId)
+        public List<Locker> GetPermittedLockersOfUserGroup(int ugId)
         {
-            var permittedLockers = Db.UserGroupLockers
+            return Db.UserGroupLockers
                 .Where(ugl => ugl.UserGroupId == ugId)
-                .Select(ugl => ugl.Locker)
-                .ToList(); //_lockerRepository.GetPermittedLockersOfUserGroup(ugId);
-
-            return permittedLockers ?? new List<Locker>();
+                .Join(Db.Lockers,
+                      ugl => ugl.LockerId,
+                      locker => locker.Id,
+                      (ugl, locker) => locker)
+                .Include(l => l.Brain)     // optional
+                .ToList();
         }
+
 
         /// <summary>
         /// Retrieves editingLockers based on specified filtering criteria.
