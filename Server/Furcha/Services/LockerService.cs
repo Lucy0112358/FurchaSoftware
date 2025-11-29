@@ -90,30 +90,32 @@ namespace FurchaAdminApi.Services
             foreach (var branch in adminBranches)
             {
                 var lockers = Db.Lockers.Include(l => l.Users)
-                    .Include(l => l.Brain).Include(l => l.LockerTypeNavigation)
-                    .Where(l =>
-                        (lockerType == null || l.LockerType == lockerType) &&
-                        (lockerGroupId == null || l.Brain.GroupId == lockerGroupId) &&
-                        (userName == null || l.Users.Any(u => u.Name.Contains(userName))) &&   // FIXED
-                        l.Brain.BranchId == branch.Id &&
-                        (status == null || l.LockerStatus == status)
-                    )
-                    .Select(l => new LockerWithUsers
-                    {
-                        Id = l.Id,
-                        number = (long)(l.Number ?? 0),
-                        groupid = l.Brain.GroupId,
-                        LockerType = l.LockerTypeNavigation,
-                        IsActive = (int)l.IsActive,
-                        Status = (int)l.LockerStatus,
-                        IsOpen = l.IsOpen == 1 ? 1 : 0,
-                        BranchId = l.Brain.BranchId ?? 0,
-                        PasswordHash = l.PasswordHash,
-                        Users = l.Users                            
-                            .Select(u => u.Name)
-                            .ToList()
-                    })
-                    .ToList();
+      .Include(l => l.Brain)
+      .Include(l => l.LockerTypeNavigation)
+      .Where(l =>
+          (lockerType == null || l.LockerType == lockerType) &&
+          (lockerGroupId == null || l.Brain.GroupId == lockerGroupId) &&
+          (userName == null || l.Users.Any(u => u.Name != null && u.Name.Contains(userName))) &&
+          l.Brain.BranchId == branch.Id &&
+          (status == null || l.LockerStatus == status)
+      )
+      .Select(l => new LockerWithUsers
+      {
+          Id = l.Id,
+          number = (long)(l.Number ?? 0),
+          groupid = l.Brain.GroupId,
+          LockerType = l.LockerTypeNavigation,
+          IsActive = l.IsActive ?? 0,           
+          Status = l.LockerStatus ?? 0,      
+          IsOpen = l.IsOpen == 1 ? 1 : 0,
+          BranchId = l.Brain.BranchId ?? 0,
+          PasswordHash = l.PasswordHash,
+          Users = l.Users
+              .Where(u => u.Name != null)
+              .Select(u => u.Name)
+              .ToList()
+      })
+      .ToList();
 
                 var branchLockerGroups = Db.LockerGroups
                     .Where(lg => lg.BranchId == branch.Id)

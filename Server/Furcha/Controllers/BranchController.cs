@@ -46,29 +46,20 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<bool>.Success(branch));
         }
 
-  /*      [Authorize]*/
+        [Authorize]
         [HttpGet("branches")]
         public ActionResult<ApiResult<List<AllBranchResult>>> GetAllBranchesOfCompanyByAdminId([FromQuery] string? name)
         {
-            var adminId = GetClaimValue("AdminId");
-            if (name == null )
-            {
-                var branches = _branchService.GetAllBranches(int.Parse(adminId));
+            var adminId = int.Parse(GetClaimValue("AdminId"));
 
-                return Ok(ApiResult<List<AllBranchResult>>.Success(branches));
+            var branches = _branchService.GetBranches(adminId, name);
 
-            }
-            else
-            {
-                var branches = _branchService.GetSearchedBranches(name, int.Parse(adminId));
-
-                return Ok(ApiResult<List<AllBranchResult>>.Success(branches));
-            }
-
+            return Ok(ApiResult<List<AllBranchResult>>.Success(branches));
         }
 
-      //  [Authorize]
-     //   [RequiresPermission("CreateBranch")]
+
+        //  [Authorize]
+        //   [RequiresPermission("CreateBranch")]
         [HttpPost("edit-branch")]
         public ActionResult<ApiResult<bool>> EditBranch([FromQuery] int id, [FromBody] CreateBranchRequest request)
         {
