@@ -13,7 +13,7 @@ import CloseButton from "../attributes/CloseButton";
 import BranchModal from "../branch/BranchModal";
 import { useFormik } from 'formik';
 import CustomSelect from "../../select/CustomSelect";
-import { getAllBranches } from "../../../redux/api/branchApi";
+import { getBranches } from "../../../redux/api/branchApi";
 import { getAllBranchesData } from "../../../redux/slice/branchSlice";
 
 const ModulesModal = ({ onClose, id, mode = "add" }) => {
@@ -30,7 +30,7 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
   }));
 
   useEffect(() => {
-    dispatch(getAllBranches());
+    dispatch(getBranches());
     dispatch(getLockerGroupsData());
     dispatch(getNewBrains());
   }, [dispatch]);

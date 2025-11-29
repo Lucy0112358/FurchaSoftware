@@ -14,7 +14,7 @@ import CustomSelect from '../../select/CustomSelect';
 import UserInfoModal from '../../userInfo/UserInfoModal';
 import Manage from '../../manage/Manage';
 import { getAllBranchesData } from '../../../redux/slice/branchSlice';
-import { getAllBranches } from '../../../redux/api/branchApi';
+import { getBranches } from '../../../redux/api/branchApi';
 
 
 function UserGroupMenu() {
@@ -50,7 +50,7 @@ function UserGroupMenu() {
     }
 
     useEffect(() => {
-        dispatch(getAllBranches());
+        dispatch(getBranches());
         dispatch(getLockerGroupsData());
     }, []);
 

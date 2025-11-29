@@ -1,8 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getBranches, getLockerGroupsData } from "../api/menuApi";
+import {  getLockerGroupsData } from "../api/menuApi";
 import { userSlice } from "./userSlice";
 import { getModuleLocker, getModules, getNewBrains, moduleShow } from "../api/moduleApi";
 import { LockerTypes } from "../../enums/Locker/Types";
+import { getBranches } from "../api/branchApi";
 
 const initialState = {
   modalBranches: [],

@@ -18,8 +18,8 @@ export const getLockerGroupsByBranchId = createAsyncThunk(
   }
 )
 
-export const getAllBranches = createAsyncThunk(
-  'branch/getAllBranches',
+export const getBranches = createAsyncThunk(
+  'branch/getBranches',
   async (params, thunkAPI) => {
     try {
       const config = {
@@ -61,7 +61,7 @@ export const deleteBranch = createAsyncThunk(
         url: 'branch/delete-branch/' + id,
       };
       const response = await instance(config);
-      await thunkAPI.dispatch(getAllBranches());
+      await thunkAPI.dispatch(getBranches());
       return response?.data;
 
     } catch (error) {

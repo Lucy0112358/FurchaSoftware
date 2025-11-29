@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getBranches, getLockerGroupsData, getUserGroups } from "../api/menuApi";
+import {getLockerGroupsData, getUserGroups } from "../api/menuApi";
 import { userSlice } from "./userSlice";
+import { getBranches } from "../api/branchApi";
 // import { APP_BASE_URL } from "../../config";
 
 const initialState = {

@@ -13,7 +13,7 @@ import { useHasPermission } from '../../../hooks/useHasPermission';
 import ModalActionButton from '../../button/ModalActionButton';
 import Manage from '../../manage/Manage';
 import { getAllBranchesData } from '../../../redux/slice/branchSlice';
-import { getAllBranches } from '../../../redux/api/branchApi';
+import { getBranches } from '../../../redux/api/branchApi';
 import { getAllAdmins } from '../../../redux/api/adminApi';
 
 
@@ -27,7 +27,7 @@ function AdminMenu() {
   const { hasPermission } = useHasPermission();
 
   useEffect(() => {
-    dispatch(getAllBranches());
+    dispatch(getBranches());
   }, [dispatch]);
 
   useEffect(() => {

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import '../menu.css';
 import { assets } from '../../../assets/assets';
 import { useDispatch } from 'react-redux';
-import { getBranches } from '../../../redux/api/menuApi';
 import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive';
 import Connection from '../../connection/Connection';
@@ -11,6 +10,7 @@ import UserInfoModal from '../../userInfo/UserInfoModal';
 import { useHasPermission } from '../../../hooks/useHasPermission';
 import ModalActionButton from '../../button/ModalActionButton';
 import Manage from '../../manage/Manage';
+import { getBranches } from '../../../redux/api/branchApi';
 
 function ModulesMenu() {
   const dispatch = useDispatch();

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './menu.css';
 import { useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { getBranches, getUserGroups } from '../../redux/api/menuApi';
+import {  getUserGroups } from '../../redux/api/menuApi';
 import UserMenu from './user/UserMenu';
 import LockerMenu from './locker/LockerMenu';
 import ModulesMenu from './modules/ModulesMenu';
@@ -12,6 +12,8 @@ import { getLockerTypes } from '../../redux/api/lockerApi';
 import ParcelMenu from './locker/parcels/ParcelMenu';
 import ProfileMenu from './profile/ProfileMenu';
 import UserMenuContainer from './user/UserMenuContainer';
+import { getBranches } from '../../redux/api/branchApi';
+
 
 
 function Menu() {

@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import "../modal.css";
 import "./branchModal.css";
-import { createBranch, updateBranch, getAllBranches } from "../../../redux/api/branchApi";
+import { createBranch, updateBranch, getBranches } from "../../../redux/api/branchApi";
 import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
 import ShowFormikError from "../../error/ShowFormikError";
@@ -34,7 +34,7 @@ const BranchModal = ({ onClose, mode = "add", initialData = {} }) => {
             toast.error(response.error.message);
           } else if (response?.payload?.isSuccess) {
             toast.success(`Branch ${isEditMode ? "updated" : "created"} successfully`);
-            dispatch(getAllBranches());
+            dispatch(getBranches());
             onClose();
           } else {
             toast.error("Something went wrong");

@@ -6,7 +6,7 @@ import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive'
 import Connection from '../../connection/Connection';
 import BranchModal from '../../modals/branch/BranchModal';
-import { getAllBranches } from '../../../redux/api/branchApi';
+import { getBranches } from '../../../redux/api/branchApi';
 import UserInfoModal from '../../userInfo/UserInfoModal';
 import Manage from '../../manage/Manage';
 
@@ -28,7 +28,7 @@ function BranchMenu() {
 
         setDebounceTimeout(
             setTimeout(() => {
-                dispatch(getAllBranches({ 'name': name }));
+                dispatch(getBranches({ 'name': name }));
             }, 500)
         );
     };
