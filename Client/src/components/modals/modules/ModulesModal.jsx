@@ -3,7 +3,7 @@ import '../modal.css';
 import { useDispatch, useSelector } from 'react-redux';
 import 'react-tabs/style/react-tabs.css';
 import './modulesModal.css';
-import { getBranches, getLockerGroupsData } from "../../../redux/api/menuApi";
+import { getLockerGroupsData } from "../../../redux/api/menuApi";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import { IoMdAdd } from "react-icons/io";

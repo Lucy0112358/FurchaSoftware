@@ -1,17 +1,16 @@
-
 import React, { useState } from 'react';
 import BranchModal from '../../modals/branch/BranchModal';
 
-function Edit({ branch }) {
+function Edit({ branch, onClose }) {
   const [showModal, setShowModal] = useState(false);
 
   const handleEdit = () => {
-    console.log(branch, 'branch');
     setShowModal(true);
   };
 
   const handleClose = () => {
     setShowModal(false);
+    if (onClose) onClose();
   };
 
   return (

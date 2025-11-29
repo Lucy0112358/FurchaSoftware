@@ -28,10 +28,10 @@ function UserPopup({ user, onClose, selectedIds, clearSelected }) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Edit id={user.id} onClose={onClose} />
-              <Delete ids={[user.id]} onClose={onClose} clearSelected={clearSelected} />
-              <State user={user} onClose={onClose} />
-              <AddUserGroup ids={[user.id]} onClose={onClose} />
+              <Edit id={user.id}  onClose={() => onClose()} />
+              <Delete ids={[user.id]}  onClose={() => onClose()} clearSelected={clearSelected} />
+              <State user={user}  onClose={() => onClose()} />
+              <AddUserGroup ids={[user.id]}  onClose={() => onClose()} />
             </div>
           </>
         )

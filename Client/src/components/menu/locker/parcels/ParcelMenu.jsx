@@ -27,7 +27,6 @@ import { useHasPermission } from '../../../../hooks/useHasPermission';
 import ModalActionButton from '../../../button/ModalActionButton';
 import Manage from '../../../manage/Manage';
 import { getAllBranchesData } from '../../../../redux/slice/branchSlice';
-import { getAllBranches } from '../../../../redux/api/branchApi';
 import ParcelModal from '../../../modals/locker/parcel/ParcelModal';
 import { LuMessageSquare } from "react-icons/lu";
 import ParcelMessageModal from '../../../modals/locker/parcelMessage/ParcelMessageModal';

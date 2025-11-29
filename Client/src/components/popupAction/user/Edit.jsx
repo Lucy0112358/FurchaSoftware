@@ -8,17 +8,17 @@ function Edit({ id, onClose }) {
     const dispatch = useDispatch();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const userData = useSelector(getUserData);
-console.log(userData, 'userData');
+    console.log(userData, 'userData');
 
     useEffect(() => {
         if (id) {
-            dispatch(userShow({id}));
+            dispatch(userShow({ id }));
         }
     }, [id]);
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        onClose();
+        if (onClose) onClose();
     };
 
     return (

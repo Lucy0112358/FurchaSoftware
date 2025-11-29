@@ -4,12 +4,12 @@ import { toast } from "react-toastify";
 import ConfirmModal from '../../../confirm/ConfirmModal';
 import { changeUserState } from '../../../../redux/api/userApi';
 
-function Change({ user={}, onClose }) {
+function Change({ user = {}, onClose }) {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 
     const handleChange = () => {
-        
+
         if (user?.id) {
             const data = {
                 ids: [user.id],
@@ -19,7 +19,7 @@ function Change({ user={}, onClose }) {
                 .unwrap()
                 .then((res) => {
                     toast.success(res.message);
-                    onClose();
+                    if (onClose) onClose();
                 })
                 .catch((err) => {
                     toast.error(err?.message || "Ошибка при изменении состояния пользователя");

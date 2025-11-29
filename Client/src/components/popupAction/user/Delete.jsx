@@ -16,7 +16,7 @@ function Delete({ ids, onClose, clearSelected }) {
                     toast.success(res.message);
                     dispatch(getUsers())
                     clearSelected();
-                    onClose();
+                    if (onClose) onClose();
                 })
                 .catch((err) => {
                     toast.error(err?.message || "Ошибка при удалении");
