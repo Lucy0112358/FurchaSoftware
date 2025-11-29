@@ -25,6 +25,8 @@ public partial class Locker
 
     public int? ExternalId { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual BrainModule Brain { get; set; }
 
     public virtual LockerType LockerTypeNavigation { get; set; }

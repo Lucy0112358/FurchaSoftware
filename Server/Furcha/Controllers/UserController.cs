@@ -276,7 +276,6 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<GetUserGroupResult>.Success(result));
         }
 
-
         [HttpGet("{id}")]
         public ActionResult<ApiResult<SingleUserResult>> GetUserById(int id)
         {

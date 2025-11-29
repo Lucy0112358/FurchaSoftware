@@ -18,7 +18,7 @@ namespace FurchaAdminApi.Controllers
             _lockerService = lockerService;
         }
 
-      /*  [Authorize]*/
+        [Authorize]
         [HttpGet]
         public ActionResult<ApiResult<List<Models.Result.AllModulesResult>>> Modules(int groupId)
         {
@@ -29,6 +29,7 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<List<Models.Result.AllModulesResult>>.Success(modules));
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public ActionResult<ApiResult<ModuleResult>> GetModuleById(int id)
         {
@@ -53,7 +54,7 @@ namespace FurchaAdminApi.Controllers
         }
 
 
-        /*        [Authorize]*/
+        [Authorize]
         [HttpPost("{id}")]
         public ActionResult<bool> Update(int id, [FromBody] UpdateModuleRequest request)
         {
@@ -62,6 +63,7 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<bool>.Success(locker));
         }
 
+        [Authorize]
         [HttpPost("delete/{id}")]
         public ActionResult<ApiResult<bool>> Delete(int id)
         {
@@ -83,7 +85,7 @@ namespace FurchaAdminApi.Controllers
             }
         }
 
-
+        [Authorize]
         [HttpPost("editModule/{id}")]
         public ActionResult<ApiResult<bool>> Edit(int id, [FromBody] EditModuleDto req)
         {
@@ -91,7 +93,7 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<bool>.Success(locker));
         }
 
-
+        [Authorize]
         [HttpGet("getModule/{id}")]
         public ActionResult<ApiResult<FurchaBLL.Models.EditModuleResult>> GetModule(int id)
         {
