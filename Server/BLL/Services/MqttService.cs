@@ -239,7 +239,7 @@ public class MqttService
                                         LockerType = brain.Lockers.FirstOrDefault()?.LockerType ?? 1,
                                         PasswordHash = "test",
                                         BrainId = brain.Id,
-                                        ExternalId = (brain.Lockers.FirstOrDefault()?.ExternalId + 1) ?? (i + 1)
+                                        ExternalId = (brain.Lockers.LastOrDefault()?.ExternalId + 1) ?? (i + 1)
                                     });
                                 }
                             }
