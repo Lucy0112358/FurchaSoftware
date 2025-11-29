@@ -929,7 +929,7 @@ namespace FurchaAdminApi.Services
                 Email = user.Email,
                 ActiveFrom = user.ActiveFrom,
                 ActiveTo = user.ActiveTo,
-                State = user.State == 1 ? "Active" : "Suspended",
+                State = (int)user.State,
                 UserGroups = user.UserGroups.Select(x => x.Id).ToList(),
                 Cards = user.Cards.Select(x => x.CardNumber).ToList(),
                 Branches = user.UserBranches.Select(b => new BranchResult

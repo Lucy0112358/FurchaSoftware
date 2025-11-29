@@ -99,7 +99,7 @@ namespace FurchaAdminApi.Services
             var branch = Db.Branches.Add(new FurchaDAL.Models.Branch
             {
                 Name = newBranch.Name,
-                CompanyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId, //_userRepository.GetCompanyIdByAdminId(AdminId),
+                CompanyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId, 
                 AddressId = address.Entity.Id,
                 Comment = newBranch.Comment,
                 Mode = (int)StateEnum.active

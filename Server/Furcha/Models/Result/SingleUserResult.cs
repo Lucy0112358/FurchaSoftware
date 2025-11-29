@@ -10,7 +10,7 @@
         public string Surname { get; set; }
         public DateTime? ActiveFrom { get; set; }
         public DateTime? ActiveTo { get; set; }
-        public string State { get; set; }
+        public int State { get; set; }
         public List<string> Cards { get; set; }
         public List<int> UserGroups { get; set; }
         public List<BranchResult> Branches { get; set; }

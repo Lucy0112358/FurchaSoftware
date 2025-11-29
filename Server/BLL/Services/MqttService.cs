@@ -230,9 +230,10 @@ public class MqttService
                             var mqttRequest = JsonSerializer.Deserialize<MqttBaseRequest<MqttLockerCount>>(responseMessage);
 
                             var brain = Db.BrainModules.Include(b => b.Lockers).FirstOrDefault(x => x.BrainUid == mqttRequest.Data.BrainUid);
-                            if (brain.Lockers.Count < mqttRequest.Data.LockerCount)
+                            var count = brain.Lockers.Count;
+                            if (count < mqttRequest.Data.LockerCount)
                             {
-                                for (int i = 0; i < (mqttRequest.Data.LockerCount - brain.Lockers.Count); i++)
+                                for (int i = 0; i < (mqttRequest.Data.LockerCount - count); i++)
                                 {
                                     Db.Lockers.Add(new FurchaDAL.Models.Locker
                                     {
@@ -243,9 +244,9 @@ public class MqttService
                                     });
                                 }
                             }
-                            if (brain.Lockers.Count > mqttRequest.Data.LockerCount)
+                            if (count > mqttRequest.Data.LockerCount)
                             {
-                                for (int i = 0; i < (brain.Lockers.Count - mqttRequest.Data.LockerCount); i++)
+                                for (int i = 0; i < (count - mqttRequest.Data.LockerCount); i++)
                                 {
                                     var l = brain.Lockers.OrderByDescending(x => x.ExternalId).ToList();
                                     Db.Lockers.Remove(l[i]);
