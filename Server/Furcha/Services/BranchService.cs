@@ -24,85 +24,65 @@ namespace FurchaAdminApi.Services
             Db = db;
         }
 
-        public List<AllBranchResult> GetAllBranches(int adminId)
+        public List<AllBranchResult> GetBranches(int adminId, string? name)
         {
-            return Db.AdminBranches
+            var adminBranchIds = Db.AdminBranches
                 .Where(ab => ab.AdministratorId == adminId)
-                .Select(ab => ab.Branch) // ← gets the related Branch entity
-                .Select(branch => branch.ToAllBranchResult(
+                .Select(ab => ab.BranchId)
+                .ToList();
 
-                    // Address
-                    Db.BranchAddresses
-                        .Where(a => a.Id == branch.AddressId)
-                        .Select(a => a.Street)
-                        .FirstOrDefault(),
+            var query = Db.Branches
+                .Where(b => adminBranchIds.Contains(b.Id));
 
-                    // Locker Types
-                    Db.Lockers
-                        .Include(l => l.Brain)
-                        .Include(l => l.LockerTypeNavigation)
-                        .Where(l => l.Brain.BranchId == branch.Id)
-                        .Select(l => new LockerTypeResult
-                        {
-                            Id = l.LockerTypeNavigation.Id,
-                            Name = l.LockerTypeNavigation.Name
-                        })
-                        .Distinct()
-                        .ToList(),
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                query = query.Where(b => EF.Functions.Like(b.Name, $"%{name}%"));
+            }
 
-                    // Lockers count
-                    Db.Lockers
-                        .Include(l => l.Brain)
-                        .Count(l => l.Brain.BranchId == branch.Id)
-                ))
+            var branches = query.ToList();
+
+            return branches
+                .Select(b => BuildBranchResult(b))
                 .ToList();
         }
+
+        private AllBranchResult BuildBranchResult(Branch branch)
+        {
+            var street = Db.BranchAddresses
+                .Where(a => a.Id == branch.AddressId)
+                .Select(a => a.Street)
+                .FirstOrDefault();
+
+            var lockerTypes = Db.Lockers
+                .Include(l => l.Brain)
+                .Include(l => l.LockerTypeNavigation)
+                .Where(l => l.Brain.BranchId == branch.Id)
+                .Select(l => new LockerTypeResult
+                {
+                    Id = l.LockerTypeNavigation.Id,
+                    Name = l.LockerTypeNavigation.Name
+                })
+                .Distinct()
+                .ToList();
+
+            var lockerCount = Db.Lockers
+                .Include(l => l.Brain)
+                .Count(l => l.Brain.BranchId == branch.Id);
+
+            return branch.ToAllBranchResult(
+                street,
+                lockerTypes,
+                lockerCount
+            );
+        }
+
 
         private int GetLocersCount(int branchId)
         {
-            var count = Db.Lockers.Include(x => x.Brain).Where(l => l.Brain.BranchId == branchId).Count(); //_lockerRepository.GetLockersByBranchId(branchId).Count;
+            var count = Db.Lockers.Include(x => x.Brain).Where(l => l.Brain.BranchId == branchId).Count();
 
             return count;
         }
-
-        public List<AllBranchResult> GetSearchedBranches(string name, int adminId)
-        {
-            var companyId = Db.Administrators
-                               .Where(a => a.Id == adminId)
-                               .Select(a => a.CompanyId)
-                               .FirstOrDefault();
-
-            var branches = Db.Branches
-                .Where(b => b.CompanyId == companyId &&
-                            b.Name.ToLower().Contains(name.ToLower()))
-                .ToList();
-
-            return branches
-                .Select(x => x.ToAllBranchResult(
-                    Db.BranchAddresses
-                        .Where(a => a.Id == x.AddressId)
-                        .Select(a => a.Street)
-                        .FirstOrDefault(),
-
-                    Db.Lockers
-                        .Include(l => l.Brain)
-                        .Include(l => l.LockerTypeNavigation)
-                        .Where(l => l.Brain.BranchId == x.Id)
-                        .Select(l => new LockerTypeResult
-                        {
-                            Id = l.LockerTypeNavigation.Id,
-                            Name = l.LockerTypeNavigation.Name
-                        })
-                        .Distinct()
-                        .ToList(),
-
-                    Db.Lockers
-                        .Include(l => l.Brain)
-                        .Count(l => l.Brain.BranchId == x.Id)
-                ))
-                .ToList();
-        }
-
 
         public bool CreateBranch(CreateBranchRequest newBranch, int adminId)
         {
@@ -119,7 +99,7 @@ namespace FurchaAdminApi.Services
             var branch = Db.Branches.Add(new FurchaDAL.Models.Branch
             {
                 Name = newBranch.Name,
-                CompanyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId, //_userRepository.GetCompanyIdByAdminId(AdminId),
+                CompanyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId, 
                 AddressId = address.Entity.Id,
                 Comment = newBranch.Comment,
                 Mode = (int)StateEnum.active
@@ -142,15 +122,16 @@ namespace FurchaAdminApi.Services
         public bool EditBranch(CreateBranchRequest newBranch, int id)
         {
             var branch = Db.Branches.Include(b => b.BranchAddresses).FirstOrDefault(b => b.Id == id);
+            var branchAddress = Db.BranchAddresses.Where(a => a.Id == branch.AddressId).FirstOrDefault();
 
             if (branch == null)
                 return false;
 
             branch.Name = newBranch.Name;
             branch.Comment = newBranch.Comment;
-            if (branch.BranchAddresses.FirstOrDefault() != null && !string.IsNullOrEmpty(newBranch.Address))
+            if (branchAddress != null && !string.IsNullOrEmpty(newBranch.Address))
             {
-                branch.BranchAddresses.FirstOrDefault().Street = newBranch.Address;
+                branchAddress.Street = newBranch.Address;
             }
 
             var res = Db.SaveChanges();
