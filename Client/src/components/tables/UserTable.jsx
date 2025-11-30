@@ -80,8 +80,18 @@ function UserTable() {
                       group.name + ', '
                     ))}
                   </td>
-                  <td className={user.state === 1 ? 'text-green-500' : 'text-red-500 '}>
-                    {user.state === 1 ? 'Active' : 'Suspended'}
+                  <td
+                    className={{
+                      1: 'text-green-500',
+                      2: 'text-red-500',
+                      3: 'text-yellow-500'
+                    }[user.state] || 'text-yellow-500'}
+                  >
+                    {{
+                      1: 'Active',
+                      2: 'Suspended',
+                      3: 'Inactive'
+                    }[user.state] || 'Unknown'}
                   </td>
                   <td>{user.activeFrom ? format(parseISO(user.activeFrom), 'yyyy-MM-dd') : '-'}</td>
                   <td>{user.activeTo ? format(parseISO(user.activeTo), 'yyyy-MM-dd') : '-'}</td>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { getManage } from '../redux/slice/systemSlice';
 
@@ -16,9 +16,9 @@ export function useContextMenu(selectedIds = []) {
     setPopup(prev => ({ ...prev, visible: false }));
   }, []);
 
-  const handleRightClick = useCallback((e, target = null, column=null) => {
-    // if (!manage) return;
+  const handleRightClick = useCallback((e, target = null, column = null) => {
     e.preventDefault();
+
     const popupX = e.clientX + window.scrollX;
     const popupY = e.clientY + window.scrollY;
 
@@ -30,21 +30,23 @@ export function useContextMenu(selectedIds = []) {
       visible: true,
       x: popupX,
       y: popupY,
-      target: target,
-      column: column
+      target,
+      column
     });
   }, [selectedIds, closePopup, manage]);
 
-  const handleGlobalClick = useCallback(() => {
-    if (popup.visible) {
-      closePopup();
-    }
+  useEffect(() => {
+    const handler = () => {
+      if (popup.visible) closePopup();
+    };
+
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
   }, [popup.visible, closePopup]);
 
   return {
     popup,
     handleRightClick,
-    handleGlobalClick,
     closePopup,
   };
 }

@@ -56,8 +56,12 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
         userGroups: initialData.userGroups || [],
         cards: initialData.cards || [],
         lockerIds: initialData.lockerIds || [],
-        activeFrom: initialData.activeFrom ? new Date(initialData.activeFrom).toISOString().slice(0, 10) : '',
-        activeTo: initialData.activeTo ? new Date(initialData.activeTo).toISOString().slice(0, 10) : '',
+        activeFrom: initialData.activeFrom
+          ? initialData.activeFrom.split("T")[0]
+          : '',
+        activeTo: initialData.activeTo
+          ? initialData.activeTo.split("T")[0]
+          : '',
       });
       setCards(initialData.cards || []);
       setSelectedGroups(
@@ -395,7 +399,6 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
                   </div>
                 </div>
               </div>
-
               {/* Active Period */}
               <div className="add__modal__content__part">
                 <span>Active Period</span>
