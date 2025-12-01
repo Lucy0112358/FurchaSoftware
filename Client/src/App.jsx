@@ -37,7 +37,7 @@ function App() {
               <Route path="/admins" element={<Admins />} />
               <Route path="/branches" element={<Branch />} />
               <Route path="/lockers" element={<Lockers />} />
-              <Route path="/parcels" element={<Parcels />} />
+              {/* <Route path="/parcels" element={<Parcels />} /> */}
               <Route path="/modules" element={<Modules />} />
               <Route path="/profile" element={<Profile />} />
             </Route>

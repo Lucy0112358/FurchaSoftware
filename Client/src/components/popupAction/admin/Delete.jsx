@@ -15,7 +15,7 @@ function Delete({ ids, onClose }) {
                 .then((res) => {
                     toast.success(res.message);
                     dispatch(getAllAdmins());
-                    onClose();
+                    if (onClose) onClose();
                 })
                 .catch((err) => {
                     toast.error(err?.message || "Ошибка при удалении");

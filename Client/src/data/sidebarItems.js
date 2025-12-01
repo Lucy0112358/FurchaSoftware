@@ -8,7 +8,7 @@ export const sitebarItems = [
     { name: 'Branches', path: '/branches', icon : AiOutlineBranches},
     { name: 'Lockers', path: '/lockers', icon : PiLockersFill },
     { name: 'Users', path: '/users', icon : FaUser  },
-    { name: 'Parcels', path: '/parcels', icon : AiFillGift },
+    // { name: 'Parcels', path: '/parcels', icon : AiFillGift },
     { name: 'Administrators', path: '/admins', icon : MdAdminPanelSettings},
     { name: 'Modules', path: '/modules', icon : MdViewModule  },
 ];

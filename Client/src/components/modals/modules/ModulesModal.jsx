@@ -105,8 +105,6 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
             <div className="add__modal__content__part">
               <span>General</span>
               <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-                {console.log(formik.values, 'brainId')
-                }
                 {/* Brain Module */}
                 <label className="block text-gray-300">Brain Module</label>
                 <div className="w-5/6 mr-2">

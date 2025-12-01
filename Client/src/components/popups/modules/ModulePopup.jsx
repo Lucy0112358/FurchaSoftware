@@ -22,11 +22,11 @@ function ModulePopup({ module, onClose, column }) {
           {column && (
             <div className="flex flex-col gap-2">
               {column === "locker" ? (
-                <LockerEdit module={module} onClose={onClose} />
+                <LockerEdit module={module} onClose={() => onClose()} />
               ) : column === "module" ? (
                 <>
-                  <Edit module={module} onClose={onClose} />
-                  <Delete module={module} onClose={onClose} />
+                  <Edit module={module} onClose={() => onClose()} />
+                  <Delete module={module} onClose={() => onClose()} />
                 </>
               ) : null}
             </div>

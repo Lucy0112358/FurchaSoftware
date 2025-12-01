@@ -1,8 +1,4 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { toast } from "react-toastify";
-import ConfirmModal from '../../confirm/ConfirmModal';
-import { deleteUsers } from '../../../redux/api/userApi';
+import React from 'react';
 import Change from './state/Change';
 import ChangeMulti from './state/ChangeMulti';
 

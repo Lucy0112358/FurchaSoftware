@@ -7,6 +7,11 @@ function Edit() {
   const [isOpen, setIsOpen] = useState(false);
   const admin = useSelector(getAdminData);
 
+    const handleClose = () => {
+        setIsOpen(false);
+        if (onClose) onClose();
+    };
+
   return (
     <>
       <button
@@ -20,7 +25,7 @@ function Edit() {
         <AddAdminModal
           mode="edit"
           initialData={admin}
-          onClose={() => setIsOpen(false)}
+          onClose = { handleClose }
         />
       )}
     </>

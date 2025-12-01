@@ -14,8 +14,7 @@ function Delete({ branch, onClose }) {
                 .unwrap()
                 .then((res) => {
                     toast.success(res.message);
-    if (onClose) onClose();
-
+                    if (onClose) onClose();
                 })
                 .catch((err) => {
                     toast.error(err?.message || "Ошибка при удалении");

@@ -33,9 +33,9 @@ function AdminPopup({ admin, onClose, selectedIds }) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Edit onClose={onClose} />
-              <Delete ids={[admin.id]} onClose={onClose} />
-              <State onClose={onClose} />
+              <Edit onClose={() => onClose()} />
+              <Delete ids={[admin.id]} onClose={() => onClose()} />
+              <State onClose={() => onClose()} />
             </div>
           </>
         )
