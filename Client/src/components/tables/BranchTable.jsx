@@ -58,9 +58,9 @@ function BranchTable() {
                   <td>{branch.comment}</td>
                   <td>{branch.lockerTypes?.map((type) => type.name).join(', ')}</td>
                   <td>{branch.lockersCount}</td>
-                  <td className={branch.mode === 0 ? 'text-red-500' : 'text-green-500'}>
+                  {/* <td className={branch.mode === 0 ? 'text-red-500' : 'text-green-500'}>
                     {branch.mode === 0 ? 'Inactive' : 'Active'}
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>

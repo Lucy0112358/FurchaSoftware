@@ -13,8 +13,11 @@ import CloseButton from "../attributes/CloseButton";
 import BranchModal from "../branch/BranchModal";
 import { useFormik } from 'formik';
 import CustomSelect from "../../select/CustomSelect";
-import { getBranches } from "../../../redux/api/branchApi";
+import { deleteBrainId, getBranches } from "../../../redux/api/branchApi";
 import { getAllBranchesData } from "../../../redux/slice/branchSlice";
+import { MdDelete } from "react-icons/md";
+import ConfirmModal from "../../confirm/ConfirmModal";
+
 
 const ModulesModal = ({ onClose, id, mode = "add" }) => {
   const branches = useSelector(getAllBranchesData);
@@ -23,6 +26,8 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
   const dispatch = useDispatch();
 
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
 
   const newBrainsOptions = Object.values(newBrains)?.map(brain => ({
     value: brain.id,
@@ -56,12 +61,14 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
     }),
     onSubmit: (values) => {
       console.log(values, 'form values');
-      
+
       const action = mode === "edit"
-        ? updateModule({ id, data:{
-          branchId:values.branchId,
-          // brainUid:values.brainId
-        } })
+        ? updateModule({
+          id, data: {
+            branchId: values.branchId,
+            // brainUid:values.brainId
+          }
+        })
         : addModuleFunc(values);
 
       dispatch(action)
@@ -88,6 +95,15 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
     formik.setFieldValue('brainId', option?.value);
   };
 
+  const handleDeleteBrainId = () => {
+    dispatch(deleteBrainId(formik.values.brainId))
+        .then((response) => {
+          if (response.payload?.isSuccess) {
+            formik.setFieldValue('brainId', '')
+          }
+        });
+  }
+
   return (
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
       <form onSubmit={formik.handleSubmit}>
@@ -108,30 +124,35 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
                 {/* Brain Module */}
                 <label className="block text-gray-300">Brain Module</label>
                 <div className="w-5/6 mr-2">
-                  {mode === "edit" ? (
-                    <input
-                      type="text"
-                      name="brainId"
-                      value={formik.values.brainId}
-                      readOnly
-                      className="w-full px-3 py-2 rounded"
-                    />
-                  ) : (
-                    <>
-                      <CustomSelect
-                        options={newBrainsOptions}
+                  {mode === "edit" && formik.values.brainId ? (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
                         name="brainId"
-                        onChange={handleNewBrainChange}
-                        value={
-                          newBrainsOptions.find(
-                            (opt) => String(opt.value) === String(formik.values.brainId)
-                          ) || null
-                        }
+                        value={formik.values.brainId}
+                        readOnly
+                        className="w-full px-3 py-2 rounded"
                       />
-                      {formik.touched.brainId && formik.errors.brainId && (
-                        <div className="text-red-500">{formik.errors.brainId}</div>
-                      )}
-                    </>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirm(true)}
+                        className="bg-red-500 text-white p-3 rounded-md hover:bg-red-700"
+                      >
+                        <MdDelete />
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={newBrainsOptions}
+                      name="brainId"
+                      onChange={handleNewBrainChange}
+                      value={
+                        newBrainsOptions.find(
+                          (opt) => String(opt.value) === String(formik.values.brainId)
+                        ) || null
+                      }
+                    />
                   )}
                 </div>
 
@@ -170,6 +191,17 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
                           if (e?.stopPropagation) e.stopPropagation();
                           setAddBranchModalSwitch(false);
                         }}
+                      />
+                    )}
+
+                    {showConfirm && (
+                      <ConfirmModal
+                        message={'Are you sure you want to delete the brain ID?'}
+                        onConfirm={() => {
+                          handleDeleteBrainId();
+                          setShowConfirm(false);
+                        }}
+                        onCancel={() => setShowConfirm(false)}
                       />
                     )}
                   </div>

@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import instance from "../../config/axios/axiosConfig";
+import { getNewBrains } from "./moduleApi";
 
 export const getLockerGroupsByBranchId = createAsyncThunk(
   'branch/getLockerGroupsByBranchId',
@@ -104,3 +105,23 @@ export const updateBranch = createAsyncThunk(
     }
   }
 );
+
+export const deleteBrainId = createAsyncThunk(
+  'branch/deleteBrainId',
+  async (uuid, thunkAPI) => {
+    console.log(uuid);
+    
+    try {
+      const config = {
+        method: "post",
+        url: 'branch/delete-brain-id/' + uuid,
+      };
+      const response = await instance(config);
+      await thunkAPI.dispatch(getNewBrains());
+      return response?.data;
+
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)

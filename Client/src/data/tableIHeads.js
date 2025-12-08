@@ -58,5 +58,5 @@ export const branchTable = [
     'Comment',
     'Locker Type',
     'Lockers',
-    'Mode',
+    // 'Mode',
 ];
