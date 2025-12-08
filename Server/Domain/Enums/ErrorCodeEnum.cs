@@ -25,6 +25,8 @@ namespace Domain.Enums
         [Description("An error occured, please try again later")]
         GenericErrorRetry = 1,
 
+        [Description("A user with this email already exists in your company.")]
+        EmailAlreadyExists = 2,
 
     }
 }

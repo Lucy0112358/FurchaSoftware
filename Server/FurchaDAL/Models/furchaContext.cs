@@ -361,8 +361,6 @@ public partial class furchaContext : DbContext
 
             entity.HasIndex(e => new { e.CompanyId, e.Email }, "UQ_User_CompanyId_Email").IsUnique();
 
-            entity.Property(e => e.ActiveFrom).HasColumnType("datetime");
-            entity.Property(e => e.ActiveTo).HasColumnType("datetime");
             entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(50);

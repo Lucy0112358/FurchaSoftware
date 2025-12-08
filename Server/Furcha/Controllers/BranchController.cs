@@ -5,6 +5,8 @@ using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+/*show all locker groups
+HEX formatted cards 16 syma*/
 
 namespace FurchaAdminApi.Controllers
 {
@@ -20,7 +22,7 @@ namespace FurchaAdminApi.Controllers
             _branchService = branchService;
         }
 
-/*        [Authorize]*/
+        /*        [Authorize]*/
         [HttpGet("company-branches")]
         public ActionResult<ApiResult<List<BranchFilterResult>>> GetAllBranchesOfCompanyByAdminId()
         {
@@ -41,7 +43,7 @@ namespace FurchaAdminApi.Controllers
         public ActionResult<ApiResult<bool>> CreateBranch([FromBody] CreateBranchRequest request)
         {
             var adminId = GetClaimValue("AdminId");
-            var branch = _branchService.CreateBranch(request, int.Parse(adminId));         
+            var branch = _branchService.CreateBranch(request, int.Parse(adminId));
 
             return Ok(ApiResult<bool>.Success(branch));
         }
@@ -63,21 +65,19 @@ namespace FurchaAdminApi.Controllers
         [HttpPost("edit-branch")]
         public ActionResult<ApiResult<bool>> EditBranch([FromQuery] int id, [FromBody] CreateBranchRequest request)
         {
-           // var AdminId = GetClaimValue("AdminId");
-            var branch = _branchService.EditBranch(request,  id);
+            // var AdminId = GetClaimValue("AdminId");
+            var branch = _branchService.EditBranch(request, id);
 
             return Ok(ApiResult<bool>.Success(branch));
         }
 
-      //  [Authorize]
-      //  [RequiresPermission("DeleteBranch")]
+        [Authorize]
+        [RequiresPermission("DeleteBranch")]
         [HttpPost("delete-branch/{id}")]
         public ActionResult<ApiResult<bool>> DeleteBranch(int id)
         {
-         //   var AdminId = GetClaimValue("AdminId");
+            //   var AdminId = GetClaimValue("AdminId");
             _branchService.DeleteBranch(id);
-
-      
 
             return Ok(ApiResult<bool>.Success(true));
         }

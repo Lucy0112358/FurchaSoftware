@@ -13,15 +13,17 @@ namespace FurchaAdminApi.Services
     {
         private readonly BranchRepository _branchRepository;
         private readonly UserRepository _userRepository;
+        private readonly LockerService _lockerService;
         private readonly LockerRepository _lockerRepository;
         private readonly furchaContext Db;
 
-        public BranchService(BranchRepository branchRepository, UserRepository userRepository, LockerRepository lockerRepository, furchaContext db)
+        public BranchService(BranchRepository branchRepository, UserRepository userRepository, LockerRepository lockerRepository, furchaContext db, LockerService lockerService)
         {
             _branchRepository = branchRepository;
             _userRepository = userRepository;
             _lockerRepository = lockerRepository;
             Db = db;
+            _lockerRepository = lockerRepository;
         }
 
         public List<AllBranchResult> GetBranches(int adminId, string? name)
@@ -66,7 +68,7 @@ namespace FurchaAdminApi.Services
                 .ToList();
 
             var lockerCount = Db.Lockers
-                .Include(l => l.Brain)
+                .Include(l => l.Brain).Where(l => l.IsDeleted == false)
                 .Count(l => l.Brain.BranchId == branch.Id);
 
             return branch.ToAllBranchResult(
@@ -99,7 +101,7 @@ namespace FurchaAdminApi.Services
             var branch = Db.Branches.Add(new FurchaDAL.Models.Branch
             {
                 Name = newBranch.Name,
-                CompanyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId, 
+                CompanyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId,
                 AddressId = address.Entity.Id,
                 Comment = newBranch.Comment,
                 Mode = (int)StateEnum.active
@@ -144,6 +146,7 @@ namespace FurchaAdminApi.Services
             var branch = Db.Branches
                 .Include(b => b.AdminBranches)
                 .Include(b => b.BranchAddresses)
+                .Include(b => b.BrainModules)
                 .FirstOrDefault(b => b.Id == branchId);
 
             if (branch == null)
@@ -157,6 +160,11 @@ namespace FurchaAdminApi.Services
             if (branch.BranchAddresses != null)
             {
                 Db.BranchAddresses.RemoveRange(branch.BranchAddresses);
+            }
+
+            foreach (var m in branch.BrainModules)
+            {
+                _lockerService.DeleteModule(m.Id);
             }
 
             Db.Branches.Remove(branch);

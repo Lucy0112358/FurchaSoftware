@@ -17,7 +17,7 @@ public partial class User
 
     public string Surname { get; set; }
 
-    public DateOnly? CreatedDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
 
     public int? CompanyId { get; set; }
 

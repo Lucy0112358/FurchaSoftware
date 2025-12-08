@@ -7,6 +7,7 @@ using FurchaBLL.Constants;
 using FurchaBLL.Interfaces;
 using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using User = FurchaDAL.Models.User;
 
@@ -654,33 +655,46 @@ namespace FurchaAdminApi.Services
             return group;
         }
 
-
         private UserResult AddUserToDb(UserCreateRequest newUser, int adminId)
         {
-            var companyId = Db.Administrators.FirstOrDefault(a => a.Id == adminId).CompanyId;
-            var state = StateEnum.active;
+            var companyId = Db.Administrators
+                .Where(a => a.Id == adminId)
+                .Select(a => a.CompanyId)
+                .FirstOrDefault();
 
             if (companyId == null)
-            {
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
+
+            // ------------------------------
+            // Normalize dates (strip time + make Kind=Unspecified)
+            // ------------------------------
+            DateTime? activeFrom = null;
+            if (newUser.ActiveFrom.HasValue)
+            {
+                var d = newUser.ActiveFrom.Value.Date; // only date part
+                activeFrom = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
             }
 
-            if (newUser.ActiveFrom != null && newUser.ActiveFrom > DateTime.Now)
+            DateTime? activeTo = null;
+            if (newUser.ActiveTo.HasValue)
             {
-                state = StateEnum.active;
+                var d = newUser.ActiveTo.Value.Date;
+                activeTo = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
             }
-            else if (newUser.ActiveTo < DateTime.Now)
+
+            // Use date-only for state comparison
+            var today = DateTime.UtcNow.Date;
+
+            StateEnum state = StateEnum.active;
+
+            // If ActiveTo is before today -> expanded, otherwise active
+            if (activeTo.HasValue && activeTo.Value.Date < today)
             {
                 state = StateEnum.expanded;
             }
 
             try
             {
-                /*  using (var transactionScope = new TransactionScope(TransactionScopeOption.Required,
-                      new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
-                      TransactionScopeAsyncFlowOption.Enabled))
-                  {*/
-
                 var user = Db.Users.FirstOrDefault(u => u.Id == newUser.Id);
 
                 if (user == null)
@@ -692,12 +706,16 @@ namespace FurchaAdminApi.Services
                         Surname = newUser.Surname,
                         Email = newUser.Email,
                         Phone = newUser.Phone,
-                        CreatedDate = DateOnly.FromDayNumber(1),
+
+                        CreatedDate = DateTime.UtcNow,
+
                         State = (int)state,
                         CompanyId = (int)companyId,
-                        ActiveFrom = newUser.ActiveFrom,
-                        ActiveTo = newUser.ActiveTo
+
+                        ActiveFrom = activeFrom,
+                        ActiveTo = activeTo
                     };
+
                     Db.Users.Add(user);
                 }
                 else
@@ -706,26 +724,22 @@ namespace FurchaAdminApi.Services
                     user.Name = newUser.Name;
                     user.Surname = newUser.Surname;
                     user.Phone = newUser.Phone;
+
                     user.State = (int)state;
-                    user.ActiveFrom = newUser.ActiveFrom;
-                    user.ActiveTo = newUser.ActiveTo;
+                    user.ActiveFrom = activeFrom;
+                    user.ActiveTo = activeTo;
                 }
 
                 Db.SaveChanges();
 
                 if (newUser.Cards != null)
-                {
                     AddCardsByNumbers(newUser.Cards, user.Id);
-                }
+
                 if (newUser.LockerIds != null)
-                {
                     AssignLockersToUser(newUser.LockerIds, user.Id);
-                }
+
                 if (newUser.UserGroups != null)
-                {
                     AssignUserGroupsToUser(newUser.UserGroups, user.Id);
-                }
-                //    transactionScope.Complete();
 
                 return new UserResult
                 {
@@ -738,7 +752,6 @@ namespace FurchaAdminApi.Services
                     ActiveTo = user.ActiveTo,
                     Phone = user.Phone
                 };
-                /* }*/
             }
             catch (BaseException)
             {
@@ -746,9 +759,29 @@ namespace FurchaAdminApi.Services
             }
             catch (Exception ex)
             {
+                // Unique email
+                if (ex.InnerException is SqlException sqlEx &&
+                    (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+                {
+                    throw new BaseException(
+                        ErrorCodeEnum.EmailAlreadyExists,
+                        "A user with this email already exists in your company."
+                    );
+                }
+
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
             }
         }
+
+        private DateTime? Normalize(DateTime? dt)
+        {
+            if (!dt.HasValue)
+                return null;
+
+            // remove timezone — prevent browser from shifting date
+            return DateTime.SpecifyKind(dt.Value, DateTimeKind.Unspecified);
+        }
+
 
         private void AssignUserGroupsToUser(List<int> groupIds, int userId)
         {
@@ -761,26 +794,33 @@ namespace FurchaAdminApi.Services
                 if (user == null)
                     throw new Exception($"User with Id {userId} not found");
 
-                var existingGroupIds = user.UserGroups.Select(g => g.Id).ToHashSet();
+                var existingGroupIds = user.UserGroups.Select(g => g.Id).ToList();
 
-                var newGroups = Db.UserGroups
+                var groupsToRemove = user.UserGroups
+                    .Where(g => !groupIds.Contains(g.Id))
+                    .ToList();
+
+                foreach (var group in groupsToRemove)
+                {
+                    user.UserGroups.Remove(group);
+                }
+
+                var groupsToAdd = Db.UserGroups
                     .Where(g => groupIds.Contains(g.Id) && !existingGroupIds.Contains(g.Id))
                     .ToList();
 
-                foreach (var group in newGroups)
+                foreach (var group in groupsToAdd)
                 {
                     user.UserGroups.Add(group);
                 }
 
-                if (newGroups.Any())
-                    Db.SaveChanges();
+                Db.SaveChanges();
             }
             catch (Exception ex)
             {
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
             }
         }
-
 
         public void AssignLockersToUser(List<int> lockerIds, int userId)
         {
@@ -915,9 +955,16 @@ namespace FurchaAdminApi.Services
 
         public SingleUserResult GetUserById(int id)
         {
-            var user = Db.Users.Include(x => x.UserBranches).ThenInclude(x => x.Branch).ThenInclude(x => x.BrainModules).ThenInclude(b => b.Lockers)
-                .Include(u => u.Lockers).ThenInclude(l => l.Brain)
-                .Include(x => x.Cards).Include(u => u.UserGroups).First(u => u.Id == id);
+            var user = Db.Users
+                .Include(x => x.UserBranches)
+                    .ThenInclude(x => x.Branch)
+                        .ThenInclude(x => x.BrainModules)
+                            .ThenInclude(b => b.Lockers)
+                .Include(u => u.Lockers)
+                    .ThenInclude(l => l.Brain)
+                .Include(x => x.Cards)
+                .Include(u => u.UserGroups)
+                .First(u => u.Id == id);
 
             return new SingleUserResult
             {
@@ -927,8 +974,11 @@ namespace FurchaAdminApi.Services
                 Surname = user.Surname,
                 Phone = user.Phone,
                 Email = user.Email,
-                ActiveFrom = user.ActiveFrom,
-                ActiveTo = user.ActiveTo,
+
+                ActiveFrom = Normalize(user.ActiveFrom),
+                ActiveTo = Normalize(user.ActiveTo),
+
+
                 State = (int)user.State,
                 UserGroups = user.UserGroups.Select(x => x.Id).ToList(),
                 Cards = user.Cards.Select(x => x.CardNumber).ToList(),
@@ -936,10 +986,14 @@ namespace FurchaAdminApi.Services
                 {
                     Id = b.BranchId,
                     Name = b.Branch.Name,
-                    Lockers = user.Lockers.Where(l => l.Brain.BranchId == b.BranchId).Select(x => x.Id).ToList(),
+                    Lockers = user.Lockers
+                        .Where(l => l.Brain.BranchId == b.BranchId)
+                        .Select(x => x.Id)
+                        .ToList(),
                 }).ToList(),
             };
         }
+
 
         public GetUserGroupResult? GetUserGroupById(int id)
         {
@@ -991,19 +1045,12 @@ namespace FurchaAdminApi.Services
             if (group == null)
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "User group not found.");
 
-            // -----------------------------
-            // Update name
-            // -----------------------------
             group.Name = req.Name;
 
-            // -----------------------------
-            // Update LOCKERS ONLY
-            // -----------------------------
             var existingLockerIds = group.UserGroupLockers
                 .Select(x => x.LockerId)
                 .ToList();
 
-            // Remove old lockers
             var lockersToRemove = group.UserGroupLockers
                 .Where(ugl => !req.LockerIds.Contains(ugl.LockerId))
                 .ToList();
@@ -1011,7 +1058,6 @@ namespace FurchaAdminApi.Services
             if (lockersToRemove.Any())
                 Db.UserGroupLockers.RemoveRange(lockersToRemove);
 
-            // Add new lockers
             var lockersToAdd = req.LockerIds
                 .Where(lockerId => !existingLockerIds.Contains(lockerId))
                 .Select(lockerId => new UserGroupLocker
@@ -1026,9 +1072,6 @@ namespace FurchaAdminApi.Services
 
             Db.SaveChanges();
 
-            // ---------------------------------------------------------
-            // 🔥 Recalculate BRANCHES based ONLY on lockers' BrainId
-            // ---------------------------------------------------------
             var branchIds = Db.Lockers
                 .Where(l => req.LockerIds.Contains(l.Id))
                 .Select(l => l.Brain.BranchId)
@@ -1037,7 +1080,6 @@ namespace FurchaAdminApi.Services
                 .Distinct()
                 .ToList();
 
-            // Remove old branches
             var branchesToRemove = group.UserGroupBranches
                 .Where(ugb => !branchIds.Contains(ugb.BranchId))
                 .ToList();
@@ -1060,17 +1102,11 @@ namespace FurchaAdminApi.Services
 
             Db.SaveChanges();
 
-            // ---------------------------------------------------------
-            // Build result: Branch names (updated)
-            // ---------------------------------------------------------
             var branchNames = Db.Branches
                 .Where(b => branchIds.Contains(b.Id))
                 .Select(b => b.Name)
                 .ToList();
 
-            // ---------------------------------------------------------
-            // Build result: Locker groups
-            // ---------------------------------------------------------
             var lockerGroups = Db.LockerGroups
                 .Include(lg => lg.BrainModules)
                     .ThenInclude(bm => bm.Lockers)
