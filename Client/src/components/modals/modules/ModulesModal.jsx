@@ -17,6 +17,7 @@ import { deleteBrainId, getBranches } from "../../../redux/api/branchApi";
 import { getAllBranchesData } from "../../../redux/slice/branchSlice";
 import { MdDelete } from "react-icons/md";
 import ConfirmModal from "../../confirm/ConfirmModal";
+import CustomSelectWithAction from "../../select/CustomSelectWithAction";
 
 
 const ModulesModal = ({ onClose, id, mode = "add" }) => {
@@ -27,6 +28,7 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
 
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [brainToDelete, setBrainToDelete] = useState(null);
 
 
   const newBrainsOptions = Object.values(newBrains)?.map(brain => ({
@@ -96,12 +98,13 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
   };
 
   const handleDeleteBrainId = () => {
-    dispatch(deleteBrainId(formik.values.brainId))
-        .then((response) => {
-          if (response.payload?.isSuccess) {
-            formik.setFieldValue('brainId', '')
-          }
-        });
+    if (!brainToDelete) return
+    dispatch(deleteBrainId(brainToDelete))
+      .then((response) => {
+        if (response.payload?.isSuccess) {
+          setBrainToDelete(null)
+        }
+      });
   }
 
   return (
@@ -134,16 +137,16 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
                         className="w-full px-3 py-2 rounded"
                       />
 
-                      <button
+                      {/* <button
                         type="button"
                         onClick={() => setShowConfirm(true)}
                         className="bg-red-500 text-white p-3 rounded-md hover:bg-red-700"
                       >
                         <MdDelete />
-                      </button>
+                      </button> */}
                     </div>
                   ) : (
-                    <CustomSelect
+                    <CustomSelectWithAction
                       options={newBrainsOptions}
                       name="brainId"
                       onChange={handleNewBrainChange}
@@ -152,6 +155,10 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
                           (opt) => String(opt.value) === String(formik.values.brainId)
                         ) || null
                       }
+                      onDeleteOption={(option) => {
+                        setBrainToDelete(option.value);
+                        setShowConfirm(true);
+                      }}
                     />
                   )}
                 </div>

@@ -108,16 +108,15 @@ export const updateBranch = createAsyncThunk(
 
 export const deleteBrainId = createAsyncThunk(
   'branch/deleteBrainId',
-  async (uuid, thunkAPI) => {
-    console.log(uuid);
+  async (id, thunkAPI) => {
     
     try {
       const config = {
         method: "post",
-        url: 'branch/delete-brain-id/' + uuid,
+        url: 'branch/delete-brain-id/' + id,
       };
       const response = await instance(config);
-      await thunkAPI.dispatch(getNewBrains());
+
       return response?.data;
 
     } catch (error) {
