@@ -47,72 +47,77 @@ function LockerTable() {
                 <OfficeName name={locker.officeName} />
                 {locker.lockers.map((lockerGroup, groupIndex) => (
                   <React.Fragment key={groupIndex}>
-                    {lockerGroup.groupLockers.length !== 0 ? (
-                      <>
-                        <div className="ml-2 mt-3">
-                          <GroupName name={lockerGroup.groupName} id={lockerGroup.id} />
-                        </div>
+                    <div className="ml-2 mt-3">
+                      <GroupName name={lockerGroup.groupName} id={lockerGroup.id} />
+                    </div>
 
-                        <div
-                          className="outlet__table__wrapper overflow-x-auto mt-2"
-                          style={{
-                            height: lockerGroup.groupLockers.length >= 10 ? '480px' : 'auto',
-                          }}
-                        >
-                          <table
-                            className="outlet__table min-w-full bg-white"
-                            style={{
-                              color: '#AAAAAA',
-                              minWidth: '1110px',
-                              borderRadius: lockerGroup.groupLockers.length >= 10 ? '0px' : '10px',
-                            }}
-                          >
-                            <thead>
-                              <tr className="outlet__table__header">
-                                {lockerTable.map((header, headerIndex) => (
-                                  <th key={headerIndex} className="text-left">
-                                    {header}
-                                  </th>
-                                ))}
+                    <div
+                      className="outlet__table__wrapper overflow-x-auto mt-2"
+                      style={{
+                        height: lockerGroup.groupLockers.length >= 10 ? '480px' : 'auto',
+                      }}
+                    >
+                      <table
+                        className="outlet__table min-w-full bg-white"
+                        style={{
+                          color: '#AAAAAA',
+                          minWidth: '1110px',
+                          borderRadius: lockerGroup.groupLockers.length >= 10 ? '0px' : '10px',
+                        }}
+                      >
+                        <thead>
+                          <tr className="outlet__table__header">
+                            {lockerTable.map((header, headerIndex) => (
+                              <th key={headerIndex} className="text-left">
+                                {header}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {lockerGroup.groupLockers.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="py-6 text-center text-gray-400">
+                                No Lockers
+                              </td>
+                            </tr>
+                          ) : (
+                            lockerGroup.groupLockers.map((item, itemIndex) => (
+                              <tr
+                                key={item.id}
+                                onContextMenu={(e) => handleRightClick(e, item)}
+                                className={itemIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
+                              >
+                                <td>
+                                  <CustomCheckbox
+                                    checked={selectedLockerIds.includes(item.id)}
+                                    onChange={() => handleSelectLocker(item.id)}
+                                  />
+                                  {itemIndex + 1}
+                                </td>
+                                <td>{item.lockerType?.name}</td>
+                                <td>
+                                  {item.users?.map((userName, i) => (
+                                    <span key={i}>
+                                      {userName}
+                                      {i < item.users.length - 1 && ', '}
+                                    </span>
+                                  ))}
+                                </td>
+                                <td>{item.isOpen === 1 ? 'Open' : 'Closed'}</td>
+                                <td className={item.status === 1 ? 'text-green-500' : 'text-red-500 '}>
+                                  {item.status === 1 ? 'Free' : 'Occupied'}
+                                </td>
+                                <td className={item.isActive === 1 ? 'text-green-500' : 'text-red-500'}>
+                                  {item.isActive === 1 ? 'Active' : 'Suspended'}
+                                </td>
                               </tr>
-                            </thead>
-                            <tbody>
-                              {lockerGroup.groupLockers.map((item, itemIndex) => (
-                                <tr
-                                  key={item.id}
-                                  onContextMenu={(e) => handleRightClick(e, item)}
-                                  className={itemIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
-                                >
-                                  <td>
-                                    <CustomCheckbox
-                                      checked={selectedLockerIds.includes(item.id)}
-                                      onChange={() => handleSelectLocker(item.id)}
-                                    />
-                                    {itemIndex + 1}
-                                  </td>
-                                  <td>{item.lockerType?.name}</td>
-                                  <td>
-                                    {item.users?.map((userName, i) => (
-                                      <span key={i}>
-                                        {userName}
-                                        {i < item.users.length - 1 && ', '}
-                                      </span>
-                                    ))}
-                                  </td>
-                                  <td>{item.isOpen === 1 ? 'Open' : 'Closed'}</td>
-                                  <td className={item.status === 1 ? 'text-green-500' : 'text-red-500 '}>
-                                    {item.status === 1 ? 'Free' : 'Occupied'}
-                                  </td>
-                                  <td className={item.isActive === 1 ? 'text-green-500' : 'text-red-500'}>
-                                    {item.isActive === 1 ? 'Active' : 'Suspended'}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </>
-                    ) : null}
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
                   </React.Fragment>
                 ))}
               </>

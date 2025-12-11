@@ -22,6 +22,9 @@ const EditModulesModal = ({ id, onClose }) => {
   const lockerGroups = useSelector(getModuleModalGroupes);
   const lockerGroupRange = useSelector(getLockerGroupMinMax);
   const moduleLocker = useSelector(getModuleLockerData);
+  console.log(moduleLocker, "moduleLockermoduleLocker");
+
+
 
   const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
   // const lockerOptions = getLockerOptions().map((lockerType) => ({
@@ -29,12 +32,17 @@ const EditModulesModal = ({ id, onClose }) => {
   //   label: lockerType.type.charAt(0).toUpperCase() + lockerType.type.slice(1),
   // }));
 
-   const lockerOptions = useSelector(getLockerTypesData).map((lockerType) => ({
+  const lockerOptions = useSelector(getLockerTypesData).map((lockerType) => ({
     name: lockerType.id,
     label: lockerType.name,
   }));
-  
-console.log(lockerOptions, 'lockerOptions22222222');
+
+  const lockerGroupOptions = lockerGroups.filter((group) => group.branchId === moduleLocker?.branchId).map((group) => ({
+    label: group.name,
+    value: group.id,
+  }))
+
+  console.log(lockerOptions, 'lockerOptions22222222');
 
   useEffect(() => {
     dispatch(getLockerGroupsData());
@@ -108,10 +116,7 @@ console.log(lockerOptions, 'lockerOptions22222222');
               <div className="flex">
                 <div className="w-5/6 mr-2">
                   <CustomSelect
-                    options={lockerGroups.map((group) => ({
-                      label: group.name,
-                      value: group.id,
-                    }))}
+                    options={lockerGroupOptions}
                     value={lockerGroups.find(group => group.id === formik.values.lockerGroupId)
                       ? {
                         label: lockerGroups.find(group => group.id === formik.values.lockerGroupId).name,
