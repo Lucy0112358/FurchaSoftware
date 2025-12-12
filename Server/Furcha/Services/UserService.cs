@@ -50,11 +50,11 @@ namespace FurchaAdminApi.Services
             {
                 query = query.Where(u => u.UserBranches.Any(ub => ub.BranchId == branchId.Value));
             }
-
+/*
             if (isAdmin == false)
             {
                 query = query.Where(u => !u.Administrators.Any());
-            }
+            }*/
 
             if (groupId.HasValue)
             {
@@ -206,6 +206,7 @@ namespace FurchaAdminApi.Services
         public List<UserResult> GetFilteredUsersByPagination(int adminId, int? filterByGroupId = null, int? filterByBranchId = null, bool? isAdmin = null, string? name = null, int pageNumber = 1, int pageSize = 10)
         {
             var companyId = Db.Administrators.First(x => x.Id == adminId).CompanyId;
+            SyncExpiredActiveUsersToInactive(companyId);
 
             var users = Db.Users.Where(u => u.CompanyId == companyId).ToList();
 
@@ -226,6 +227,13 @@ namespace FurchaAdminApi.Services
                 var branches = Db.Branches
                     .Where(b => b.UserBranches.Any(ub => ub.UserId == user.Id))
                     .ToList();
+                var userAdmin = Db.Administrators.FirstOrDefault(a => a.UserId == user.Id);
+
+                var roleName = userAdmin != null
+                    ? Db.Roles.Where(r => r.Id == userAdmin.RoleId).Select(r => r.Name).FirstOrDefault()
+                    : Db.Roles.Where(r => r.Id == (long)RoleEnum.user).Select(r => r.Name).FirstOrDefault();
+
+                roleName ??= RoleEnum.user.ToString();
 
                 return new UserResult
                 {
@@ -234,7 +242,7 @@ namespace FurchaAdminApi.Services
                     ActiveFrom = user.ActiveFrom,
                     ActiveTo = user.ActiveTo,
                     Surname = user.Surname,
-                    Role = RoleEnum.user.ToString(),
+                    Role = roleName,
                     State = user.State,
                     Cards = cards.Select(card => new CardResult { Id = card.Id, CardNumber = card.CardNumber }).ToList(),
                     UserGroups = groups.Select(group => new UserGroupResult { Id = group.Id, Name = group.Name }).ToList(),
@@ -289,6 +297,20 @@ namespace FurchaAdminApi.Services
 
             return users.Select(user => MapUserToUserResult(user)).ToList();
         }
+
+        private void SyncExpiredActiveUsersToInactive(int companyId)
+        {
+            var today = DateTime.UtcNow.Date;
+
+            Db.Users
+              .Where(u =>
+                  // u.CompanyId == companyId && /* uncomment this line */ 
+                  u.State == (int)StateEnum.active &&               
+                  u.ActiveTo.HasValue &&
+                  u.ActiveTo.Value.Date < today)
+              .ExecuteUpdate(s => s.SetProperty(u => u.State, (int)StateEnum.expanded)); 
+        }
+
 
         public List<User> GetUsersForLVL5Admin(int companyId)
         {
