@@ -665,13 +665,13 @@ namespace FurchaAdminApi.Services
             if (companyId == null)
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
 
-            // ------------------------------
-            // Normalize dates (strip time + make Kind=Unspecified)
-            // ------------------------------
+            if (Db.Users.Any(u => u.Email == newUser.Email))
+                throw new Exception("Email already exists.");
+
             DateTime? activeFrom = null;
             if (newUser.ActiveFrom.HasValue)
             {
-                var d = newUser.ActiveFrom.Value.Date; // only date part
+                var d = newUser.ActiveFrom.Value.Date; 
                 activeFrom = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
             }
 
@@ -682,12 +682,10 @@ namespace FurchaAdminApi.Services
                 activeTo = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
             }
 
-            // Use date-only for state comparison
             var today = DateTime.UtcNow.Date;
 
             StateEnum state = StateEnum.active;
 
-            // If ActiveTo is before today -> expanded, otherwise active
             if (activeTo.HasValue && activeTo.Value.Date < today)
             {
                 state = StateEnum.expanded;
@@ -699,7 +697,6 @@ namespace FurchaAdminApi.Services
 
                 if (user == null)
                 {
-                    // Insert new user
                     user = new User
                     {
                         Name = newUser.Name,
@@ -720,7 +717,6 @@ namespace FurchaAdminApi.Services
                 }
                 else
                 {
-                    // Update existing user
                     user.Name = newUser.Name;
                     user.Surname = newUser.Surname;
                     user.Phone = newUser.Phone;
@@ -759,7 +755,6 @@ namespace FurchaAdminApi.Services
             }
             catch (Exception ex)
             {
-                // Unique email
                 if (ex.InnerException is SqlException sqlEx &&
                     (sqlEx.Number == 2601 || sqlEx.Number == 2627))
                 {
@@ -778,7 +773,6 @@ namespace FurchaAdminApi.Services
             if (!dt.HasValue)
                 return null;
 
-            // remove timezone — prevent browser from shifting date
             return DateTime.SpecifyKind(dt.Value, DateTimeKind.Unspecified);
         }
 
@@ -866,13 +860,34 @@ namespace FurchaAdminApi.Services
                 Db.SaveChanges();
         }
 
-
         private List<FurchaDAL.Models.Card> AddCardsByNumbers(List<string> cardNumbers, int userId)
         {
             var result = new List<FurchaDAL.Models.Card>();
 
             try
             {
+                var companyId = Db.Users
+                    .Where(u => u.Id == userId)
+                    .Select(u => u.CompanyId)
+                    .FirstOrDefault();
+
+                if (companyId == 0)
+                {
+                    throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "User does not belong to a company.");
+                }
+
+                var cardExistsInCompany = Db.Cards
+                    .Where(c => cardNumbers.Contains(c.CardNumber))
+                    .Any(c => c.User.CompanyId == companyId);
+
+                if (cardExistsInCompany)
+                {
+                    throw new BaseException(
+                        ErrorCodeEnum.GenericErrorRetry,
+                        "One or more card numbers already exist within this company."
+                    );
+                }
+
                 var existingCardNumbers = Db.Cards
                     .Where(c => c.UserId == userId && cardNumbers.Contains(c.CardNumber))
                     .Select(c => c.CardNumber)

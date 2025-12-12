@@ -48,25 +48,13 @@ namespace FurchaAdminApi.Services
                 .Include(l => l.Brain)     // optional
                 .ToList();
         }
-
-
-        /// <summary>
-        /// Retrieves editingLockers based on specified filtering criteria.
-        /// </summary>
-        /// <param name="lockerType">The type of locker.</param>
-        /// <param name="lockerGroupId">The locker mLockers ID.</param>
-        /// <param name="branchId">The branch ID.</param>
-        /// <param name="status">The status of the locker.</param>
-        /// <param name="isActive">Indicates if the locker is active.</param>
-        /// <param name="lockerStatus">The current status of the locker.</param>
-        /// <returns>A list of editingLockers that match the specified criteria.</returns>
         public List<OfficeResult> GetLockersByFilters(
-        int? branchId,
-        int? lockerType,
-        int? lockerGroupId,
-        int? status = null,
-        string? userName = null,
-        int? adminId = null)
+            int? branchId,
+            int? lockerType,
+            int? lockerGroupId,
+            int? status = null,
+            string? userName = null,
+            int? adminId = null)
         {
             // 1. Get branches of admin
             var adminBranches = Db.Branches
@@ -79,7 +67,7 @@ namespace FurchaAdminApi.Services
 
             foreach (var branch in adminBranches)
             {
-                // 2. Load lockers for this branch
+                // 2. Load lockers for this branch, ordered by Number
                 var lockers = Db.Lockers
                     .Include(l => l.Users)
                     .Include(l => l.Brain)
@@ -92,6 +80,7 @@ namespace FurchaAdminApi.Services
                         (userName == null || l.Users.Any(u => u.Name != null && u.Name.Contains(userName))) &&
                         (status == null || l.LockerStatus == status)
                     )
+                    .OrderBy(l => l.Number)                    // ← sort by locker number
                     .Select(l => new LockerWithUsers
                     {
                         Id = l.Id,
@@ -121,7 +110,11 @@ namespace FurchaAdminApi.Services
                 // Assigned groups
                 foreach (var group in lockerGroups)
                 {
-                    var groupLockers = lockers.Where(l => l.groupid == group.Id).ToList();
+                    var groupLockers = lockers
+                        .Where(l => l.groupid == group.Id)
+                        .OrderBy(l => l.number)              // ← keep order inside group
+                        .ToList();
+
                     lockerResults.Add(new LockersResult
                     {
                         Id = group.Id,
@@ -145,7 +138,9 @@ namespace FurchaAdminApi.Services
                     {
                         Id = 0,
                         GroupName = $"Unassigned{index}",
-                        GroupLockers = moduleGroup.ToList()
+                        GroupLockers = moduleGroup
+                            .OrderBy(l => l.number)          // ← ordered here too
+                            .ToList()
                     });
 
                     index++;
@@ -161,15 +156,16 @@ namespace FurchaAdminApi.Services
             return results;
         }
 
-
-
         public List<LockersResult> GetGroupsWithLockers(int branchId)
         {
             var lockerGroups = Db.LockerGroups
-             .Where(lg => lg.BranchId == branchId).Distinct()
-             .ToList(); //_lockerRepository.GetLockerGroupsByBranchId(branchId).Distinct().ToList();
-                        // var lockers = _lockerRepository.GetUserLockersByBranchId(branchId);
-            var lockers = Db.Lockers.Include(x => x.Brain).Include(l => l.LockerTypeNavigation)
+                .Where(lg => lg.BranchId == branchId)
+                .Distinct()
+                .ToList();
+
+            var lockers = Db.Lockers
+                 .Include(x => x.Brain)
+                 .Include(l => l.LockerTypeNavigation)
                  .Where(l => l.Brain.BranchId == branchId)
                  .Select(l => new LockerWithUsers
                  {
@@ -192,6 +188,7 @@ namespace FurchaAdminApi.Services
                     GroupName = group.Name,
                     GroupLockers = lockers
                         .Where(locker => locker.groupid == group.Id)
+                        .OrderBy(locker => locker.number)       // ← order inside group
                         .ToList()
                 })
                 .Where(result => result.GroupLockers.Any())
@@ -199,7 +196,6 @@ namespace FurchaAdminApi.Services
 
             return results;
         }
-
 
         public List<NewModulesResult> GetNewModules(int adminId)
         {
@@ -270,18 +266,19 @@ namespace FurchaAdminApi.Services
                         foreach (var module in groupModules)
                         {
                             var lockers = Db.Lockers
-        .Where(l => l.BrainId == module.Id)
-        .ToList();
-                            //_lockerRepository.GetLockersByBrainId(module.Id);
+                                .Where(l => l.BrainId == module.Id && !l.IsDeleted)
+                                .OrderBy(l => l.Number)
+                                .ToList();
+
                             if (!lockers.Any()) continue;
+
                             moduleLockers.Add(new ModuleLockers
                             {
-                                FirstLocker = (int)lockers.First().Number,
-                                LastLocker = (int)lockers.Last().Number,
+                                FirstLocker = (int)(lockers.First().Number ?? 0),
+                                LastLocker = (int)(lockers.Last().Number ?? 0)
                             });
-
-
                         }
+
 
                         moduleInfos.Add(new ModuleInfo
                         {
@@ -306,94 +303,44 @@ namespace FurchaAdminApi.Services
 
         internal bool CreateModule(ModuleRequest request)
         {
-            /* using (var transaction = new TransactionScope())
-             {*/
-            /*  if (request.LockerGroupId == null)
-              {
-                  var newGroup = new LockerGroup
-                  {
-                      Name = "Unassigned 1", // index names
-                      BranchId = request.BranchId,
-                  };
+            // 1. Find module with its lockers
+            var module = Db.BrainModules
+                .Include(m => m.Lockers)
+                .FirstOrDefault(m => m.Id == request.BrainId);
 
-                  var unassignedGroup = Db.LockerGroups.Add(newGroup);
-                  Db.SaveChanges();
-                  //_lockerRepository.CreateLockerGroup(newGroup);
+            if (module == null)
+                throw new ArgumentException($"Module with Id {request.BrainId} not found");
 
-                  request.LockerGroupId = unassignedGroup.Entity.Id;
-              }*/
+            // 2. Attach module to branch and mark as "added"
+            module.BranchId = request.BranchId;
+            module.Status = 2;          // already added/active
+            module.GroupId = null;      // not in any group yet (Unassigned)
 
-            var existingModule = Db.BrainModules.FirstOrDefault(m => m.Id == request.BrainId);
-            if (existingModule != null)
+            // 3. Restore lockers:
+            //    - make them visible (IsDeleted = false)
+            //    - give them numbers 1..N inside module
+            //    - default type = Unspecified (Id = 1)
+            var moduleLockers = module.Lockers
+                .OrderBy(l => l.Id)
+                .ToList();
+
+            int number = 1;
+            foreach (var locker in moduleLockers)
             {
-                existingModule.BranchId = request.BranchId;
-                existingModule.Status = 2;
+                locker.IsDeleted = false;
 
-                Db.SaveChanges();
+                // always renumber 1..N for a new module without group
+                locker.Number = number++;
+
+                // default type: "Unspecified"
+                locker.LockerType = 1; // LockerType.Id = 1 → Unspecified
             }
 
-            /*   int startIndex = 1;
-
-               var lockersWithNumber = Db.Lockers
-                   .Where(l => l.GroupId == (int)request.LockerGroupId)
-                   .ToList() // _lockerRepository.GetLockersOfGroup((int)request.LockerGroupId)
-                   .OrderBy(x => (int)x.Number).ToList();
-
-               if (request.StartBegin)
-               {
-                   if (lockersWithNumber.Any())
-                   {
-                       foreach (var locker in lockersWithNumber)
-                       {
-                           var l = Db.Lockers.FirstOrDefault(l => l.Id == locker.Id);
-                           if (l != null)
-                           {
-                               l.Number = locker.Number + request.LastLocker;
-                               Db.SaveChanges();
-                           }
-
-                           //_lockerRepository.UpdateLocker(l);
-                       }
-                   }
-               }
-               else
-               {
-                   if (lockersWithNumber.Any())
-                   {
-                       startIndex = lockersWithNumber.Select(x => (int)x.Number).Max() + 1;
-                   }
-                   else
-                   {
-                       startIndex = 1;
-                   }
-               }
-
-
-               if (startIndex >= request.LastLocker || request.FirstLocker < startIndex)
-               {
-                   throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "locker number is wrong");
-               }
-
-               for (int i = startIndex; i < request.LastLocker; i++)
-               {
-                   var locker = new Locker
-                   {
-                       Number = i,
-                       LockerType = locker_type.Common.ToString(),
-                       PasswordHash = "default",
-                       BranchId = request.BranchId,
-                       GroupId = request.LockerGroupId,
-                       BrainId = request.Id
-                   };
-
-                   //  _lockerRepository.CreateLocker(locker);
-                   Db.Lockers.Add(locker);
-                   Db.SaveChanges();
-               }
-   */
-            /*     }*/
+            Db.SaveChanges();
             return true;
         }
+
+
         internal bool CreateLockerGroup(int branchId, string name)
         {
             var result = new LockerGroup()
@@ -428,7 +375,7 @@ namespace FurchaAdminApi.Services
             return lockerGroups;
         }
 
-        public ApiResult<EditLockerResult> EditLocker(List<int> lockerIds, string type)
+        public ApiResult<EditLockerResult> EditLocker(List<int> lockerIds, int type)
         {
             var result = new EditLockerResult();
 
@@ -437,50 +384,94 @@ namespace FurchaAdminApi.Services
                 .Where(l => lockerIds.Contains(l.Id))
                 .ToList();
 
+            if (!editingLockers.Any())
+                return ApiResult<EditLockerResult>.ErrorResult("No lockers selected.");
+
             var groupedLockers = editingLockers
                 .GroupBy(l => l.Brain.GroupId)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            var dbType = Db.LockerTypes
-                .FirstOrDefault(t => t.Name.ToLower() == type.Trim().ToLower());
+            // --- resolve locker type from input (id OR name OR code) ---
+            type = type?.Trim() ?? string.Empty;
+            int parsedId;
+            bool isId = int.TryParse(type, out parsedId);
+            string lowered = type.ToLower();
+
+            var dbType = Db.LockerTypes.FirstOrDefault(t =>
+                    (isId && t.Id == parsedId) ||
+                    t.Name.ToLower() == lowered ||
+                    t.Type.ToLower() == lowered);
 
             if (dbType == null)
-                return ApiResult<EditLockerResult>.ErrorResult("Locker type not found");
+                return ApiResult<EditLockerResult>.ErrorResult("Locker type not found.");
 
             int tId = dbType.Id;
+
+            const int unspecifiedId = 1;
+            const int commonId = 3;
+            const int personalId = 4;
 
             foreach (var lockerGroup in groupedLockers)
             {
                 using var transaction = Db.Database.BeginTransaction();
                 try
                 {
-                    var lockersInGroup = lockerGroup.Value;
+                    var lockersInSelection = lockerGroup.Value;
+                    var groupId = lockerGroup.Key;
 
-                    for (int i = 0; i < lockersInGroup.Count; i++)
+                    // all lockers in this GROUP (not only selected)
+                    var allGroupLockers = Db.Lockers
+                        .Include(l => l.Brain)
+                        .Where(l => l.Brain.GroupId == groupId && !l.IsDeleted)
+                        .ToList();
+
+                    var nonSelected = allGroupLockers
+                        .Where(l => !lockerIds.Contains(l.Id))
+                        .ToList();
+
+                    // collect resulting types, ignoring Unspecified
+                    var finalTypes = nonSelected
+                        .Select(l => l.LockerType)
+                        .Where(t => t != unspecifiedId)
+                        .Distinct()
+                        .ToList();
+
+                    if (tId != unspecifiedId && !finalTypes.Contains(tId))
+                        finalTypes.Add(tId);
+
+                    if (finalTypes.Any())
                     {
-                        if (i == 0)
-                        {
-                            lockersInGroup[i].LockerType = tId;
-                            continue;
-                        }
+                        bool allSame = finalTypes.Count == 1;
+                        bool onlyCommonAndPersonal =
+                            finalTypes.All(t => t == commonId || t == personalId);
 
-                        if (lockersInGroup[i].LockerType != tId)
+                        if (!allSame && !onlyCommonAndPersonal)
                         {
-                            throw new BaseException(ErrorCodeEnum.GenericErrorRetry,
-                                "Locker types must be the same in the group");
+                            throw new BaseException(
+                                ErrorCodeEnum.GenericErrorRetry,
+                                "Only 'Common' and 'Personal' locker types can be mixed in one group. " +
+                                "Other types must be used alone in a group.");
                         }
+                    }
 
-                        lockersInGroup[i].LockerType = tId;
+                    // compatible → apply new type to selected lockers
+                    foreach (var locker in lockersInSelection)
+                    {
+                        locker.LockerType = tId;
                     }
 
                     Db.SaveChanges();
                     transaction.Commit();
-                    result.SuccessfulGroups.Add((int)lockerGroup.Key);
+
+                    if (groupId.HasValue)
+                        result.SuccessfulGroups.Add(groupId.Value);
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    result.FailedGroups.Add(((int)lockerGroup.Key, ex.Message));
+
+                    var gid = lockerGroup.Key ?? 0;
+                    result.FailedGroups.Add((gid, ex.Message));
                 }
             }
 
@@ -564,11 +555,12 @@ namespace FurchaAdminApi.Services
                         .Select(x => new BranchModules
                         {
                             Id = x.Id,
-                            LockerRange = x.Lockers.Count() == 0
-                                ? "0"
-                                : x.Lockers.Count() == 1
-                                    ? "1"
-                                    : "1-" + x.Lockers.Count().ToString()
+                            LockerRange =
+                                !x.Lockers.Any()
+                                    ? "0"
+                                    : (x.Lockers.Min(l => l.Number) == x.Lockers.Max(l => l.Number)
+                                        ? x.Lockers.Min(l => l.Number).ToString()
+                                        : x.Lockers.Min(l => l.Number) + "-" + x.Lockers.Max(l => l.Number))
                         })
                         .ToList()
                 })
@@ -578,121 +570,247 @@ namespace FurchaAdminApi.Services
         }
 
 
+
         public FurchaBLL.Models.ModuleResult GetlockersById(int id)
         {
             var module = Db.BrainModules
                 .Include(x => x.Group)
-                .Include(x => x.Lockers) // ensure module.Lockers is loaded
+                .Include(x => x.Lockers)
                 .FirstOrDefault(x => x.Id == id);
 
             if (module == null)
                 throw new ArgumentException($"Module with Id {id} not found");
 
-            int groupId = module.Group?.Id ?? 0;
+            var lockers = module.Lockers
+                .Where(l => !l.IsDeleted)
+                .OrderBy(l => l.Number)
+                .ToList();
 
-            var firstLockerType = module.Lockers?.FirstOrDefault()?.LockerType
-       ?? module.Lockers?.FirstOrDefault()?.LockerType;
+            int lockerType = lockers.FirstOrDefault()?.LockerType ?? 0;
 
-            /*  if (firstLockerType == null)
-                  throw new InvalidOperationException($"No lockers found for module {id}");*/
+            int start = 0, end = 0;
+            if (lockers.Any())
+            {
+                start = (int)(lockers.First().Number ?? 0);
+                end = (int)(lockers.Last().Number ?? 0);
+            }
 
             return new FurchaBLL.Models.ModuleResult
             {
-                LockerType = firstLockerType,
+                LockerType = lockerType,
                 LockerGroupId = module.Group?.Id ?? 0,
+                BranchId = module.BranchId,
                 LockerRange = new LockerRange
                 {
-                    Start = 1,
-                    End = module.Lockers?.Count() ?? 0
+                    Start = start,
+                    End = end
                 }
             };
-
         }
-
         public bool UpdateModule(int lockerType, int lockerFrom, int lockerTo, int lockerGroupId, int id)
         {
-            // Create EF Core's retry execution strategy
             var strategy = Db.Database.CreateExecutionStrategy();
 
-            // Run the logic inside the strategy so it can retry safely if needed
             return strategy.Execute(() =>
             {
                 using var transaction = Db.Database.BeginTransaction();
                 try
                 {
-                    var module = Db.BrainModules.Include(m => m.Lockers).FirstOrDefault(x => x.Id == id);
-                    if (module == null) throw new Exception("Module not found");
+                    var module = Db.BrainModules
+                        .Include(m => m.Lockers)
+                        .FirstOrDefault(x => x.Id == id);
+
+                    if (module == null)
+                        throw new Exception("Module not found");
+
+                    // restore lockers of this module
+                    var moduleLockers = module.Lockers
+                        .OrderBy(l => l.Id)
+                        .ToList();
+
+                    if (!moduleLockers.Any())
+                        throw new Exception("Module has no lockers");
+
+                    foreach (var locker in moduleLockers)
+                    {
+                        locker.IsDeleted = false;
+                    }
 
                     var oldGroupId = module.GroupId;
-                    if (oldGroupId != lockerGroupId)
+                    var isUnassigned = lockerGroupId == 0;
+
+                    // 1. Move to "no group" (unassigned) → number 1..N inside module
+                    if (isUnassigned)
                     {
-                        var lockersOfOldGroup = Db.Lockers
+                        int num = 1;
+                        foreach (var locker in moduleLockers)
+                        {
+                            locker.Number = num++;
+                            locker.LockerType = lockerType;
+                        }
+
+                        // Renumber old group without this module
+                        if (oldGroupId.HasValue)
+                        {
+                            var oldGroupLockers = Db.Lockers
+                                .Include(l => l.Brain)
+                                .Where(l => l.Brain.GroupId == oldGroupId
+                                            && l.BrainId != module.Id
+                                            && !l.IsDeleted)
+                                .OrderBy(l => l.Number)
+                                .ThenBy(l => l.Id)
+                                .ToList();
+
+                            int n = 1;
+                            foreach (var l in oldGroupLockers)
+                                l.Number = n++;
+                        }
+
+                        module.GroupId = null;
+
+                        Db.SaveChanges();
+                        transaction.Commit();
+                        return true;
+                    }
+
+                    // 2. Validate target group & branch
+                    var targetGroup = Db.LockerGroups.FirstOrDefault(g => g.Id == lockerGroupId);
+                    if (targetGroup == null)
+                        throw new Exception("Locker group not found");
+
+                    if (module.BranchId != targetGroup.BranchId)
+                        throw new BaseException(ErrorCodeEnum.GenericErrorRetry,
+                            "Brain can be added only to a group inside the same branch");
+
+                    // 3. Renumber OLD group (excluding this module)
+                    if (oldGroupId.HasValue && oldGroupId.Value != lockerGroupId)
+                    {
+                        var oldGroupLockers = Db.Lockers
                             .Include(l => l.Brain)
-                            .Where(b => b.Brain.GroupId == oldGroupId)
-                            .OrderBy(l => l.Brain.Id)
+                            .Where(l => l.Brain.GroupId == oldGroupId
+                                        && l.BrainId != module.Id
+                                        && !l.IsDeleted)
+                            .OrderBy(l => l.Number)
                             .ThenBy(l => l.Id)
                             .ToList();
 
-                        for (int i = 0; i < lockersOfOldGroup.Count; i++)
-                        {
-                            lockersOfOldGroup[i].Number = i + 1;
-                        }
+                        int n = 1;
+                        foreach (var l in oldGroupLockers)
+                            l.Number = n++;
                     }
 
-                    var lockersOfNewGroup = Db.Lockers
+                    // 4. Lockers of TARGET group (other modules)
+                    var targetGroupOtherLockers = Db.Lockers
                         .Include(l => l.Brain)
-                        .Where(b => b.Brain.GroupId == lockerGroupId)
-                        .OrderBy(l => l.Brain.Id)
+                        .Where(l => l.Brain.GroupId == lockerGroupId
+                                    && l.BrainId != module.Id
+                                    && !l.IsDeleted)
+                        .OrderBy(l => l.Number)
                         .ThenBy(l => l.Id)
                         .ToList();
 
-                    var lockers = module.Lockers.OrderBy(l => l.Id).ToList();
-                    var lockerCount = lockers.Count;
-                    if (lockerTo - lockerFrom + 1 < lockerCount)
-                        throw new Exception("Wrong locker numbers");
+                    // a) type compatibility:
+                    //    - allow: all same
+                    //    - allow: mix Common(3) + Personal(4)
+                    //    - forbid: any other combination
+                    var existingTypes = targetGroupOtherLockers
+                        .Select(l => l.LockerType)
+                        .Distinct()
+                        .ToList();
 
-                    var modules = lockersOfNewGroup.GroupBy(g => g.BrainId).ToList();
-
-                    int index = 0;
-                    for (var i = lockerFrom; i <= lockerTo && index < lockerCount; i++, index++)
+                    if (existingTypes.Any())
                     {
-                        lockers[index].Number = i;
-                        lockers[index].LockerType = lockerType;
-                    }
+                        const int commonId = 3;
+                        const int personalId = 4;
 
-                    for (int i = 0; i < modules.Count; i++)
-                    {
-                        if (i < modules.Count - 1)
+                        var allTypes = existingTypes
+                            .Append(lockerType)
+                            .Distinct()
+                            .ToList();
+
+                        bool allSame = allTypes.Count == 1;
+                        bool onlyCommonAndPersonal = allTypes.All(t => t == commonId || t == personalId);
+
+                        if (!allSame && !onlyCommonAndPersonal)
                         {
-                            if (lockerFrom < modules[i].LastOrDefault()?.Number &&
-                                lockerTo > modules[i + 1].FirstOrDefault()?.Number)
-                            {
-                                throw new Exception("Overlapping locker numbers");
-                            }
-                        }
-
-                        if (modules[i].Key == id)
-                            continue;
-
-                        var mLockers = modules[i].ToList();
-                        var moduleLockerCount = mLockers.Count;
-
-                        for (var j = 0; j < moduleLockerCount; j++)
-                        {
-                            if (j > 0)
-                                mLockers[j].Number = mLockers[j - 1].Number + 1;
-                            else if (i == 0)
-                                mLockers[j].Number = 1;
-                            else
-                                mLockers[j].Number = modules[i - 1].LastOrDefault()?.Number + 1 ?? 1;
+                            throw new BaseException(
+                                ErrorCodeEnum.GenericErrorRetry,
+                                "Only 'Common' and 'Personal' locker types can be mixed in one group. " +
+                                "Other types must be used alone in a group.");
                         }
                     }
 
+                    // b) range size
+                    int moduleLockerCount = moduleLockers.Count;
+                    bool hasExplicitRange = lockerFrom > 0 && lockerTo > 0;
+
+                    if (hasExplicitRange)
+                    {
+                        if (lockerTo - lockerFrom + 1 < moduleLockerCount)
+                            throw new BaseException(ErrorCodeEnum.GenericErrorRetry,
+                                "Wrong locker numbers range");
+
+                        int moduleEnd = lockerFrom + moduleLockerCount - 1;
+                        if (moduleEnd > 999)
+                            throw new BaseException(ErrorCodeEnum.GenericErrorRetry,
+                                "Locker numbers must be between 1 and 999");
+                    }
+
+                    // set type for module lockers
+                    foreach (var locker in moduleLockers)
+                    {
+                        locker.LockerType = lockerType;
+                        locker.IsDeleted = false;
+                    }
+
+                    // 5. Renumber TARGET group
+                    if (!hasExplicitRange)
+                    {
+                        // No explicit range → pack all lockers 1..N (auto mode)
+                        var all = targetGroupOtherLockers
+                            .Concat(moduleLockers)
+                            .OrderBy(l => l.BrainId)
+                            .ThenBy(l => l.Id)
+                            .ToList();
+
+                        int n = 1;
+                        foreach (var l in all)
+                            l.Number = n++;
+                    }
+                    else
+                    {
+                        // EXPLICIT RANGE (manual edit):
+                        // - DO NOT touch numbers of other modules
+                        // - FAIL if there is any overlap with existing numbers
+
+                        int moduleStart = lockerFrom;
+                        int moduleEnd = lockerFrom + moduleLockerCount - 1;
+
+                        // check overlap with existing lockers
+                        bool conflict = targetGroupOtherLockers.Any(l =>
+                            l.Number >= moduleStart && l.Number <= moduleEnd);
+
+                        if (conflict)
+                        {
+                            throw new BaseException(
+                                ErrorCodeEnum.GenericErrorRetry,
+                                "Locker numbers in this range are already used in the group. " +
+                                "Please choose a free range.");
+                        }
+
+                        // assign reserved range only to this module
+                        for (int i = 0; i < moduleLockerCount; i++)
+                        {
+                            moduleLockers[i].Number = moduleStart + i;
+                        }
+                        // other lockers keep their numbers
+                    }
+
+                    // finally, move module to target group
                     module.GroupId = lockerGroupId;
 
                     Db.SaveChanges();
                     transaction.Commit();
-
                     return true;
                 }
                 catch
@@ -702,6 +820,7 @@ namespace FurchaAdminApi.Services
                 }
             });
         }
+
 
         public bool DeleteModule(int moduleId)
         {

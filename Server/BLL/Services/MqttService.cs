@@ -188,32 +188,44 @@ public class MqttService
                         using (var Db = furchaContext.Create())
                         {
                             var mqttBrain = JsonSerializer.Deserialize<MqttBaseRequest<MqttCreateBrain>>(responseMessage);
-                            var companyId = Db.Companies.FirstOrDefault(x => x.AccountUid == mqttBrain.Data.AccountId).Id;
-                            var brains = Db.BrainModules.Where(x => x.CompanyId == companyId).ToList();
 
-                            if (brains.Any(x => x.BrainUid == mqttBrain.Data.BrainUid))
+                            var company = Db.Companies.FirstOrDefault(x => x.AccountUid == mqttBrain.Data.AccountId);
+                            if (company == null)
                             {
-                                PublishToMqtt<int>(new MqttBaseRequest<int>
-                                {
-                                    Operation = (int)OperationTypes.Success,
-                                    Command = (int)CommandTypes.CreateBrainModule
-                                }, topic.Replace("webserver", "controller"));
                                 break;
                             }
 
-                            Db.BrainModules.Add(new FurchaDAL.Models.BrainModule
-                            {
-                                Status = (int)BrainStatuses.New,
-                                CompanyId = companyId,
-                                IpAddress = mqttBrain.Data.IpAddress,
-                                MacAddress = mqttBrain.Data.MacAddress,
-                                BrainUid = mqttBrain.Data.BrainUid,
-                                Description = mqttBrain.Data.Info,
-                                GroupId = null
-                            });
+                            var companyId = company.Id;
 
-                            var added = Db.SaveChanges();
-                            if (added > 0)
+                            var brain = Db.BrainModules
+                                .FirstOrDefault(x => x.CompanyId == companyId && x.BrainUid == mqttBrain.Data.BrainUid);
+
+                            if (brain != null)
+                            {
+                                brain.IpAddress = mqttBrain.Data.IpAddress;
+                                brain.MacAddress = mqttBrain.Data.MacAddress;
+                                brain.Description = mqttBrain.Data.Info;
+                                brain.Status = (int)BrainStatuses.New;
+                            }
+                            else
+                            {
+                                brain = new FurchaDAL.Models.BrainModule
+                                {
+                                    Status = (int)BrainStatuses.New,
+                                    CompanyId = companyId,
+                                    IpAddress = mqttBrain.Data.IpAddress,
+                                    MacAddress = mqttBrain.Data.MacAddress,
+                                    BrainUid = mqttBrain.Data.BrainUid,
+                                    Description = mqttBrain.Data.Info,
+                                    GroupId = null
+                                };
+
+                                Db.BrainModules.Add(brain);
+                            }
+
+                            var saved = Db.SaveChanges();
+
+                            if (saved > 0)
                             {
                                 PublishToMqtt<int>(new MqttBaseRequest<int>
                                 {
@@ -223,6 +235,7 @@ public class MqttService
                             }
                         }
                         break;
+
 
                     case CommandTypes.AddLockersToBrain:
                         using (var Db = furchaContext.Create())

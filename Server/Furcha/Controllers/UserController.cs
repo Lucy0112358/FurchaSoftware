@@ -1,11 +1,9 @@
-﻿using Domain.Attributes;
-using Domain.Configuration;
+﻿using Domain.Configuration;
 using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -103,42 +101,75 @@ namespace FurchaAdminApi.Controllers
         [HttpPost("add-user")]
         public async Task<ActionResult<ApiResult<UserResult>>> AddUser([FromBody] UserCreateRequest userCreateRequest)
         {
-            var adminId = GetClaimValue("AdminId");
-
-            if (userCreateRequest == null)
+            try
             {
-                return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
+                var adminId = GetClaimValue("AdminId");
+
+                if (userCreateRequest == null)
+                {
+                    return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
+                }
+
+                var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
+
+                if (result == null)
+                {
+                    return BadRequest(ApiResult<UserResult>.ErrorResult(
+                        ErrorCodeEnum.GenericErrorRetry,
+                        "User could not be created."
+                    ));
+                }
+
+                return Ok(ApiResult<UserResult>.Success(result));
             }
-
-            var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
-
-            if (result == null)
+            catch (Exception ex)
             {
-                return BadRequest(ApiResult<UserResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
+                return BadRequest(ApiResult<UserResult>.ErrorResult(
+                    ErrorCodeEnum.GenericErrorRetry,
+                    "Unexpected error while creating the user: " + ex.Message
+                ));
             }
-
-            return Ok(ApiResult<UserResult>.Success(result));
         }
+
 
         [HttpPost("edit-user")]
-        public async Task<ActionResult<ApiResult<UserResult>>> EditUser([FromBody] UserCreateRequest userCreateRequest)
+        public ActionResult<ApiResult<UserResult>> EditUser([FromBody] UserCreateRequest userCreateRequest)
         {
-            var adminId = GetClaimValue("AdminId");
-
-            if (userCreateRequest == null)
+            try
             {
-                return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
+                var adminId = GetClaimValue("AdminId");
+
+                if (userCreateRequest == null)
+                {
+                    return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
+                }
+
+                if (userCreateRequest.Id <= 0)
+                {
+                    return BadRequest(ApiResult<UserResult>.ErrorResult("User Id is required for editing."));
+                }
+
+                var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
+
+                if (result == null)
+                {
+                    return BadRequest(ApiResult<UserResult>.ErrorResult(
+                        ErrorCodeEnum.GenericErrorRetry,
+                        "User could not be edited."
+                    ));
+                }
+
+                return Ok(ApiResult<UserResult>.Success(result));
             }
-
-            var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
-
-            if (result == null)
+            catch (Exception ex)
             {
-                return BadRequest(ApiResult<UserResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
+                return BadRequest(ApiResult<UserResult>.ErrorResult(
+                    ErrorCodeEnum.GenericErrorRetry,
+                     ex.Message
+                ));
             }
-
-            return Ok(ApiResult<UserResult>.Success(result));
         }
+
 
         [Authorize]
 /*        [RequiresPermission("ManageUserGroup")]*/

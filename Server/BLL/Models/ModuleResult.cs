@@ -5,6 +5,7 @@
         public int? LockerType { get; set; }
 
         public int? LockerGroupId { get; set; }
+        public int? BranchId { get; set; }
 
         public LockerRange LockerRange { get; set; }
     }

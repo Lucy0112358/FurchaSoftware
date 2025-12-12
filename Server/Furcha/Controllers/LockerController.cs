@@ -161,7 +161,7 @@ namespace FurchaAdminApi.Controllers
         }
 
         [Authorize]
-        [RequiresPermission("ManageLocker")]
+    /*    [RequiresPermission("ManageLocker")]*/
         [HttpPost("edit-lockers")]
         public ApiResult<EditLockerResult> EditLockers([FromBody] EditLockerRequest request)
         {
