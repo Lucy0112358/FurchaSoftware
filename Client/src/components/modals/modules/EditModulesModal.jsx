@@ -18,6 +18,7 @@ import { getLockerTypesData } from "../../../redux/slice/lockerSlice";
 
 const EditModulesModal = ({ id, onClose }) => {
   const dispatch = useDispatch();
+  const [distance, setDistance] = useState(0);
 
   const lockerGroups = useSelector(getModuleModalGroupes);
   const lockerGroupRange = useSelector(getLockerGroupMinMax);
@@ -41,6 +42,28 @@ const EditModulesModal = ({ id, onClose }) => {
     label: group.name,
     value: group.id,
   }))
+
+  useEffect(() => {
+    if (moduleLocker?.lockerRange) {
+      const d = moduleLocker.lockerRange.end - moduleLocker.lockerRange.start;
+      setDistance(d);
+    }
+  }, [moduleLocker]);
+
+  const handleLockerFromChange = (e) => {
+    let newFrom = Number(e.target.value);
+    if (newFrom < 1) newFrom = 1;
+    formik.setFieldValue("lockerFrom", newFrom);
+    formik.setFieldValue("lockerTo", newFrom + distance);
+  };
+
+  const handleLockerToChange = (e) => {
+    let newTo = Number(e.target.value);
+    if (newTo < distance + 1) newTo = distance + 1;
+
+    formik.setFieldValue("lockerTo", newTo);
+    formik.setFieldValue("lockerFrom", newTo - distance);
+  };
 
   console.log(lockerOptions, 'lockerOptions22222222');
 
@@ -173,20 +196,16 @@ const EditModulesModal = ({ id, onClose }) => {
                 <input
                   type="number"
                   name="lockerFrom"
-                  placeholder={lockerGroupRange?.min || '1'}
                   value={formik.values.lockerFrom}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
+                  onChange={handleLockerFromChange}
                   className="w-20 border border-gray-300 rounded-md px-2 py-1"
                 />
                 <span className="text-gray-800">to</span>
                 <input
                   type="number"
                   name="lockerTo"
-                  placeholder="256"
                   value={formik.values.lockerTo}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
+                  onChange={handleLockerToChange}
                   className="w-20 border border-gray-300 rounded-md px-2 py-1"
                 />
               </div>

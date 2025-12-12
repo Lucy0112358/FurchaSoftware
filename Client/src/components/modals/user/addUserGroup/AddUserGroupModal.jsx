@@ -16,6 +16,8 @@ import { toast } from "react-toastify";
 import { getAllGroups, setUserGroup, updateUserGroupInfo } from "../../../../redux/api/groupApi";
 import ShowFormikError from "../../../error/ShowFormikError";
 import CloseButton from "../../attributes/CloseButton";
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import 'react-tabs/style/react-tabs.css';
 
 
 const AddUserGroupModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
@@ -27,7 +29,7 @@ const AddUserGroupModal = ({ isOpen, onClose, mode = "add", initialData = {} }) 
     branches: [],
     name: '',
   });
-  console.log(sentGeneralInfo,initialData,  "sentGeneralInfo");
+  console.log(sentGeneralInfo, initialData, "sentGeneralInfo");
 
   const filteredBranchGroups = useSelector(getFilteredLockerGroups)
   const [selectedLockerId, setSelectedLockerId] = useState([]);
@@ -275,59 +277,87 @@ const AddUserGroupModal = ({ isOpen, onClose, mode = "add", initialData = {} }) 
             &times;
           </CloseButton>
         </div>
-        <div>
-          {/* User Group Info */}
-          <Formik
-            initialValues={{ name: sentGeneralInfo.name || "" }}
-            enableReinitialize
-            validationSchema={validationSchema}
-            onSubmit={(values) => {
-              sendGroupInfo("Group", "name", values.name);
-              saveUserGroup();
-            }}
-          >
-            {({ errors, touched, handleSubmit, setFieldValue, values }) => (
-              <Form id="groupForm" onSubmit={handleSubmit}>
-                <div className="add__modal__content__part">
-                  <span>User Group Info</span>
-                  <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-                    <div>
-                      <Field
-                        name="name"
-                        placeholder="Group Name"
-                        type="text"
-                        className="w-full p-1 border rounded"
-                        value={values.name}
-                        onChange={(e) => {
-                          setFieldValue("name", e.target.value);
-                          sendGroupInfo("Group", "name", e.target.value);
-                        }}
-                      />
+        <Tabs>
+          <TabList>
+            <Tab>Info</Tab>
+            <Tab>Lockers</Tab>
+          </TabList>
 
-                      {errors.name && touched.name && (
-                        <ShowFormikError message={errors.name} />
-                      )}
+          <TabPanel>
+            {/* User Group Info */}
+            <Formik
+              initialValues={{ name: sentGeneralInfo.name || "" }}
+              enableReinitialize
+              validationSchema={validationSchema}
+              onSubmit={(values) => {
+                sendGroupInfo("Group", "name", values.name);
+                saveUserGroup();
+              }}
+            >
+              {({ errors, touched, handleSubmit, setFieldValue, values }) => (
+                <Form id="groupForm" onSubmit={handleSubmit}>
+                  <div className="add__modal__content__part">
+                    <span>User Group Info</span>
+                    <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
+                      <div>
+                        <Field
+                          name="name"
+                          placeholder="Group Name"
+                          type="text"
+                          className="w-full p-1 border rounded"
+                          value={values.name}
+                          onChange={(e) => {
+                            setFieldValue("name", e.target.value);
+                            sendGroupInfo("Group", "name", e.target.value);
+                          }}
+                        />
+
+                        {errors.name && touched.name && (
+                          <ShowFormikError message={errors.name} />
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Form>
-            )}
-          </Formik>
-          <div className="flex justify-between flex-col" onContextMenu={(e) => e.preventDefault()}>
-            <div className="add__modal__content__part__select w-full">
-              <span>Branches</span>
-              <div className="add__modal__content__part__group mb-4 overflow-x-auto">
-                <div className="flex mr-2">
-                  {
-                    branches?.length > 0 && (
-                      branches.map((branch, index) => {
-                        return (
-                          branch.name !== 'All' &&
-                          <>
-                            <div
-                              key={index}
-                              onClick={() => handleSelectBranch(branch)}
-                              className={`
+                </Form>
+              )}
+            </Formik>
+
+            {/* Buttons */}
+            <div className="flex justify-end space-x-4">
+              <div className="modal__button">
+                <button className="bg-gray-600 text-white rounded "
+                  onClick={onClose}>
+                  Cancel
+                </button>
+              </div>
+              <div className="modal__button">
+                <button
+                  className="bg-gray-600 text-white rounded"
+                  type="submit"
+                  form="groupForm"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </TabPanel>
+
+          <TabPanel>
+            <div className="flex justify-between flex-col" onContextMenu={(e) => e.preventDefault()}>
+              <div className="add__modal__content__part__select w-full">
+                <span>Branches</span>
+                <div className="add__modal__content__part__group mb-4 overflow-x-auto">
+                  <div className="flex mr-2">
+                    {
+                      branches?.length > 0 && (
+                        branches.map((branch, index) => {
+                          return (
+                            branch.name !== 'All' &&
+                            <>
+                              <div
+                                key={index}
+                                onClick={() => handleSelectBranch(branch)}
+                                className={`
                                 flex 
                                 mr-2 
                                 bg-[#475456] 
@@ -336,105 +366,88 @@ const AddUserGroupModal = ({ isOpen, onClose, mode = "add", initialData = {} }) 
                                 text-white 
                                 cursor-pointer 
                                 ${selectedBranch.hasOwnProperty(branch.id)
-                                  ? "border-2 border-cyan-500"
-                                  : ""
-                                }
+                                    ? "border-2 border-cyan-500"
+                                    : ""
+                                  }
                               `}>
-                              {branch.name}
-                            </div>
-                          </>
-                        )
-                      }
-                      ))
-                  }
-                  {renderError('branch')}
+                                {branch.name}
+                              </div>
+                            </>
+                          )
+                        }
+                        ))
+                    }
+                    {renderError('branch')}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div>
-              {Object.keys(selectedBranch).length && filteredBranchGroups?.length ? (
-                <div className="pl-5 select-none">
-                  {filteredBranchGroups.map((lockerGroup, groupIndex) => (
-                    <React.Fragment key={groupIndex}>
-                      <GroupName name={lockerGroup.groupName} />
-                      <div className="flex flex-wrap mb-4">
-                        {lockerGroup.groupLockers.map((item, itemIndex) => (
-                          <div
-                            key={itemIndex}
-                            className={`mr-2 mb-2 ${selectedLockerId.includes(item.id)
-                              ? 'selected__branch__id'
-                              : 'locker__border'
-                              }`}
-                            onMouseOver={(event) => {
-                              if (event.buttons === 1 && event.ctrlKey) {
-                                handleBranchSelectRemove(item.id);
-                              } else if (event.buttons === 1) {
-                                handleBranchSelectAdd(item.id);
-                              }
-                            }}
-                            onClick={() => handleClickBranchSelect(item.id)}
-                          >
-                            <GenerateLocker item={item} index={itemIndex} />
-                          </div>
-                        ))}
-                      </div>
-                    </React.Fragment>
-                  ))}
-                </div>
-              ) : (
-                <NoData text="No Selected Lockers" />
-              )}
-            </div>
-            <div>
-              {/* {selectedBranchesForShow.length > 0 && (
+              <div>
+                {Object.keys(selectedBranch).length && filteredBranchGroups?.length ? (
+                  <div className="pl-5 select-none">
+                    {filteredBranchGroups.map((lockerGroup, groupIndex) => (
+                      <React.Fragment key={groupIndex}>
+                        <GroupName name={lockerGroup.groupName} />
+                        <div className="flex flex-wrap mb-4">
+                          {lockerGroup.groupLockers.map((item, itemIndex) => (
+                            <div
+                              key={itemIndex}
+                              className={`mr-2 mb-2 ${selectedLockerId.includes(item.id)
+                                ? 'selected__branch__id'
+                                : 'locker__border'
+                                }`}
+                              onMouseOver={(event) => {
+                                if (event.buttons === 1 && event.ctrlKey) {
+                                  handleBranchSelectRemove(item.id);
+                                } else if (event.buttons === 1) {
+                                  handleBranchSelectAdd(item.id);
+                                }
+                              }}
+                              onClick={() => handleClickBranchSelect(item.id)}
+                            >
+                              <GenerateLocker item={item} index={itemIndex} />
+                            </div>
+                          ))}
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                ) : (
+                  <NoData text="No Selected Lockers" />
+                )}
+              </div>
+              <div>
+                {/* {selectedBranchesForShow.length > 0 && (
                   <div className="pl-5 select-none">
                     {selectedBranchesForShow.map((group) => (
                      
                     )))} */}
+              </div>
+
+              <div className="section__add">
+                <button
+                  onClick={sendLockerIds}
+                  className="text-white font-bold rounded p-2"
+                >
+                  Add locker
+                </button>
+              </div>
             </div>
 
-            <div className="section__add">
-              <button
-                onClick={sendLockerIds}
-                className="text-white font-bold rounded p-2"
-              >
-                Add locker
-              </button>
+            {/* User Rights */}
+            <div className="add__modal__content__part">
+              <span>Group rights</span>
+              <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
+                <label className="block text-gray-300">Group rights details</label>
+                <textarea
+                  className="w-full p-1 border rounded h-24"
+                  readOnly
+                  value={formatUserRightText()}
+                />
+              </div>
             </div>
-          </div>
-
-          {/* User Rights */}
-          <div className="add__modal__content__part">
-            <span>Group rights</span>
-            <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-              <label className="block text-gray-300">Group rights details</label>
-              <textarea
-                className="w-full p-1 border rounded h-24"
-                readOnly
-                value={formatUserRightText()}
-              />
-            </div>
-          </div>
-        </div>
-        {/* Buttons */}
-        <div className="flex justify-end space-x-4">
-          <div className="modal__button">
-            <button className="bg-gray-600 text-white rounded "
-              onClick={onClose}>
-              Cancel
-            </button>
-          </div>
-          <div className="modal__button">
-            <button
-              className="bg-gray-600 text-white rounded"
-              type="submit"
-              form="groupForm"
-            >
-              Save
-            </button>
-          </div>
-        </div>
+          </TabPanel>
+        </Tabs>
       </div>
     </div>
   );

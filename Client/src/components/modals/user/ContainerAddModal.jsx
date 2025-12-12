@@ -20,7 +20,7 @@ function  ContainerAddModal() {
           onClick={() => setIsModalOpen(true)}
           className="menu__add__button text-white">
           <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-          <span>{userGroupEnabled ? "Add Group User" : "Add User"}</span>
+          <span>{userGroupEnabled ? "Add User Group" : "Add User"}</span>
         </button>
       </div>
 
