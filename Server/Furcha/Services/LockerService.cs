@@ -166,25 +166,28 @@ namespace FurchaAdminApi.Services
         public List<LockersResult> GetGroupsWithLockers(int branchId)
         {
             var lockerGroups = Db.LockerGroups
-             .Where(lg => lg.BranchId == branchId).Distinct()
-             .ToList(); //_lockerRepository.GetLockerGroupsByBranchId(branchId).Distinct().ToList();
-                        // var lockers = _lockerRepository.GetUserLockersByBranchId(branchId);
-            var lockers = Db.Lockers.Include(x => x.Brain).Include(l => l.LockerTypeNavigation)
-                 .Where(l => l.Brain.BranchId == branchId)
-                 .Select(l => new LockerWithUsers
-                 {
-                     Id = l.Id,
-                     groupid = l.Brain.GroupId,
-                     number = (long)(l.Number ?? 0),
-                     LockerType = l.LockerTypeNavigation,
-                     IsActive = (int)l.IsActive,
-                     Status = (int)l.LockerStatus,
-                     IsOpen = l.IsOpen == 1 ? 1 : 0,
-                     BranchId = l.Brain.BranchId ?? 0,
-                     PasswordHash = l.PasswordHash,
-                     Users = l.Users.Select(u => u.Name).Distinct().ToList()
-                 })
-                 .ToList();
+      .Where(lg => lg.BranchId == branchId)
+      .Distinct()
+      .ToList();
+
+            var lockers = Db.Lockers
+                .Include(x => x.Brain)
+                .Include(l => l.LockerTypeNavigation)
+                .Where(l => l.Brain != null && l.Brain.BranchId == branchId)
+                .Select(l => new LockerWithUsers
+                {
+                    Id = l.Id,
+                    groupid = l.Brain.GroupId ?? 0,              // if GroupId is nullable
+                    number = (long)(l.Number ?? 0),
+                    LockerType = l.LockerTypeNavigation,
+                    IsActive = l.IsActive ?? 0,                  // instead of (int)l.IsActive
+                    Status = l.LockerStatus ?? 0,                // instead of (int)l.LockerStatus
+                    IsOpen = (l.IsOpen ?? 0) == 1 ? 1 : 0,       // if IsOpen is nullable
+                    BranchId = l.Brain.BranchId ?? 0,
+                    PasswordHash = l.PasswordHash,
+                    Users = l.Users.Select(u => u.Name).Distinct().ToList()
+                })
+                .ToList();
 
             var results = lockerGroups
                 .Select(group => new LockersResult
@@ -611,10 +614,8 @@ namespace FurchaAdminApi.Services
 
         public bool UpdateModule(int lockerType, int lockerFrom, int lockerTo, int lockerGroupId, int id)
         {
-            // Create EF Core's retry execution strategy
             var strategy = Db.Database.CreateExecutionStrategy();
 
-            // Run the logic inside the strategy so it can retry safely if needed
             return strategy.Execute(() =>
             {
                 using var transaction = Db.Database.BeginTransaction();
