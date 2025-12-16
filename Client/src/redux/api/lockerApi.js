@@ -83,14 +83,14 @@ export const openLockers = createAsyncThunk(
   }
 )
 
-export const suspendLockers = createAsyncThunk(
-  'locker/suspendLockers',
+export const changeMode = createAsyncThunk(
+  'locker/changeMode',
   async (data, thunkAPI) => {
     try {
       const config = {
         method: "post",
         data: data,
-        url: 'Locker/suspend-lockers',
+        url: 'Locker/change-mode',
       };
 
       const response = await instance(config);

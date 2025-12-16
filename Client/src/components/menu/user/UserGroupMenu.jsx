@@ -100,8 +100,6 @@ function UserGroupMenu() {
                     </div>
                 </div>
 
-
-
                 {/* <div className='menu__connection__and__manage'> */}
                 <div className="menu__connection flex items-start text-white">
                     <MediaQuery minWidth={769}>

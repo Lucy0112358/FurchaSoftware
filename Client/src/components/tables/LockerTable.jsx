@@ -14,7 +14,6 @@ function LockerTable() {
   const dispatch = useDispatch();
   const allLockers = useSelector(getAllLockersData);
   const selectedLockerIds = useSelector(getSelectedLockerIds);
-  console.log(allLockers, 77777);
 
   const {
     popup,

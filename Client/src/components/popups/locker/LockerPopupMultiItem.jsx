@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import OpenLocker from '../../popupAction/locker/OpenLocker';
-import SuspendLocker from '../../popupAction/locker/SuspendLocker';
+import ChangeLockerMode from '../../popupAction/locker/ChangeLockerMode';
 import LockerType from '../../popupAction/locker/LockerType';
 import { useHasPermission } from '../../../hooks/useHasPermission';
 
@@ -24,7 +24,8 @@ function LockerPopupMultiItem({ selectedLockerIds, onClose }) {
         {
           hasPermission(['LVL3_Admin'], ['Open_Locker']) && <OpenLocker lockers={selectedLockerIds} onClose={onClose} />
         }
-        <SuspendLocker lockers={selectedLockerIds} onClose={onClose} />
+        <ChangeLockerMode ids={selectedLockerIds} action='Suspend' onClose={onClose} />
+        <ChangeLockerMode ids={selectedLockerIds} action='Active' onClose={onClose} />
         {
           hasPermission() && <LockerType lockers={selectedLockerIds} onClose={onClose} />
         }

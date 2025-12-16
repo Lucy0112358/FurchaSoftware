@@ -131,7 +131,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
           toast.success("User added successfully");
           onClose();
         } else {
-          toast.error(res.error?.message || 'Error occurred');
+          toast.error(res.payload || 'Error occurred');
         }
       });
   };
