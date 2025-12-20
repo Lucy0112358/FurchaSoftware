@@ -193,16 +193,21 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<string>.Success("Lockers edited successfully."));
         }
 
-        [Authorize]
-        [RequiresPermission("ManageUsers")]
-        [HttpPost("suspend-lockers")]
-        public IActionResult SuspendLockers([FromBody] List<int> lockerIds)
+        public class Model
         {
-
-            _lockerService.SuspendLockers(lockerIds);
-            return Ok(ApiResult<string>.Success("Lockers edited successfully."));
+            public List<int> Ids;
+            public int State;
         }
 
+        [Authorize]
+        [RequiresPermission("ManageUsers")]
+        [HttpPost("change-mode")]
+        public IActionResult SuspendLockers([FromBody] Model model)
+        {
+
+            _lockerService.SuspendLockers(model.Ids, model.State);
+            return Ok(ApiResult<string>.Success("Lockers edited successfully."));
+        }
 
         public class EditLockerGroupRequest
         {
