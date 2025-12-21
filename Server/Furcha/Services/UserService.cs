@@ -687,31 +687,26 @@ namespace FurchaAdminApi.Services
             if (companyId == null)
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry);
 
-            if (Db.Users.Any(u => u.Email == newUser.Email))
-                throw new Exception("Email already exists.");
+            // Normalize email
+            var email = newUser.Email?.Trim();
+            if (string.IsNullOrWhiteSpace(email))
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "Email is required.");
 
+            // Dates (store as Unspecified if that's your DB convention)
             DateTime? activeFrom = null;
             if (newUser.ActiveFrom.HasValue)
-            {
-                var d = newUser.ActiveFrom.Value.Date; 
-                activeFrom = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
-            }
+                activeFrom = DateTime.SpecifyKind(newUser.ActiveFrom.Value.Date, DateTimeKind.Unspecified);
 
             DateTime? activeTo = null;
             if (newUser.ActiveTo.HasValue)
-            {
-                var d = newUser.ActiveTo.Value.Date;
-                activeTo = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
-            }
+                activeTo = DateTime.SpecifyKind(newUser.ActiveTo.Value.Date, DateTimeKind.Unspecified);
 
             var today = DateTime.UtcNow.Date;
 
-            StateEnum state = StateEnum.active;
-
+            // Use your enum names (based on your memory: Active=0, Suspended=1, Scheduled=2, Expanded=?)
+            var state = StateEnum.active;
             if (activeTo.HasValue && activeTo.Value.Date < today)
-            {
                 state = StateEnum.expanded;
-            }
 
             try
             {
@@ -719,18 +714,21 @@ namespace FurchaAdminApi.Services
 
                 if (user == null)
                 {
+                    // ADD: prevent duplicates (I recommend per-company; change if your rule is global)
+                    var emailExists = Db.Users.Any(u => u.CompanyId == companyId && u.Email == email);
+                    if (emailExists)
+                        throw new BaseException(ErrorCodeEnum.EmailAlreadyExists,
+                            "A user with this email already exists in your company.");
+
                     user = new User
                     {
                         Name = newUser.Name,
                         Surname = newUser.Surname,
-                        Email = newUser.Email,
+                        Email = email,
                         Phone = newUser.Phone,
-
                         CreatedDate = DateTime.UtcNow,
-
                         State = (int)state,
-                        CompanyId = (int)companyId,
-
+                        CompanyId = companyId,
                         ActiveFrom = activeFrom,
                         ActiveTo = activeTo
                     };
@@ -739,8 +737,23 @@ namespace FurchaAdminApi.Services
                 }
                 else
                 {
+                    // EDIT: security - don't allow editing user from another company
+                    if (user.CompanyId != companyId)
+                        throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "Access denied.");
+
+                    // EDIT: allow changing email, but ensure uniqueness excluding self
+                    var emailExists = Db.Users.Any(u =>
+                        u.CompanyId == companyId &&
+                        u.Email == email &&
+                        u.Id != user.Id);
+
+                    if (emailExists)
+                        throw new BaseException(ErrorCodeEnum.EmailAlreadyExists,
+                            "A user with this email already exists in your company.");
+
                     user.Name = newUser.Name;
                     user.Surname = newUser.Surname;
+                    user.Email = email;          // <- keep if you want to allow edit
                     user.Phone = newUser.Phone;
 
                     user.State = (int)state;
@@ -777,8 +790,8 @@ namespace FurchaAdminApi.Services
             }
             catch (Exception ex)
             {
-                if (ex.InnerException is SqlException sqlEx &&
-                    (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+                // If you also have a UNIQUE index in DB, keep this as fallback
+                if (ex.InnerException is SqlException sqlEx && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
                 {
                     throw new BaseException(
                         ErrorCodeEnum.EmailAlreadyExists,

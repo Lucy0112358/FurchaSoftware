@@ -195,8 +195,8 @@ namespace FurchaAdminApi.Controllers
 
         public class Model
         {
-            public List<int> Ids;
-            public int State;
+            public List<int> Ids { get; set; }
+            public int State { get; set; }
         }
 
         [Authorize]
