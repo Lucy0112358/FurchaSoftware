@@ -105,22 +105,3 @@ export const updateBranch = createAsyncThunk(
     }
   }
 );
-
-export const deleteBrainId = createAsyncThunk(
-  'branch/deleteBrainId',
-  async (id, thunkAPI) => {
-    
-    try {
-      const config = {
-        method: "post",
-        url: 'branch/delete-brain-id/' + id,
-      };
-      const response = await instance(config);
-
-      return response?.data;
-
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data.error.both);
-    }
-  }
-)

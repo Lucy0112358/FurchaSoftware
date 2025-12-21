@@ -9,6 +9,7 @@ import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds, updateLo
 import CustomCheckbox from '../checkbox/CustomCheckbox';
 import UnselectLockers from '../button/UnselectLockers';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import Delete from '../button/lockerGroup/Delete';
 
 function LockerTable() {
   const dispatch = useDispatch();
@@ -46,8 +47,9 @@ function LockerTable() {
                 <OfficeName name={locker.officeName} />
                 {locker.lockers.map((lockerGroup, groupIndex) => (
                   <React.Fragment key={groupIndex}>
-                    <div className="ml-2 mt-3">
+                    <div className="ml-2 mt-3 flex  items-center">
                       <GroupName name={lockerGroup.groupName} id={lockerGroup.id} />
+                      <Delete lockerCount={lockerGroup.groupLockers.length} id={lockerGroup.id} />
                     </div>
 
                     <div
@@ -137,7 +139,7 @@ function LockerTable() {
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <LockerPopup locker={popup.target} onClose={closePopup} branchId={popup.branchId} />
+          <LockerPopup locker={popup.target} onClose={closePopup} branchId={popup.target.branchId} />
         </div>
       )}
     </div>

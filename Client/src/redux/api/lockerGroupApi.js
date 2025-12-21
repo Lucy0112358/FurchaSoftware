@@ -36,3 +36,20 @@ export const getLockerGroup = createAsyncThunk(
     }
 )
 
+export const deleteLockerGroup = createAsyncThunk(
+  'lockerGroup/deleteLockerGroup',
+  async (id, thunkAPI) => {
+      try {
+        const config = {
+          method: "post",
+          url: 'Locker/deleteLockerGroup/'+id,
+        };
+        const response = await instance(config);        
+        return response?.data;
+        // return {data: {name:"locker group name"}};
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
