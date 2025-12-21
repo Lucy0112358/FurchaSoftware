@@ -3,11 +3,11 @@ import './addAdmin.css';
 import '../modal.css';
 import CustomCheckbox from "../../checkbox/CustomCheckbox";
 import { useDispatch, useSelector } from 'react-redux';
-import { getAddUserInfo, getFilteredUsers, setAddUserInfo } from "../../../redux/slice/userSlice";
+import { getAllUsersData, setAddUserInfo } from "../../../redux/slice/userSlice";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import { getBranchesData, getLockerGroups, getUserGroupsData, setLockerGroupWithFilters } from "../../../redux/slice/menuSlice";
-import { filterUserWithOutPaginte, setUserInfo } from "../../../redux/api/userApi";
+import { getBranchesData, setLockerGroupWithFilters } from "../../../redux/slice/menuSlice";
+import {  getUsers } from "../../../redux/api/userApi";
 import { getFilteredLockerGroups } from "../../../redux/slice/menuSlice";
 import NoData from "../../no-data/NoData";
 import { toast } from "react-toastify";
@@ -31,7 +31,8 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   const [userRight, setUserRight] = useState({});
   const [sentGeneralInfo, setSentGeneralInfo] = useState({});
   const [selectedBranch, setSelectedBranch] = useState({});
-  const filteredUsers = useSelector(getFilteredUsers);
+  const usersData = useSelector(getAllUsersData);
+
   const [selectedUser, setSelectedUser] = useState(null);
   const roles = useSelector(getRolesData);
   const [selectRole, setSelectedRole] = useState(null);
@@ -43,18 +44,18 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   //END change for SelectBranch
 
   useEffect(() => {
-    dispatch(filterUserWithOutPaginte({ isAdmin: false }));
+    dispatch(getUsers({ isAdmin: false }));
     dispatch(getRoles());
     dispatch(getLockerGroupsData());
   }, [dispatch]);
 
   useEffect(() => {
-    const options = filteredUsers?.map((user) => ({
+    const options = usersData?.map((user) => ({
       value: user.id,
       label: user.name,
     }));
     setUserOptions(options);
-  }, [filteredUsers]);
+  }, [usersData]);
 
   useEffect(() => {
     const options = roles?.map((role) => ({

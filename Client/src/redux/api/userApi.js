@@ -56,23 +56,6 @@ export const updateUserInfo = createAsyncThunk(
   }
 )
 
-export const filterUserWithOutPaginte = createAsyncThunk(
-  'user/filterUserWithOutPaginte',
-  async (params, thunkAPI) => {
-    try {
-      const config = {
-        method: "get",
-        url: 'user/filtered-users',
-        params: { ...params },
-      };
-
-      const response = await instance(config);
-      return response?.data?.data || [];
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data.error.both);
-    }
-  }
-)
 
 export const logout = createAsyncThunk(
   'user/logout',
