@@ -203,7 +203,7 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
 
                     {showConfirm && (
                       <ConfirmModal
-                        message={'Are you sure you want to delete the brain ID?'}
+                        message={'Are you sure you want to delete this module chain? Deleting it will permanently remove all associated components, including lockers, doors, and sensors, from the cloud software.'}
                         onConfirm={() => {
                           handleDeleteBrainId();
                           setShowConfirm(false);
