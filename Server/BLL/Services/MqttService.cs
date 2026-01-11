@@ -205,7 +205,7 @@ public class MqttService
                                 brain.IpAddress = mqttBrain.Data.IpAddress;
                                 brain.MacAddress = mqttBrain.Data.MacAddress;
                                 brain.Description = mqttBrain.Data.Info;
-                                brain.Status = (int)BrainStatuses.New;
+                                brain.Status = (int)BrainStatuses.Added;
                             }
                             else
                             {

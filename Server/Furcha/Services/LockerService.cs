@@ -31,6 +31,28 @@ namespace FurchaAdminApi.Services
             _mqttService = mqttService;
             Db = db;
         }
+
+        public bool DeleteModuleById(int id)
+        {
+            var module = Db.BrainModules
+                .Include(b => b.Lockers)
+                .FirstOrDefault(b => b.Id == id);
+
+            if (module == null)
+                return false;
+
+            // remove dependent lockers first (FK safety)
+            if (module.Lockers != null && module.Lockers.Any())
+            {
+                Db.Lockers.RemoveRange(module.Lockers);
+            }
+
+            Db.BrainModules.Remove(module);
+            Db.SaveChanges();
+
+            return true;
+        }
+
         /// <summary>
         /// Each user in the mLockers should have access to same editingLockers in the lockerGroup. <br></br>
         /// Each locker is in only one lockerGroup.
@@ -483,10 +505,15 @@ namespace FurchaAdminApi.Services
                         .ToList();
 
                     bool ok =
-                        finalTypes.Count == 1 ||
-                        (finalTypes.Count == 2 &&
-                         finalTypes.Contains(commonId.Value) &&
-                         finalTypes.Contains(personalId.Value));
+                         finalTypes.Count == 1
+
+                         || (
+                             finalTypes.Count == 2 &&
+                             finalTypes.All(t =>
+                                 t == commonId.Value ||
+                                 t == personalId.Value
+                             )
+                         );
 
                     if (!ok)
                         throw new BaseException(ErrorCodeEnum.GenericErrorRetry,
@@ -629,6 +656,7 @@ namespace FurchaAdminApi.Services
             {
                 LockerType = firstLockerType,
                 LockerGroupId = module.Group?.Id ?? 0,
+                BranchId = module.BranchId ?? 0,
                 LockerRange = new LockerRange
                 {
                     Start = 1,
@@ -651,6 +679,8 @@ namespace FurchaAdminApi.Services
                     if (module == null) throw new Exception("Module not found");
 
                     var oldGroupId = module.GroupId;
+
+                    // If moving to a new group, renumber old group
                     if (oldGroupId != lockerGroupId)
                     {
                         var lockersOfOldGroup = Db.Lockers
@@ -661,65 +691,44 @@ namespace FurchaAdminApi.Services
                             .ToList();
 
                         for (int i = 0; i < lockersOfOldGroup.Count; i++)
-                        {
                             lockersOfOldGroup[i].Number = i + 1;
-                        }
                     }
 
+                    // Lockers in the new group
                     var lockersOfNewGroup = Db.Lockers
                         .Include(l => l.Brain)
-                        .Where(b => b.Brain.GroupId == lockerGroupId)
-                        .OrderBy(l => l.Brain.Id)
-                        .ThenBy(l => l.Id)
+                        .Where(l => l.Brain.GroupId == lockerGroupId)
                         .ToList();
 
-                    var lockers = module.Lockers.OrderBy(l => l.Id).ToList();
-                    var lockerCount = lockers.Count;
+                    var lockersToUpdate = module.Lockers.OrderBy(l => l.Id).ToList();
+                    var lockerCount = lockersToUpdate.Count;
+
                     if (lockerTo - lockerFrom + 1 < lockerCount)
-                        throw new Exception("Wrong locker numbers");
+                        throw new Exception("Invalid locker range");
 
-                    var modules = lockersOfNewGroup.GroupBy(g => g.BrainId).ToList();
+                    // Check for number conflicts in the target group (excluding this module's lockers)
+                    var existingNumbers = lockersOfNewGroup
+                        .Where(l => !lockersToUpdate.Select(x => x.Id).Contains(l.Id))
+                        .Select(l => l.Number)
+                        .ToHashSet();
 
-                    int index = 0;
-                    for (var i = lockerFrom; i <= lockerTo && index < lockerCount; i++, index++)
+                    for (int num = lockerFrom; num <= lockerTo; num++)
                     {
-                        lockers[index].Number = i;
-                        lockers[index].LockerType = lockerType;
+                        if (existingNumbers.Contains(num))
+                            throw new Exception($"Locker number {num} already exists in the group");
                     }
 
-                    for (int i = 0; i < modules.Count; i++)
+                    // Assign new numbers and locker type
+                    for (int i = 0; i < lockerCount; i++)
                     {
-                        if (i < modules.Count - 1)
-                        {
-                            if (lockerFrom < modules[i].LastOrDefault()?.Number &&
-                                lockerTo > modules[i + 1].FirstOrDefault()?.Number)
-                            {
-                                throw new Exception("Overlapping locker numbers");
-                            }
-                        }
-
-                        if (modules[i].Key == id)
-                            continue;
-
-                        var mLockers = modules[i].ToList();
-                        var moduleLockerCount = mLockers.Count;
-
-                        for (var j = 0; j < moduleLockerCount; j++)
-                        {
-                            if (j > 0)
-                                mLockers[j].Number = mLockers[j - 1].Number + 1;
-                            else if (i == 0)
-                                mLockers[j].Number = 1;
-                            else
-                                mLockers[j].Number = modules[i - 1].LastOrDefault()?.Number + 1 ?? 1;
-                        }
+                        lockersToUpdate[i].Number = lockerFrom + i;
+                        lockersToUpdate[i].LockerType = lockerType;
                     }
 
                     module.GroupId = lockerGroupId;
 
                     Db.SaveChanges();
                     transaction.Commit();
-
                     return true;
                 }
                 catch
@@ -770,7 +779,6 @@ namespace FurchaAdminApi.Services
             return true;
         }
 
-
         public FurchaBLL.Models.EditModuleResult GetModuleById(int id)
         {
             var module = Db.BrainModules.FirstOrDefault(x => x.Id == id);
@@ -807,6 +815,38 @@ namespace FurchaAdminApi.Services
             Db.SaveChanges();
 
             return true;
+        }
+
+        public bool DeleteModulePermanently(int moduleId)
+        {
+            using var transaction = Db.Database.BeginTransaction();
+            try
+            {
+                var module = Db.BrainModules
+                    .Include(m => m.Lockers)
+                    .FirstOrDefault(m => m.Id == moduleId);
+
+                if (module == null)
+                    throw new Exception("Module not found");
+
+                // Delete associated lockers if needed
+                if (module.Lockers != null && module.Lockers.Any())
+                {
+                    Db.Lockers.RemoveRange(module.Lockers);
+                }
+
+                Db.BrainModules.Remove(module);
+
+                Db.SaveChanges();
+                transaction.Commit();
+
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
     }

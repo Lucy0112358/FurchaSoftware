@@ -50,11 +50,11 @@ namespace FurchaAdminApi.Services
             {
                 query = query.Where(u => u.UserBranches.Any(ub => ub.BranchId == branchId.Value));
             }
-/*
+
             if (isAdmin == false)
             {
                 query = query.Where(u => !u.Administrators.Any());
-            }*/
+            }
 
             if (groupId.HasValue)
             {
@@ -901,21 +901,34 @@ namespace FurchaAdminApi.Services
 
             try
             {
+                if (cardNumbers == null || cardNumbers.Count == 0)
+                    return result;
+
+                // normalize + distinct
+                var normalized = cardNumbers
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(x => x.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                if (!normalized.Any())
+                    return result;
+
                 var companyId = Db.Users
                     .Where(u => u.Id == userId)
                     .Select(u => u.CompanyId)
                     .FirstOrDefault();
 
                 if (companyId == 0)
-                {
                     throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "User does not belong to a company.");
-                }
 
-                var cardExistsInCompany = Db.Cards
-                    .Where(c => cardNumbers.Contains(c.CardNumber))
-                    .Any(c => c.User.CompanyId == companyId);
+                // ✅ conflict only if card exists in same company for ANOTHER user
+                var conflict = Db.Cards
+                    .Where(c => normalized.Contains(c.CardNumber))
+                    .Where(c => c.User.CompanyId == companyId)
+                    .Any(c => c.UserId != userId);
 
-                if (cardExistsInCompany)
+                if (conflict)
                 {
                     throw new BaseException(
                         ErrorCodeEnum.GenericErrorRetry,
@@ -923,12 +936,13 @@ namespace FurchaAdminApi.Services
                     );
                 }
 
+                // cards that already exist for this user -> skip
                 var existingCardNumbers = Db.Cards
-                    .Where(c => c.UserId == userId && cardNumbers.Contains(c.CardNumber))
+                    .Where(c => c.UserId == userId && normalized.Contains(c.CardNumber))
                     .Select(c => c.CardNumber)
-                    .ToHashSet();
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                foreach (var cardNumber in cardNumbers)
+                foreach (var cardNumber in normalized)
                 {
                     if (existingCardNumbers.Contains(cardNumber))
                         continue;
@@ -945,6 +959,10 @@ namespace FurchaAdminApi.Services
 
                 if (result.Any())
                     Db.SaveChanges();
+            }
+            catch (BaseException)
+            {
+                throw;
             }
             catch (Exception ex)
             {

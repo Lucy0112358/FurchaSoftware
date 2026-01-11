@@ -143,32 +143,54 @@ namespace FurchaAdminApi.Services
 
         public void DeleteBranch(int branchId)
         {
-            var branch = Db.Branches
-                .Include(b => b.AdminBranches)
-                .Include(b => b.BranchAddresses)
-                .Include(b => b.BrainModules)
-                .FirstOrDefault(b => b.Id == branchId);
+            using var tx = Db.Database.BeginTransaction();
 
-            if (branch == null)
-                return;
-
-            if (branch.AdminBranches != null)
+            try
             {
-                Db.AdminBranches.RemoveRange(branch.AdminBranches);
-            }
+                // 1️⃣ Admin ↔ Branch
+                Db.AdminBranches.RemoveRange(
+                    Db.AdminBranches.Where(x => x.BranchId == branchId));
 
-            if (branch.BranchAddresses != null)
+                // 2️⃣ User ↔ Branch  (THIS is what was breaking your deletes)
+                Db.UserBranches.RemoveRange(
+                    Db.UserBranches.Where(x => x.BranchId == branchId));
+
+                // 3️⃣ UserGroup ↔ Branch
+                Db.UserGroupBranches.RemoveRange(
+                    Db.UserGroupBranches.Where(x => x.BranchId == branchId));
+
+                // 4️⃣ Branch addresses
+                Db.BranchAddresses.RemoveRange(
+                    Db.BranchAddresses.Where(x => x.BranchId == branchId));
+
+                // 5️⃣ Brain modules → Lockers → UserLockers (cascade)
+                var moduleIds = Db.BrainModules
+                    .Where(x => x.BranchId == branchId)
+                    .Select(x => x.Id)
+                    .ToList();
+
+                foreach (var id in moduleIds)
+                {
+                    _lockerService.DeleteModule(id);
+                }
+
+                // 6️⃣ Locker groups (otherwise they become ghosts)
+                Db.LockerGroups.RemoveRange(
+                    Db.LockerGroups.Where(x => x.BranchId == branchId));
+
+                // 7️⃣ Branch
+                var branch = Db.Branches.Find(branchId);
+                if (branch != null)
+                    Db.Branches.Remove(branch);
+
+                Db.SaveChanges();
+                tx.Commit();
+            }
+            catch
             {
-                Db.BranchAddresses.RemoveRange(branch.BranchAddresses);
+                tx.Rollback();
+                throw;
             }
-
-            foreach (var m in branch.BrainModules)
-            {
-                _lockerService.DeleteModule(m.Id);
-            }
-
-            Db.Branches.Remove(branch);
-            Db.SaveChanges();
         }
 
 

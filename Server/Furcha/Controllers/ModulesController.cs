@@ -56,12 +56,29 @@ namespace FurchaAdminApi.Controllers
 
         [Authorize]
         [HttpPost("{id}")]
-        public ActionResult<bool> Update(int id, [FromBody] UpdateModuleRequest request)
+        public ActionResult<ApiResult<bool>> Update(int id, [FromBody] UpdateModuleRequest request)
         {
-            var locker = _lockerService.UpdateModule(request.LockerType, request.LockerFrom, request.LockerTo, request.LockerGroupId, id);
+            try
+            {
+                var result = _lockerService.UpdateModule(
+                    request.LockerType,
+                    request.LockerFrom,
+                    request.LockerTo,
+                    request.LockerGroupId,
+                    id
+                );
 
-            return Ok(ApiResult<bool>.Success(locker));
+                return Ok(ApiResult<bool>.Success(result));
+            }
+            catch (Exception ex)
+            {
+                // Log the exception if needed
+                // _logger.LogError(ex, "Error updating locker module");
+
+                return BadRequest(ApiResult<bool>.ErrorResult(ex.Message));
+            }
         }
+
 
         [Authorize]
         [HttpPost("delete/{id}")]
@@ -99,6 +116,22 @@ namespace FurchaAdminApi.Controllers
         {
             var m = _lockerService.GetModuleById(id);
             return Ok(ApiResult<FurchaBLL.Models.EditModuleResult>.Success(m));
+        }
+
+        [Authorize]
+        [HttpPost("delete-brain-id/{id}")]
+        public ActionResult<ApiResult<bool>> DeleteModuleById(int id)
+        {
+            try
+            {
+                var result = _lockerService.DeleteModulePermanently(id);
+                return Ok(ApiResult<bool>.Success(result));
+            }
+            catch (Exception ex)
+            {
+                // Optionally log the exception
+                return BadRequest(ApiResult<bool>.ErrorResult(ex.Message));
+            }
         }
 
     }
