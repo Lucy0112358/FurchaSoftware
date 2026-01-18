@@ -326,7 +326,6 @@ public class MqttService
         var result = await _mqttClient.PublishAsync(message, CancellationToken.None);
     }
 
-
     public async Task PublishToMqtt<T>(MqttBaseRequest<T> request, string topic)
     {
         try

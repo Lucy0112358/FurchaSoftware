@@ -72,7 +72,7 @@ namespace FurchaAdminApi.Controllers
         }
 
         [Authorize]
-        [RequiresPermission("DeleteBranch")]
+    /*    [RequiresPermission("DeleteBranch")]*/
         [HttpPost("delete-branch/{id}")]
         public ActionResult<ApiResult<bool>> DeleteBranch(int id)
         {
