@@ -8,6 +8,7 @@ import LockerPopup from '../popups/locker/LockerPopup';
 import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '../../redux/slice/lockerSlice';
 import UnselectLockers from '../button/UnselectLockers';
 import { useContextMenu } from '../../hooks/useContextMenu';
+import Delete from '../button/lockerGroup/Delete';
 
 function LockerTableGroup() {
   const dispatch = useDispatch();
@@ -75,7 +76,10 @@ function LockerTableGroup() {
 
                   return (
                     <React.Fragment key={groupIndex}>
-                      <GroupName name={lockerGroup.groupName} id={lockerGroup.id} />
+                      <div className="ml-2 mt-3 flex  items-center">
+                        <GroupName name={lockerGroup.groupName} id={lockerGroup.id} />
+                        <Delete lockerCount={lockerGroup.groupLockers.length} id={lockerGroup.id} />
+                      </div>
                       <div
                         className="flex flex-wrap mb-4 mt-4">
                         {lockerGroup.groupLockers.map((item, itemIndex) => (
@@ -101,7 +105,7 @@ function LockerTableGroup() {
                             }}
                             onClick={() => handleClickBranchSelect(item.id)}
                           >
-                            <GenerateLocker item={item} index={ itemIndex + 1} doorState={item.doorState || ''} />
+                            <GenerateLocker item={item} index={itemIndex + 1} doorState={item.doorState || ''} />
 
                           </div>
                         ))}

@@ -15,7 +15,7 @@ function ChangeLockerMode({ ids, action = 'Suspend', onClose }) {
             dispatch(changeMode(data))
                 .unwrap()
                 .then((response) => {
-                    if (response && response.payload.isSuccess) {
+                    if (response && response.isSuccess) {
                         toast.success("Mode changed successfully");
                         dispatch(getLockers());
                         onClose();
