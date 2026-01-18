@@ -58,7 +58,7 @@ namespace FurchaAdminApi.Services
             var lockerTypes = Db.Lockers
                 .Include(l => l.Brain)
                 .Include(l => l.LockerTypeNavigation)
-                .Where(l => l.Brain.BranchId == branch.Id)
+                .Where(l => l.Brain.BranchId == branch.Id && l.IsDeleted == false)
                 .Select(l => new LockerTypeResult
                 {
                     Id = l.LockerTypeNavigation.Id,
@@ -143,56 +143,53 @@ namespace FurchaAdminApi.Services
 
         public void DeleteBranch(int branchId)
         {
-            using var tx = Db.Database.BeginTransaction();
+            var strategy = Db.Database.CreateExecutionStrategy();
 
-            try
+            strategy.Execute(() =>
             {
-                // 1️⃣ Admin ↔ Branch
-                Db.AdminBranches.RemoveRange(
-                    Db.AdminBranches.Where(x => x.BranchId == branchId));
+                using var tx = Db.Database.BeginTransaction();
 
-                // 2️⃣ User ↔ Branch  (THIS is what was breaking your deletes)
-                Db.UserBranches.RemoveRange(
-                    Db.UserBranches.Where(x => x.BranchId == branchId));
-
-                // 3️⃣ UserGroup ↔ Branch
-                Db.UserGroupBranches.RemoveRange(
-                    Db.UserGroupBranches.Where(x => x.BranchId == branchId));
-
-                // 4️⃣ Branch addresses
-                Db.BranchAddresses.RemoveRange(
-                    Db.BranchAddresses.Where(x => x.BranchId == branchId));
-
-                // 5️⃣ Brain modules → Lockers → UserLockers (cascade)
-                var moduleIds = Db.BrainModules
-                    .Where(x => x.BranchId == branchId)
-                    .Select(x => x.Id)
-                    .ToList();
-
-                foreach (var id in moduleIds)
+                try
                 {
-                    _lockerService.DeleteModule(id);
+                    Db.AdminBranches.RemoveRange(
+                        Db.AdminBranches.Where(x => x.BranchId == branchId));
+
+                    Db.UserBranches.RemoveRange(
+                        Db.UserBranches.Where(x => x.BranchId == branchId));
+
+                    Db.UserGroupBranches.RemoveRange(
+                        Db.UserGroupBranches.Where(x => x.BranchId == branchId));
+
+                    Db.BranchAddresses.RemoveRange(
+                        Db.BranchAddresses.Where(x => x.BranchId == branchId));
+
+                    var moduleIds = Db.BrainModules
+                        .Where(x => x.BranchId == branchId)
+                        .Select(x => x.Id)
+                        .ToList();
+
+                    foreach (var id in moduleIds)
+                    {
+                        _lockerService.DeleteModule(id);
+                    }
+
+                    Db.LockerGroups.RemoveRange(
+                        Db.LockerGroups.Where(x => x.BranchId == branchId));
+
+                    var branch = Db.Branches.Find(branchId);
+                    if (branch != null)
+                        Db.Branches.Remove(branch);
+
+                    Db.SaveChanges();
+                    tx.Commit();
                 }
-
-                // 6️⃣ Locker groups (otherwise they become ghosts)
-                Db.LockerGroups.RemoveRange(
-                    Db.LockerGroups.Where(x => x.BranchId == branchId));
-
-                // 7️⃣ Branch
-                var branch = Db.Branches.Find(branchId);
-                if (branch != null)
-                    Db.Branches.Remove(branch);
-
-                Db.SaveChanges();
-                tx.Commit();
-            }
-            catch
-            {
-                tx.Rollback();
-                throw;
-            }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            });
         }
-
 
     }
 }

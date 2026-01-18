@@ -456,10 +456,11 @@ namespace FurchaAdminApi.Services
         public ApiResult<EditLockerResult> EditLocker(List<int> lockerIds, int typeId)
         {
             var result = new EditLockerResult();
+            var strategy = Db.Database.CreateExecutionStrategy();
 
             // Resolve ids for Common + Personal
             var allowedPair = Db.LockerTypes
-                .Where(t => t.Type == "common" || t.Type == "personal") // or Name, if you prefer
+                .Where(t => t.Type == "common" || t.Type == "personal")
                 .Select(t => new { t.Id, t.Type })
                 .ToList();
 
@@ -469,12 +470,9 @@ namespace FurchaAdminApi.Services
             if (commonId == null || personalId == null)
                 return ApiResult<EditLockerResult>.ErrorResult("Common/Personal locker types not configured.");
 
-            // Validate new type exists
-            var dbType = Db.LockerTypes.Any(t => t.Id == typeId);
-            if (!dbType)
+            if (!Db.LockerTypes.Any(t => t.Id == typeId))
                 return ApiResult<EditLockerResult>.ErrorResult("Locker type not found");
 
-            // Pull selected lockers with their group
             var selectedLockers = Db.Lockers
                 .Include(l => l.Brain)
                 .Where(l => lockerIds.Contains(l.Id))
@@ -486,57 +484,59 @@ namespace FurchaAdminApi.Services
 
             foreach (var grp in groups)
             {
-                using var tx = Db.Database.BeginTransaction();
-                try
+                strategy.Execute(() =>
                 {
-                    var groupId = grp.Key;
-                    var selectedIdsInGroup = grp.Value;
+                    using var tx = Db.Database.BeginTransaction();
+                    try
+                    {
+                        var groupId = grp.Key;
+                        var selectedIdsInGroup = grp.Value;
 
-                    // Load ALL lockers in this group (important!)
-                    var allGroupLockers = Db.Lockers
-                        .Include(l => l.Brain)
-                        .Where(l => l.Brain.GroupId == groupId)
-                        .ToList();
+                        var allGroupLockers = Db.Lockers
+                            .Include(l => l.Brain)
+                            .Where(l => l.Brain.GroupId == groupId)
+                            .ToList();
 
-                    // Simulate final types after update
-                    var finalTypes = allGroupLockers
-                        .Select(l => selectedIdsInGroup.Contains(l.Id) ? typeId : l.LockerType)
-                        .Distinct()
-                        .ToList();
+                        var finalTypes = allGroupLockers
+                            .Select(l => selectedIdsInGroup.Contains(l.Id) ? typeId : l.LockerType)
+                            .Distinct()
+                            .ToList();
 
-                    bool ok =
-                         finalTypes.Count == 1
+                        bool ok =
+                            finalTypes.Count == 1 ||
+                            (
+                                finalTypes.Count == 2 &&
+                                finalTypes.All(t =>
+                                    t == commonId.Value ||
+                                    t == personalId.Value
+                                )
+                            );
 
-                         || (
-                             finalTypes.Count == 2 &&
-                             finalTypes.All(t =>
-                                 t == commonId.Value ||
-                                 t == personalId.Value
-                             )
-                         );
+                        if (!ok)
+                            throw new BaseException(
+                                ErrorCodeEnum.GenericErrorRetry,
+                                "Only Common + Personal can be mixed in one group."
+                            );
 
-                    if (!ok)
-                        throw new BaseException(ErrorCodeEnum.GenericErrorRetry,
-                            "Only Common + Personal can be mixed in one group.");
+                        foreach (var l in allGroupLockers.Where(l => selectedIdsInGroup.Contains(l.Id)))
+                            l.LockerType = typeId;
 
-                    // Apply update for selected lockers in this group
-                    foreach (var l in allGroupLockers.Where(l => selectedIdsInGroup.Contains(l.Id)))
-                        l.LockerType = typeId;
+                        Db.SaveChanges();
+                        tx.Commit();
 
-                    Db.SaveChanges();
-                    tx.Commit();
-
-                    result.SuccessfulGroups.Add((int)groupId);
-                }
-                catch (Exception ex)
-                {
-                    tx.Rollback();
-                    result.FailedGroups.Add(((int)grp.Key, ex.Message));
-                }
+                        result.SuccessfulGroups.Add((int)groupId);
+                    }
+                    catch (Exception ex)
+                    {
+                        tx.Rollback();
+                        result.FailedGroups.Add(((int)grp.Key, ex.Message));
+                    }
+                });
             }
 
             return ApiResult<EditLockerResult>.Success(result);
         }
+
 
 
         public void SuspendLockers(List<int> lockerIds, int type)
