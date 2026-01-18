@@ -250,21 +250,24 @@ namespace FurchaAdminApi.Services
 
         public ModuleLockers GetLockersRange(int groupId)
         {
-            var lockersWithNumber = Db.Lockers.Include(x => x.Brain)
-        .Where(l => l.Brain.GroupId == groupId).ToList() //_lockerRepository.GetLockersOfGroup(oldGroupId)
-                 .OrderBy(x => x.Number).Select(x => x.Number).ToList();
+            var numbers = Db.Lockers
+         .Where(l => l.Brain.GroupId == groupId && l.Number != null)
+         .Select(l => l.Number.Value)
+         .ToList();
 
-            return new ModuleLockers
-            {
-                FirstLocker = (int)lockersWithNumber.FirstOrDefault(),
-                LastLocker = (int)lockersWithNumber.LastOrDefault()
-            };
+            return numbers.Any()
+                ? new ModuleLockers
+                {
+                    FirstLocker = (int)numbers.Min(),
+                    LastLocker = (int)numbers.Max()
+                }
+                : new ModuleLockers { FirstLocker = 0, LastLocker = 0 };
         }
 
         /// <summary>
         /// Retrieves editingLockers based on specified filtering criteria.
         /// </summary>
-        public List<Models.Result.ModuleResult> GetModules(int adminId)
+   /*     public List<Models.Result.ModuleResult> GetModules(int adminId)
         {
 #warning auth
             var adminBranches = Db.Branches
@@ -328,7 +331,7 @@ namespace FurchaAdminApi.Services
 
             return result;
         }
-
+*/
         internal bool CreateModule(ModuleRequest request)
         {
             /* using (var transaction = new TransactionScope())
@@ -616,15 +619,18 @@ namespace FurchaAdminApi.Services
                 {
                     BranchName = b.Name,
                     Modules = b.BrainModules
-                        .Where(x => x.Status == 2)
-                        .Select(x => new BranchModules
+                        .Where(m => m.Status == 2)
+                        .Select(m => new BranchModules
                         {
-                            Id = x.Id,
-                            LockerRange = x.Lockers.Count() == 0
-                                ? "0"
-                                : x.Lockers.Count() == 1
-                                    ? "1"
-                                    : "1-" + x.Lockers.Count().ToString()
+                            Id = m.Id,
+
+                            LockerRange = m.Lockers.Any()
+                                ? (
+                                    m.Lockers.Min(l => l.Number) == m.Lockers.Max(l => l.Number)
+                                        ? m.Lockers.Min(l => l.Number).ToString()
+                                        : m.Lockers.Min(l => l.Number) + "-" + m.Lockers.Max(l => l.Number)
+                                  )
+                                : "0"
                         })
                         .ToList()
                 })
@@ -657,16 +663,22 @@ namespace FurchaAdminApi.Services
                 LockerType = firstLockerType,
                 LockerGroupId = module.Group?.Id ?? 0,
                 BranchId = module.BranchId ?? 0,
-                LockerRange = new LockerRange
-                {
-                    Start = 1,
-                    End = module.Lockers?.Count() ?? 0
-                }
+                LockerRange = module.Lockers.Any()
+                    ? new LockerRange
+                    {
+                        Start = (int)module.Lockers.Min(l => l.Number ?? 0),
+                        End = (int)module.Lockers.Max(l => l.Number ?? 0)
+                    }
+                    : new LockerRange { Start = 0, End = 0 }
             };
-
         }
 
-        public bool UpdateModule(int lockerType, int lockerFrom, int lockerTo, int lockerGroupId, int id)
+        public bool UpdateModule(
+      int lockerType,
+      int lockerFrom,
+      int lockerTo,
+      int lockerGroupId,
+      int id)
         {
             var strategy = Db.Database.CreateExecutionStrategy();
 
@@ -675,40 +687,48 @@ namespace FurchaAdminApi.Services
                 using var transaction = Db.Database.BeginTransaction();
                 try
                 {
-                    var module = Db.BrainModules.Include(m => m.Lockers).FirstOrDefault(x => x.Id == id);
-                    if (module == null) throw new Exception("Module not found");
+                    var module = Db.BrainModules
+                        .Include(m => m.Lockers)
+                        .Include(m => m.Group)
+                        .FirstOrDefault(x => x.Id == id);
+
+                    if (module == null)
+                        throw new Exception("Module not found");
 
                     var oldGroupId = module.GroupId;
 
-                    // If moving to a new group, renumber old group
-                    if (oldGroupId != lockerGroupId)
+                    if (oldGroupId.HasValue && oldGroupId.Value != lockerGroupId)
                     {
                         var lockersOfOldGroup = Db.Lockers
                             .Include(l => l.Brain)
-                            .Where(b => b.Brain.GroupId == oldGroupId)
-                            .OrderBy(l => l.Brain.Id)
-                            .ThenBy(l => l.Id)
+                            .Where(l => l.Brain.GroupId == oldGroupId.Value)
+                            .OrderBy(l => l.Number)
                             .ToList();
 
                         for (int i = 0; i < lockersOfOldGroup.Count; i++)
                             lockersOfOldGroup[i].Number = i + 1;
                     }
 
-                    // Lockers in the new group
                     var lockersOfNewGroup = Db.Lockers
                         .Include(l => l.Brain)
                         .Where(l => l.Brain.GroupId == lockerGroupId)
                         .ToList();
 
-                    var lockersToUpdate = module.Lockers.OrderBy(l => l.Id).ToList();
+                    var lockersToUpdate = module.Lockers
+                        .OrderBy(l => l.Id)
+                        .ToList();
+
                     var lockerCount = lockersToUpdate.Count;
 
                     if (lockerTo - lockerFrom + 1 < lockerCount)
                         throw new Exception("Invalid locker range");
 
-                    // Check for number conflicts in the target group (excluding this module's lockers)
+                    var lockerIdsToUpdate = lockersToUpdate
+                        .Select(l => l.Id)
+                        .ToHashSet();
+
                     var existingNumbers = lockersOfNewGroup
-                        .Where(l => !lockersToUpdate.Select(x => x.Id).Contains(l.Id))
+                        .Where(l => !lockerIdsToUpdate.Contains(l.Id))
                         .Select(l => l.Number)
                         .ToHashSet();
 
@@ -718,7 +738,6 @@ namespace FurchaAdminApi.Services
                             throw new Exception($"Locker number {num} already exists in the group");
                     }
 
-                    // Assign new numbers and locker type
                     for (int i = 0; i < lockerCount; i++)
                     {
                         lockersToUpdate[i].Number = lockerFrom + i;
@@ -738,6 +757,7 @@ namespace FurchaAdminApi.Services
                 }
             });
         }
+
 
         public bool DeleteModule(int moduleId)
         {
@@ -761,21 +781,20 @@ namespace FurchaAdminApi.Services
 
         public bool EditModule(int moduleId, int branchId)
         {
-            var module = Db.BrainModules.Include(m => m.Lockers).First(x => x.Id == moduleId);
+            var module = Db.BrainModules
+                .Include(m => m.Lockers)
+                .First(x => x.Id == moduleId);
 
             module.BranchId = branchId;
-            module.GroupId = null;
+            // DO NOT touch GroupId here
 
             foreach (var locker in module.Lockers)
             {
                 locker.IsDeleted = false;
                 locker.LockerType = 1;
-                Db.Update(locker);
             }
 
-            Db.Update(module);
             Db.SaveChanges();
-
             return true;
         }
 
