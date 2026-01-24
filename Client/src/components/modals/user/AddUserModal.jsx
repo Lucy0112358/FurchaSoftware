@@ -136,61 +136,122 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
       });
   };
 
-  const sendLockerIds = () => {
+//   const sendLockerIds = () => {
 
-    setSelectedLockerAddId((prev) => ({
-      ...prev,
-      [Object.keys(selectedBranch)]: selectedLockerId,
-    }));
+//     setSelectedLockerAddId((prev) => ({
+//       ...prev,
+//       [Object.keys(selectedBranch)]: selectedLockerId,
+//     }));
 
-    const selectedLockers = { ...selectedLockerAddId, [Object.keys(selectedBranch)]: selectedLockerId };
+//     const selectedLockers = { ...selectedLockerAddId, [Object.keys(selectedBranch)]: selectedLockerId };
 
-    const generalInfo = Object.entries(selectedLockers)
-      .filter(([branchIdString, lockerIds]) => lockerIds.length > 0)
-      .map(([branchIdString, lockerIds]) => {
-        const branchId = Number(branchIdString);
-        const branch = branches.find(b => b.id === branchId);
+//     const generalInfo = Object.entries(selectedLockers)
+//       .filter(([branchIdString, lockerIds]) => lockerIds.length > 0)
+//       .map(([branchIdString, lockerIds]) => {
+//         const branchId = Number(branchIdString);
+//         const branch = branches.find(b => b.id === branchId);
+//         const branchName = branch ? branch.name : "Unknown";
+//         const lockerIdsString = lockerIds.join(",");
+//         return `${branchName}: ${lockerIdsString}`;
+//       })
+//       .join("; ");
+
+//     dispatch(
+//       setAddUserInfo({
+//         'Locker': {
+//           ...userInfo['Locker'],
+//           ['lockers']: Object.values(selectedLockers).flat(),
+//         },
+//       })
+//     );
+// console.log(selectedLockers, "selectedLockers");
+
+//     setSentGeneralInfo((prev) => ({
+//       ...prev,
+//       'lockerIds': Object.values(selectedLockers).flat(),
+//     }));
+
+//     setUserRight((prev) => ({
+//       ...prev,
+//       'Locker': {
+//         ...(prev['Locker'] || {}),
+//         'lockers': generalInfo,
+//       },
+//     }));
+
+//     // sendGroupInfo('Locker', 'lockers', generalInfo)
+
+//     // const branchIds = selectedBranches.map((branch) => branch.value);
+//     // setSentGeneralInfo((prev) => ({
+//     //   ...prev,
+//     //   branchIds: Object.values(selectedLockerAddId).flat(),
+//     // }));
+//     // console.log(selectedLockerId, "selectedLockerId");
+
+//     // setSelectedBranchesForShow({
+//     //   ...selectedBranchesForShow,
+//     //   [selectedBranch]: selectedLockerId.toString(),
+//     // });
+//     toast.success("Lockers added successfully");
+//   };
+
+const sendLockerIds = () => {
+    const branchIdKey = Object.keys(selectedBranch)[0];
+    if (!branchIdKey) return;
+
+    // Обновляем локальный стейт выбранных ID для конкретной ветки
+    const updatedLockerAddId = {
+      ...selectedLockerAddId,
+      [branchIdKey]: selectedLockerId,
+    };
+    setSelectedLockerAddId(updatedLockerAddId);
+
+    // 1. Формируем текст для отображения (номера вместо ID)
+    const displayInfo = Object.entries(updatedLockerAddId)
+      .filter(([_, ids]) => ids.length > 0)
+      .map(([bId, ids]) => {
+        const branch = branches.find((b) => b.id === Number(bId));
         const branchName = branch ? branch.name : "Unknown";
-        const lockerIdsString = lockerIds.join(",");
-        return `${branchName}: ${lockerIdsString}`;
+
+        // Ищем номера шкафчиков по их ID в загруженных группах
+        const lockerNumbers = ids.map((id) => {
+          let foundNumber = id; // fallback
+          filteredBranchGroups.forEach((group) => {
+            const locker = group.groupLockers.find((l) => l.id === id);
+            if (locker) foundNumber = locker.number || locker.name || id;
+          });
+          return foundNumber;
+        });
+
+        return `${branchName}: ${lockerNumbers.join(",")}`;
       })
       .join("; ");
 
+    // 2. Данные для Redux (UI часть)
     dispatch(
       setAddUserInfo({
-        'Locker': {
-          ...userInfo['Locker'],
-          ['lockers']: Object.values(selectedLockers).flat(),
+        Locker: {
+          ...userInfo["Locker"],
+          lockers: Object.values(updatedLockerAddId).flat(),
         },
       })
     );
 
+    // 3. Данные для отправки на БЭКЕНД (только ID)
     setSentGeneralInfo((prev) => ({
       ...prev,
-      'lockerIds': Object.values(selectedLockers).flat(),
+      lockerIds: Object.values(updatedLockerAddId).flat(),
     }));
 
+    // 4. Текст для визуального поля User Rights (номера)
     setUserRight((prev) => ({
       ...prev,
-      'Locker': {
-        ...(prev['Locker'] || {}),
-        'lockers': generalInfo,
+      Locker: {
+        ...(prev["Locker"] || {}),
+        lockers: displayInfo,
       },
     }));
 
-    // sendGroupInfo('Locker', 'lockers', generalInfo)
-
-    // const branchIds = selectedBranches.map((branch) => branch.value);
-    // setSentGeneralInfo((prev) => ({
-    //   ...prev,
-    //   branchIds: Object.values(selectedLockerAddId).flat(),
-    // }));
-    // console.log(selectedLockerId, "selectedLockerId");
-
-    // setSelectedBranchesForShow({
-    //   ...selectedBranchesForShow,
-    //   [selectedBranch]: selectedLockerId.toString(),
-    // });
     toast.success("Lockers added successfully");
   };
 
@@ -625,7 +686,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
                               key={itemIndex}
                               className={`mr-2 mb-2 ${selectedLockerId.includes(item.id)
                                 ? 'selected__branch__id'
-                                : 'locker__border'
+                                 : 'locker__border'
                                 }`}
                               onMouseOver={(event) => {
                                 if (event.buttons === 1 && event.ctrlKey) {

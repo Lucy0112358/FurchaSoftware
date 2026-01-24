@@ -1,177 +1,152 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { toast } from "react-toastify";
+
+// Styles
 import './addAdmin.css';
 import '../modal.css';
-import CustomCheckbox from "../../checkbox/CustomCheckbox";
-import { useDispatch, useSelector } from 'react-redux';
-import { getAllUsersData, setAddUserInfo } from "../../../redux/slice/userSlice";
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import { getBranchesData, setLockerGroupWithFilters } from "../../../redux/slice/menuSlice";
-import {  getUsers } from "../../../redux/api/userApi";
-import { getFilteredLockerGroups } from "../../../redux/slice/menuSlice";
+
+// Components
+import CustomCheckbox from "../../checkbox/CustomCheckbox";
+import CustomSelect from "../../select/CustomSelect";
 import NoData from "../../no-data/NoData";
-import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
+import ShowFormikError from "../../error/ShowFormikError";
+
+// Redux & API
+import { getAllUsersData, setAddUserInfo } from "../../../redux/slice/userSlice";
+import { getBranchesData, getLockerGroups, setLockerGroupWithFilters, getFilteredLockerGroups } from "../../../redux/slice/menuSlice";
+import { getUsers } from "../../../redux/api/userApi";
+import { getLockerGroupsData } from "../../../redux/api/menuApi";
 import { getPermissions, getRoles } from "../../../redux/api/authApi";
 import { getPermissionsData, getRolesData } from "../../../redux/slice/authSlice";
-import CustomSelect from "../../select/CustomSelect";
 import { getAllAdmins, setAdminInfo, updateAdminInfo } from "../../../redux/api/adminApi";
-import ShowFormikError from "../../error/ShowFormikError";
+
+// Utils
 import { fromCamelCasePretty } from "../../../Utils";
-import { getLockerGroupsData } from "../../../redux/api/menuApi";
 
 const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
   const dispatch = useDispatch();
-  const [formErrors, setFormErrors] = useState({});
-  const [userOptions, setUserOptions] = useState([]);
-  const [roleOptions, setRoleOptions] = useState([]);
+
+  // --- Selectors ---
   const branches = useSelector(getBranchesData);
+  const usersData = useSelector(getAllUsersData);
+  const roles = useSelector(getRolesData);
+  const permissions = useSelector(getPermissionsData);
+  const filteredLockerGroups = useSelector(getFilteredLockerGroups);
+  const allLockerGroups = useSelector(getLockerGroups);
+
+  // --- State ---
+  const [formErrors, setFormErrors] = useState({});
   const [selectedLockerGroupId, setSelectedLockerGroupId] = useState([]);
   const [selectedLockerGroupAddId, setSelectedLockerGroupAddId] = useState({});
   const [userRight, setUserRight] = useState({});
   const [sentGeneralInfo, setSentGeneralInfo] = useState({});
   const [selectedBranch, setSelectedBranch] = useState({});
-  const usersData = useSelector(getAllUsersData);
-
   const [selectedUser, setSelectedUser] = useState(null);
-  const roles = useSelector(getRolesData);
   const [selectRole, setSelectedRole] = useState(null);
-  const permissions = useSelector(getPermissionsData);
   const [selectedPermissions, setSelectedPermissions] = useState({});
-  const [userInfo, setUserInfo] = useState({});
-  const filteredLockerGroups = useSelector(getFilteredLockerGroups);
 
-  //END change for SelectBranch
+  // --- Memos ---
+  const userOptions = useMemo(() => 
+    usersData?.map((user) => ({ value: user.id, label: user.name })) || [], 
+  [usersData]);
 
+  const roleOptions = useMemo(() => 
+    roles?.map((role) => ({ value: role.id, label: role.name })) || [], 
+  [roles]);
+
+  // --- Helpers ---
+  const getGroupNames = useCallback((groupIds) => {
+    return groupIds.map((id) => {
+      const foundGroup = allLockerGroups?.find((g) => g.id === id);
+      return foundGroup ? foundGroup.name : id;
+    });
+  }, [allLockerGroups]);
+
+  const formatUserRightText = () => {
+    return Object.entries(userRight)
+      .map(([part, values]) => {
+        const valuesEntries = Object.entries(values).map(([key, value]) => `   ${key}: ${value}`);
+        return `${part}:\n${valuesEntries.join('\n')}`;
+      })
+      .join('\n');
+  };
+
+  // --- Effects ---
   useEffect(() => {
     dispatch(getUsers({ isAdmin: false }));
     dispatch(getRoles());
     dispatch(getLockerGroupsData());
   }, [dispatch]);
 
+  // Initial Data Setup
   useEffect(() => {
-    const options = usersData?.map((user) => ({
-      value: user.id,
-      label: user.name,
-    }));
-    setUserOptions(options);
-  }, [usersData]);
+    if (initialData && Object.keys(initialData).length > 0) {
+      const { roleId, id, branches: initialBranches, permissionIds } = initialData;
 
-  useEffect(() => {
-    const options = roles?.map((role) => ({
-      value: role.id,
-      label: role.name,
-    }));
-    setRoleOptions(options);
-  }, [roles]);
-
-  useEffect(() => {
-    if (initialData) {
-      let roleId = initialData.roleId;
       if (roleId) {
         setSelectedRole(roleId);
         dispatch(getPermissions(roleId));
       }
-      let existingGroupIds = initialData.branches?.flatMap(branch => branch.groupIds);
-      setSelectedLockerGroupId(existingGroupIds);
-      const lockerGroupMap = Object.fromEntries(
-        initialData.branches?.map(branch => [branch.branchId, branch.groupIds]) || []
-      );
 
+      const existingGroupIds = initialBranches?.flatMap(branch => branch.groupIds) || [];
+      setSelectedLockerGroupId(existingGroupIds);
+
+      const lockerGroupMap = Object.fromEntries(
+        initialBranches?.map(branch => [branch.branchId, branch.groupIds]) || []
+      );
       setSelectedLockerGroupAddId(lockerGroupMap);
 
-      setSelectedPermissions(prev =>
-        Object.fromEntries(
-          Object.keys(prev).map(key => [
-            key,
-            initialData.permissionIds?.includes(Number(key))
-          ])
-        )
-      );
-
       setSentGeneralInfo({
-        roleId: initialData.roleId,
-        id: initialData.id,
-        groupIds: existingGroupIds || [],
+        roleId,
+        id,
+        groupIds: existingGroupIds,
       });
 
-      const selectedLockerGroups = { ...lockerGroupMap, [Object.keys(selectedBranch)]: existingGroupIds };
-
-      const generalInfo = Array.isArray(initialData?.branches)
-        ? initialData.branches
+      const generalInfoText = Array.isArray(initialBranches)
+        ? initialBranches
           .filter((branch) => branch.groupIds?.length > 0)
-          .map((branch) => {
-            const branchName = branch?.branchName || "Unknown";
-            const groupIdsString = branch.groupIds.join(",");
-            return `${branchName}: ${groupIdsString}`;
-          })
+          .map((branch) => `${branch?.branchName || "Unknown"}: ${getGroupNames(branch.groupIds).join(", ")}`)
           .join("; ")
         : "";
 
-      setUserRight((prev) => ({
+      setUserRight(prev => ({
         ...prev,
-        'Groups': {
-          ...(prev['Groups'] || {}),
-          'groups': generalInfo,
-        },
+        'Groups': { ...prev['Groups'], 'groups': generalInfoText },
       }));
 
+      if (permissionIds) {
+        setSelectedPermissions(prev => 
+          Object.fromEntries(Object.keys(prev).map(key => [key, permissionIds.includes(Number(key))]))
+        );
+      }
     }
-  }, [initialData.roleId]);
+  }, [initialData, dispatch, getGroupNames]);
 
+  // Permissions Sync
   useEffect(() => {
     const allPermissions = permissions.flatMap(type => type.permissions);
     const initialPermissions = allPermissions.reduce((acc, permission) => {
       acc[permission.id] = true;
       return acc;
     }, {});
-
-    // if (Object.keys(initialPermissions).length) {
-    //   sendGroupInfo(
-    //     'Permission',
-    //     'permissions',
-    //     Object.keys(initialPermissions).join(', ')
-    //   );
-    // }
-
     setSelectedPermissions(initialPermissions);
   }, [permissions]);
 
-  const formatUserRightText = () => {
-    const userRightsEntries = Object.entries(userRight);
-    return userRightsEntries
-      .map(([part, values]) => {
-        const valuesEntries = Object.entries(values).map(
-          ([key, value]) => `   ${key}: ${value}`
-        );
-        return `${part}:\n${valuesEntries.join('\n')}`;
-      })
-      .join('\n');
-  };
-
-  // const validateForm = () => {
-  //   const errors = {};
-  //   if (!selectedUser) {
-  //     errors.user = 'User is required';
-  //   }
-  //   if (!selectRole) {
-  //     errors.role = 'Role is required';
-  //   }
-  //   return errors;
-  // };
-
+  // --- Handlers ---
   const validateForm = () => {
     const errors = {};
-
-    if (mode !== "edit" && !selectedUser) {
-      errors.user = 'User is required';
-    }
-
-    if (!selectRole) {
-      errors.role = 'Role is required';
-    }
-
+    if (mode !== "edit" && !selectedUser) errors.user = 'User is required';
+    if (!selectRole) errors.role = 'Role is required';
     return errors;
+  };
+
+  const sendGroupInfo = (part, key, value) => {
+    dispatch(setAddUserInfo({ [part]: { [key]: value } }));
+    setSentGeneralInfo(prev => ({ ...prev, [key]: value }));
   };
 
   const addAdminUser = () => {
@@ -179,21 +154,20 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
     setFormErrors(errors);
 
     if (Object.keys(errors).length > 0) {
-      console.log("Form validation errors:", errors);
       toast.error('Please fill out the form correctly');
       return;
     }
 
     const selectedPermissionIds = Object.entries(selectedPermissions)
-      .filter(([id, isSelected]) => isSelected)
+      .filter(([_, isSelected]) => isSelected)
       .map(([id]) => Number(id));
 
-    const data = { ...sentGeneralInfo, permissions: selectedPermissionIds }
+    const data = { ...sentGeneralInfo, permissions: selectedPermissionIds };
     const apiAction = mode === "edit" ? updateAdminInfo : setAdminInfo;
 
     dispatch(apiAction(data))
       .then((response) => {
-        if (response && response.payload?.isSuccess) {
+        if (response?.payload?.isSuccess) {
           dispatch(getAllAdmins());
           onClose();
         } else {
@@ -202,120 +176,55 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
       })
       .catch((error) => console.error('Error updating user info:', error));
   };
+
   const handleSelectBranch = (branch) => {
     setSelectedBranch({ [branch.id]: branch.name });
-    const existAddedBranchLockerGroups = selectedLockerGroupAddId[branch.id];
-    if (existAddedBranchLockerGroups) {
-      setSelectedLockerGroupId(existAddedBranchLockerGroups);
-    } else {
-      setSelectedLockerGroupId([]);
-    }
+    setSelectedLockerGroupId(selectedLockerGroupAddId[branch.id] || []);
     dispatch(setLockerGroupWithFilters(branch.id));
   };
 
   const handleBranchSelectAdd = (itemId) => {
-    setSelectedLockerGroupId((prevSelected) => {
-      if (!prevSelected.includes(itemId)) {
-        return [...prevSelected, itemId];
-      }
-      return prevSelected;
-    });
+    setSelectedLockerGroupId(prev => prev.includes(itemId) ? prev : [...prev, itemId]);
   };
 
   const handleBranchSelectRemove = (itemId) => {
-    setSelectedLockerGroupId((prevSelected) => {
-      if (prevSelected.includes(itemId)) {
-        return prevSelected.filter((id) => id !== itemId);
-      }
-      return prevSelected;
-    });
+    setSelectedLockerGroupId(prev => prev.filter(id => id !== itemId));
   };
 
   const handleClickBranchSelect = (itemId) => {
-    setSelectedLockerGroupId((prevSelected) => {
-      if (prevSelected.includes(itemId)) {
-        return prevSelected.filter((id) => id !== itemId);
-      } else {
-        return [...prevSelected, itemId];
-      }
-    });
+    setSelectedLockerGroupId(prev => 
+      prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
+    );
   };
 
   const sendGroupIds = () => {
-    setSelectedLockerGroupAddId((prev) => ({
-      ...prev,
-      [Object.keys(selectedBranch)]: selectedLockerGroupId,
-    }));
+    const branchIdKey = Object.keys(selectedBranch)[0];
+    if (!branchIdKey) return;
 
-    const selectedLockerGroups = { ...selectedLockerGroupAddId, [Object.keys(selectedBranch)]: selectedLockerGroupId };
+    const updatedLockerGroupAddId = {
+      ...selectedLockerGroupAddId,
+      [branchIdKey]: selectedLockerGroupId,
+    };
+    setSelectedLockerGroupAddId(updatedLockerGroupAddId);
 
-    const generalInfo = Object.entries(selectedLockerGroups)
-      .filter(([branchIdString, groupIds]) => groupIds.length > 0)
-      .map(([branchIdString, groupIds]) => {
-        const branchId = Number(branchIdString);
-        const branch = branches.find(b => b.id === branchId);
-        const branchName = branch ? branch.name : "Unknown";
-        const groupIdsString = groupIds.join(",");
-        return `${branchName}: ${groupIdsString}`;
+    const displayInfo = Object.entries(updatedLockerGroupAddId)
+      .filter(([_, groupIds]) => groupIds.length > 0)
+      .map(([bId, groupIds]) => {
+        const branch = branches.find((b) => b.id === Number(bId));
+        return `${branch ? branch.name : "Unknown"}: ${getGroupNames(groupIds).join(", ")}`;
       })
       .join("; ");
 
-    dispatch(
-      setAddUserInfo({
-        'Groups': {
-          ...userInfo['Groups'],
-          ['groups']: Object.values(selectedLockerGroups).flat(),
-        },
-      })
-    );
+    const flatGroupIds = Object.values(updatedLockerGroupAddId).flat();
 
-    setSentGeneralInfo((prev) => ({
+    dispatch(setAddUserInfo({ Groups: { groups: flatGroupIds } }));
+    setSentGeneralInfo(prev => ({ ...prev, groupIds: flatGroupIds }));
+    setUserRight(prev => ({
       ...prev,
-      'groupIds': Object.values(selectedLockerGroups).flat(),
-    }));
-
-    setUserRight((prev) => ({
-      ...prev,
-      'Groups': {
-        ...(prev['Groups'] || {}),
-        'groups': generalInfo,
-      },
+      Groups: { ...prev["Groups"], groups: displayInfo },
     }));
 
     toast.success("Groups added successfully");
-  };
-
-  const renderError = (fieldName) => {
-    if (formErrors[fieldName]) {
-      return (
-        <ShowFormikError message={formErrors[fieldName]} />
-      );
-    }
-    return null;
-  };
-
-  const sendGroupInfo = (part, key, value) => {
-    dispatch(
-      setAddUserInfo({
-        [part]: {
-          ...userInfo[part],
-          [key]: value,
-        },
-      })
-    );
-
-    setSentGeneralInfo((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-
-    // setUserRight((prev) => ({
-    //   ...prev,
-    //   [part]: {
-    //     ...(prev[part] || {}),
-    //     [key]: value,
-    //   },
-    // }));
   };
 
   const handleRoleSelectChange = (selectedOption) => {
@@ -323,26 +232,10 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
     setSelectedRole(selectedRoleId);
     dispatch(getPermissions(selectedRoleId));
     sendGroupInfo('Role', 'roleId', selectedRoleId);
-  }
+  };
 
   const handleCheckboxChange = (id) => {
-    setSelectedPermissions((prev) => {
-      const updated = {
-        ...prev,
-        [id]: !prev[id],
-      };
-
-      // const trueIds = Object.entries(updated)
-      //   .filter(([_, value]) => value)
-      //   .map(([key]) => key)
-      //   .join(', ');
-
-      // if (trueIds.length) {
-      //   sendGroupInfo('Permission', 'permissions', trueIds);
-      // }
-
-      return updated;
-    });
+    setSelectedPermissions(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleUserSelectChange = (selectedOption) => {
@@ -351,14 +244,14 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
     sendGroupInfo('User', 'userId', selectedUserId);
   };
 
+  const renderError = (fieldName) => formErrors[fieldName] ? <ShowFormikError message={formErrors[fieldName]} /> : null;
+
   return (
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
       <div className="add__modal__content add__modal__content__addAdminUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto h-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">Assign Administrator To The User</h2>
-          <CloseButton onClick={onClose}>
-            &times;
-          </CloseButton>
+          <CloseButton onClick={onClose}>&times;</CloseButton>
         </div>
 
         <Tabs>
@@ -366,31 +259,30 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
             <Tab>Info</Tab>
             <Tab>Locker groups</Tab>
           </TabList>
+
           <TabPanel>
             <div>
               <div className="flex">
-                {/* User Info */}
                 <div className="add__modal__content__part w-[70%] mr-1">
                   <span>User</span>
                   <div className="add__modal__content__part__group mb-4 flex justify-between">
-                    {
-                      mode === 'edit' ? (
-                        <input
-                          type="text"
-                          value={initialData.name + ' ' + initialData.surname}
-                          disabled
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                        />) : (
-                        <div className="w-full mr-2">
-                          <CustomSelect
-                            options={userOptions}
-                            value={userOptions.find((option) => option.value === selectedUser)}
-                            onChange={(e) => handleUserSelectChange(e)}
-                          />
-                          {renderError('user')}
-                        </div>)
-                    }
-
+                    {mode === 'edit' ? (
+                      <input
+                        type="text"
+                        value={`${initialData.name || ''} ${initialData.surname || ''}`}
+                        disabled
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                      />
+                    ) : (
+                      <div className="w-full mr-2">
+                        <CustomSelect
+                          options={userOptions}
+                          value={userOptions.find((opt) => opt.value === selectedUser)}
+                          onChange={handleUserSelectChange}
+                        />
+                        {renderError('user')}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -400,7 +292,7 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
                     <div className="add__modal__group__select mr-0 w-full">
                       <CustomSelect
                         options={roleOptions}
-                        value={roleOptions.find((option) => option.value === selectRole)}
+                        value={roleOptions.find((opt) => opt.value === selectRole)}
                         onChange={handleRoleSelectChange}
                       />
                       {renderError('role')}
@@ -408,57 +300,49 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
                   </div>
                 </div>
               </div>
-              {
-                selectRole && permissions?.length > 0 && (<div >
-                  <div className="add__modal__content__part  mr-1">
-                    <span>Right</span>
-                    <div className="add__modal__content__part__group mb-4 flex justify-between">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
-                        {permissions.map((type) => (
-                          <div key={type.typeId} className="mb-4">
-                            <h3 className="text-lg font-semibold text-white mb-2">{fromCamelCasePretty(type.typeName)}</h3>
-                            {type.permissions.map((permission) => (
-                              <div key={permission.id} className="permission-item flex items-center ml-4">
-                                <CustomCheckbox
-                                  id={permission.id}
-                                  checked={selectedPermissions[permission.id]}
-                                  onChange={() => handleCheckboxChange(permission.id)}
-                                />
-                                <span className="ml-2 text-white">{fromCamelCasePretty(permission.name)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
+
+              {selectRole && permissions?.length > 0 && (
+                <div className="add__modal__content__part mr-1">
+                  <span>Right</span>
+                  <div className="add__modal__content__part__group mb-4 flex justify-between">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
+                      {permissions.map((type) => (
+                        <div key={type.typeId} className="mb-4">
+                          <h3 className="text-lg font-semibold text-white mb-2">{fromCamelCasePretty(type.typeName)}</h3>
+                          {type.permissions.map((permission) => (
+                            <div key={permission.id} className="permission-item flex items-center ml-4">
+                              <CustomCheckbox
+                                id={permission.id}
+                                checked={!!selectedPermissions[permission.id]}
+                                onChange={() => handleCheckboxChange(permission.id)}
+                              />
+                              <span className="ml-2 text-white">{fromCamelCasePretty(permission.name)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>)
-              }
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-4">
               <div className="modal__button">
-                <button className="bg-gray-600 text-white rounded" onClick={onClose}>
-                  Cancel
-                </button>
+                <button className="bg-gray-600 text-white rounded" onClick={onClose}>Cancel</button>
               </div>
               <div className="modal__button">
-                <button className="bg-gray-600 text-white rounded" onClick={addAdminUser}>
-                  Save
-                </button>
+                <button className="bg-gray-600 text-white rounded" onClick={addAdminUser}>Save</button>
               </div>
             </div>
           </TabPanel>
 
           <TabPanel>
             <div className="flex justify-between flex-col" onContextMenu={(e) => e.preventDefault()}>
-              {/* User Rights */}
               <div className="add__modal__content__part">
                 <span>User rights</span>
                 <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-                  <label className="block text-gray-300">
-                    User rights details
-                  </label>
+                  <label className="block text-gray-300">User rights details</label>
                   <textarea
                     className="w-full p-1 border rounded h-24"
                     readOnly
@@ -466,83 +350,55 @@ const AddAdminModal = ({ onClose, mode = "add", initialData = {} }) => {
                   />
                 </div>
               </div>
+
               <div className="add__modal__content__part__select w-full">
                 <span>Branches</span>
                 <div className="add__modal__content__part__group mb-4c overflow-x-auto">
                   <div className="flex mr-2">
-                    {
-                      branches?.length > 0 && (
-                        branches.map((branch, index) => {
-                          return (
-                            branch.name !== 'All' &&
-                            <div
-                              key={index}
-                              onClick={() => handleSelectBranch(branch)}
-                              className={`
-                                flex 
-                                mr-2 
-                                bg-[#475456] 
-                                p-3 
-                                rounded-xl 
-                                text-white 
-                                cursor-pointer 
-                                ${selectedBranch.hasOwnProperty(branch.id)
-                                  ? "border-2 border-cyan-500"
-                                  : ""
-                                }
-                              `}>
-                              {branch.name}
-                            </div>
-                          )
-                        }
-                        ))
-                    }
+                    {branches?.filter(b => b.name !== 'All').map((branch) => (
+                      <div
+                        key={branch.id}
+                        onClick={() => handleSelectBranch(branch)}
+                        className={`flex mr-2 bg-[#475456] p-3 rounded-xl text-white cursor-pointer ${
+                          selectedBranch.hasOwnProperty(branch.id) ? "border-2 border-cyan-500" : ""
+                        }`}
+                      >
+                        {branch.name}
+                      </div>
+                    ))}
                     {renderError('branch')}
                   </div>
                 </div>
               </div>
+
               <div>
-                {selectedBranch && filteredLockerGroups?.length ? (
+                {Object.keys(selectedBranch).length > 0 && filteredLockerGroups?.length ? (
                   <div className="pl-5 select-none flex flex-wrap">
-                    {filteredLockerGroups.map((lockerGroup, groupIndex) => (
-                      <React.Fragment key={groupIndex}>
-                        <div
-                          className={`m-1 border-4 rounded-[14px] rounded-lg transition-colors duration-200 ${selectedLockerGroupId?.includes(lockerGroup.id)
-                            ? 'border-[#62cb62]'
-                            : 'border-transparent'
-                            }`}
-                          onMouseOver={(event) => {
-                            if (event.buttons === 1 && event.ctrlKey) {
-                              handleBranchSelectRemove(lockerGroup.id);
-                            } else if (event.buttons === 1) {
-                              handleBranchSelectAdd(lockerGroup.id);
-                            }
-                          }}
-                          onClick={() => handleClickBranchSelect(lockerGroup.id)}
-                        >
-                          <div className={`
-                                flex 
-                                bg-[#475456] 
-                                p-3 
-                                rounded-xl 
-                                text-white 
-                                cursor-pointer 
-                            }`}>
-                            {lockerGroup.name}
-                          </div>
+                    {filteredLockerGroups.map((group) => (
+                      <div
+                        key={group.id}
+                        className={`m-1 border-4 rounded-[14px] transition-colors duration-200 ${
+                          selectedLockerGroupId?.includes(group.id) ? 'border-[#62cb62]' : 'border-transparent'
+                        }`}
+                        onMouseOver={(e) => {
+                          if (e.buttons === 1 && e.ctrlKey) handleBranchSelectRemove(group.id);
+                          else if (e.buttons === 1) handleBranchSelectAdd(group.id);
+                        }}
+                        onClick={() => handleClickBranchSelect(group.id)}
+                      >
+                        <div className="flex bg-[#475456] p-3 rounded-xl text-white cursor-pointer">
+                          {group.name}
                         </div>
-                      </React.Fragment>
+                      </div>
                     ))}
                   </div>
                 ) : (
                   <NoData text="No Selected Groups" />
                 )}
               </div>
+
               <div className="section__add">
-                <button
-                  onClick={sendGroupIds}
-                  className="text-white font-bold rounded p-2"
-                >
+                <button onClick={sendGroupIds} className="text-white font-bold rounded p-2">
                   Add groups
                 </button>
               </div>

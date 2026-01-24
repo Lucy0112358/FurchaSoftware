@@ -1,6 +1,6 @@
 import React from 'react'
 
-function LockerPhoto({ lockerRange }) {
+function LockerPhoto() {
   return (
     <div className="" style={{ width: '110px' }}>
       <div className='grid grid-cols-5 gap-1'>
@@ -10,9 +10,6 @@ function LockerPhoto({ lockerRange }) {
             className="w-4 h-4 bg-cyan-500 rounded-sm"
           ></div>
         ))}
-      </div>
-      <div className='text-left text-gray-300'>
-        {lockerRange}
       </div>
     </div>
   )

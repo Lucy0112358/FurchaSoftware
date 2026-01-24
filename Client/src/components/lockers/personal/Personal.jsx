@@ -2,15 +2,15 @@ import React from 'react'
 import './personal.scss';
 import { getNameStartLetter } from '../../../Utils';
 
-function Personal({ name, lockernumber, nameShort, item }) {
+function Personal({ name, lockernumber, nameShort, item, color }) {
   const fullName = item.users ? item.users[0] : '';
   const shortName = getNameStartLetter(fullName);
 
   return (
     <div
       className="personal__locker "
-      title={`Name: ${fullName || ''}`
-    }
+      title={`Name: ${fullName || ''}`}
+      style={{ borderColor: color }}
     >
       <div className="design-box">
         <div className="label">
