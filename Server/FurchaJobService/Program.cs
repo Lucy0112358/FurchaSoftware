@@ -1,0 +1,51 @@
+﻿using FurchaDAL.Models;
+using FurchaJobService.Workers;
+using Microsoft.EntityFrameworkCore;
+using MQTTnet;
+using MQTTnet.Client;
+using FurchaBLL.Models;
+
+namespace FurchaJobService
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var exeDir = System.IO.Path.GetDirectoryName(exePath);
+            System.IO.Directory.SetCurrentDirectory(exeDir);
+            var builder = Host.CreateApplicationBuilder(args);        
+
+            builder.Services.AddDbContextFactory<furchaContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
+            builder.Services.AddSingleton<IMqttClient>(new MqttFactory().CreateMqttClient());
+            builder.Services.AddSingleton<MqttClientOptions>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>().GetSection("MqttSettings");
+                var logger = sp.GetRequiredService<ILogger<Program>>();
+                logger.LogInformation("MQTT Configuration: Server={Server}, Port={Port}, ClientId={ClientId}",
+                    config["Server"], config["Port"], config["ClientId"]);
+                return new MqttClientOptionsBuilder()
+                    .WithClientId(config["ClientId"])
+                    .WithTcpServer(config["Server"], int.Parse(config["Port"]))
+                    .WithCredentials(config["Username"], config["Password"])
+                    .WithCleanSession()
+                    .WithKeepAlivePeriod(TimeSpan.FromSeconds(60))
+                    .WithWillTopic("server/status/will")
+                    .WithWillPayload("{\"Status\":\"Offline\"}")
+                    .WithWillRetain(true)
+                    .WithWillQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+                    .Build();
+            });
+
+            builder.Services.AddSingleton<MqttService>();
+            builder.Services.AddHostedService<MqttMainWorker>();
+            builder.Services.AddWindowsService(options =>
+            {
+                options.ServiceName = "FurchaJobService";
+            });
+            var host = builder.Build();
+            host.Run();
+        }
+    }
+}

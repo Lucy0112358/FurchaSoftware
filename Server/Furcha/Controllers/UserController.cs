@@ -1,5 +1,6 @@
 ﻿using Domain.Configuration;
 using Domain.Enums;
+using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Services;
@@ -10,7 +11,7 @@ namespace FurchaAdminApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : BaseController
     {
         private readonly UserService userService;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -20,62 +21,72 @@ namespace FurchaAdminApi.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
+        [Authorize]
         [HttpGet("company-users")]
-        [AllowAnonymous]
-        public ActionResult<ApiResult<List<UserResult>>> GetAdminUsers([FromQuery] int adminId)
+        public ActionResult<ApiResult<List<UserResult>>> GetAdminUsers()
         {
+            var adminId = GetClaimValue("AdminId");
             var httpContext = _httpContextAccessor.HttpContext;
-
             var userClaims = httpContext?.User.Claims;
             var nameClaim = userClaims?.FirstOrDefault(c => c.Type == "name")?.Value;
-            var users = userService.GetUsersForAdminBasedOnRole(adminId);
+            var users = userService.GetUsersForAdminBasedOnRole(int.Parse(adminId));
 
             if (users == null || !users.Any())
             {
-                return NotFound(ApiResult<List<BranchFilterResult>>.ErrorResult("No branches found for the provided admin ID."));
+                return Ok(ApiResult<List<BranchFilterResult>>.ErrorResult("No branches found for the provided admin ID."));
             }
 
             return Ok(ApiResult<List<UserResult>>.Success(users));
         }
 
-
-        [HttpGet("filtered-users")]
+        [Authorize]
+        [HttpGet("users")]
         public ActionResult<ApiResult<List<UserResult>>> GetFilteredUsersWithPagination(
-              [FromQuery] int adminId,
-              [FromQuery] int? GroupId,
-              [FromQuery] int? BranchId,
+              [FromQuery] int? groupId = null,
+              [FromQuery] int? branchId = null,
+              [FromQuery] bool? isAdmin = null,
+              [FromQuery] string? name = null,
               [FromQuery] int pageNumber = 1,
-              [FromQuery] int page = 10)
+              [FromQuery] int page = 100)
         {
-            var users = userService.GetFilteredUsersByPagination(adminId, GroupId, BranchId, pageNumber, page);
+            var adminId = GetClaimValue("AdminId");
+            var users = userService.GetFilteredUsersByPagination(int.Parse(adminId), groupId, branchId, isAdmin, name, pageNumber, page);
 
             if (users == null || !users.Any())
             {
-                return NotFound(ApiResult<List<UserResult>>.ErrorResult("No filtered users found for the given criteria."));
+                return Ok(ApiResult<List<UserResult>>.ErrorResult("No filtered users found for the given criteria."));
             }
 
             return Ok(ApiResult<List<UserResult>>.Success(users));
         }
 
-
+        [Authorize]
         [HttpGet("user-groups")]
-        public ActionResult<ApiResult<List<UserGroupResult>>> GetUserGroupsByAdminId(int adminId)
+        public ActionResult<ApiResult<List<UserGroupResult>>> GetUserGroupsByAdminId([FromQuery] int? branchId = null)
         {
-            var userGroups = userService.GetUserGroupsForAdminBasedOnRole(adminId);
+            var adminId = GetClaimValue("AdminId");
 
-            if (userGroups == null)
+            var userGroups = userService.GetUserGroupsForAdminBasedOnRole(
+                int.Parse(adminId),
+                branchId
+            );
+
+            if (userGroups == null || !userGroups.Any())
             {
-                return NotFound(ApiResult<List<UserGroupResult>>.ErrorResult("No user groups found for the current admin permissions"));
+                return Ok(ApiResult<List<UserGroupResult>>.ErrorResult(
+                    "No user groups found for the current admin permissions"));
             }
 
             return Ok(ApiResult<List<UserGroupResult>>.Success(userGroups));
         }
 
-
+        [Authorize]
         [HttpGet("search-user")]
-        public ActionResult<ApiResult<List<UserResult>>> SearchUsersOfAdmin([FromQuery] string name, [FromQuery] int adminId)
+        public ActionResult<ApiResult<List<UserResult>>> SearchUsersOfAdmin([FromQuery] string? name)
         {
-            var users = userService.SearchUsersOfAdmin(name, adminId);
+            var adminId = GetClaimValue("AdminId");
+
+            var users = userService.SearchUsersOfAdmin(name, int.Parse(adminId));
 
             if (users == null || users.Count == 0)
             {
@@ -85,48 +96,269 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<List<UserResult>>.Success(users));
         }
 
+        /*  [Authorize]
+          [RequiresPermission("CreateUser")]*/
         [HttpPost("add-user")]
-        public ActionResult<ApiResult<UserResult>> AddUser([FromBody] UserCreateRequest userCreateRequest)
+        public async Task<ActionResult<ApiResult<UserResult>>> AddUser([FromBody] UserCreateRequest userCreateRequest)
         {
-            if (userCreateRequest == null)
+            try
             {
-                return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
+                var adminId = GetClaimValue("AdminId");
+
+                if (userCreateRequest == null)
+                {
+                    return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
+                }
+
+                var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
+
+                if (result == null)
+                {
+                    return BadRequest(ApiResult<UserResult>.ErrorResult(
+                        ErrorCodeEnum.GenericErrorRetry,
+                        "User could not be created."
+                    ));
+                }
+
+                return Ok(ApiResult<UserResult>.Success(result));
             }
-
-            var result = userService.AddUser(userCreateRequest);
-
-            if (result == null)
+            catch (Exception ex)
             {
-                return BadRequest(ApiResult<UserResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
+                return BadRequest(ApiResult<UserResult>.ErrorResult(
+                    ErrorCodeEnum.GenericErrorRetry,
+                    "Unexpected error while creating the user: " + ex.Message
+                ));
             }
-
-            return Ok(ApiResult<UserResult>.Success(result));
         }
 
+
+        [HttpPost("edit-user")]
+        public ActionResult<ApiResult<UserResult>> EditUser([FromBody] UserCreateRequest userCreateRequest)
+        {
+            try
+            {
+                var adminId = GetClaimValue("AdminId");
+
+                if (userCreateRequest == null)
+                {
+                    return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
+                }
+
+                if (userCreateRequest.Id <= 0)
+                {
+                    return BadRequest(ApiResult<UserResult>.ErrorResult("User Id is required for editing."));
+                }
+
+                var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
+
+                if (result == null)
+                {
+                    return BadRequest(ApiResult<UserResult>.ErrorResult(
+                        ErrorCodeEnum.GenericErrorRetry,
+                        "User could not be edited."
+                    ));
+                }
+
+                return Ok(ApiResult<UserResult>.Success(result));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResult<UserResult>.ErrorResult(
+                    ErrorCodeEnum.GenericErrorRetry,
+                     ex.Message
+                ));
+            }
+        }
+
+
+        [Authorize]
+/*        [RequiresPermission("ManageUserGroup")]*/
         [HttpPost("add-user-group")]
         public ActionResult<ApiResult<UserGroupResult>> AddUserGroup([FromBody] UserGroupRequest userGroupRequest)
         {
             if (userGroupRequest == null)
             {
-                return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid data."));
+                return BadRequest(ApiResult<UserGroupResult>.ErrorResult("Invalid data."));
             }
 
-           // var result = userService.AddUser(userCreateRequest);
-           var result = new UserGroupResult
-           {
-               Id = 1, 
-               Name = userGroupRequest.UserGroupName, 
-               PermittedLockers = new List<LockerGroupResult>(),
-               BranchNames = userGroupRequest.Branches.Select(b => $"Branch {b}").ToList(),
-               State = "Active" 
-           };
+            var adminId = GetClaimValue("AdminId");
+
+            userGroupRequest.AdminId = int.Parse(adminId);
+
+            try
+            {
+                var result = userService.AddUserGroup(userGroupRequest);
+
+                if (result == null)
+                {
+                    return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "Group could not be created."));
+                }
+
+                return Ok(ApiResult<UserGroupResult>.Success(result));
+            }
+            catch (BaseException ex)
+            {
+                return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "Group could not be created."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<UserGroupResult>.ErrorResult("An unexpected error occurred."));
+            }
+        }
+
+        [HttpPost("delete-users")]
+        public IActionResult DeleteUsers([FromBody] DeleteAdminRequest request)
+        {
+            userService.DeleteUsers(request.Ids);
+
+            return Ok(true);
+        }
+
+        [HttpPost("delete-user-groups")]
+        public IActionResult DeleteUserGroupss([FromBody] DeleteAdminRequest request)
+        {
+            userService.DeleteUserGroups(request.Ids);
+
+            return Ok(true);
+        }
+
+        [HttpPost("change-state")]
+        public ActionResult<ApiResult<bool>> SetUserState([FromBody] ChangeAdminStateRequest request)
+        {
+            if (request == null || request.Ids == null || !request.Ids.Any())
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult("Invalid request data."));
+            }
+
+            try
+            {
+                userService.SetUserState(request.Ids, request.State);
+                return Ok(ApiResult<bool>.Success(true));
+            }
+            catch (BaseException ex)
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResult<bool>.ErrorResult("Unexpected server error."));
+            }
+        }
+
+        [HttpPost("change-groups-state")]
+        public ActionResult<ApiResult<bool>> SuspendUserGroups([FromBody] ChangeAdminStateRequest request)
+        {
+            if (request == null || request.Ids == null || !request.Ids.Any())
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult("Invalid request data."));
+            }
+
+            try
+            {
+                userService.SuspendUserGroups(request.Ids, request.State);
+                return Ok(ApiResult<bool>.Success(true));
+            }
+            catch (BaseException ex)
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResult<bool>.ErrorResult("Unexpected server error."));
+            }
+        }
+
+
+
+        [HttpPatch("change-group")]
+        public ActionResult<ApiResult<bool>> ChangeUserGroup([FromBody] ChangeUsersGroupRequest request)
+        {
+            if (request == null || request.Ids == null || !request.Ids.Any())
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult("Invalid request data."));
+            }
+
+            try
+            {
+                userService.ChangeUsersGroup(request.Ids, request.GroupId);
+                return Ok(ApiResult<bool>.Success(true));
+            }
+            catch (BaseException ex)
+            {
+                return BadRequest(ApiResult<bool>.ErrorResult(ex.Message));
+            }
+            catch
+            {
+                return StatusCode(500, ApiResult<bool>.ErrorResult("Unexpected server error."));
+            }
+        }
+
+
+        [Authorize]
+        /*     [RequiresPermission("ManageUserGroup")]*/
+        [HttpGet("user-groups/{id}")]
+        public ActionResult<ApiResult<GetUserGroupResult>> GetUserGroupById(int id)
+        {
+            var result = userService.GetUserGroupById(id);
 
             if (result == null)
+                return NotFound(ApiResult<GetUserGroupResult>.ErrorResult("User group not found."));
+
+            return Ok(ApiResult<GetUserGroupResult>.Success(result));
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<ApiResult<SingleUserResult>> GetUserById(int id)
+        {
+            try
             {
-                return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "User could not be created."));
+                var u = userService.GetUserById(id);
+
+                return Ok(ApiResult<SingleUserResult>.Success(u));
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound((ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest((ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ("An unexpected error occurred."));
+            }
+        }
+
+        [Authorize]
+        [HttpPost("edit-user-group")]
+        public ActionResult<ApiResult<UserGroupResult>> EditUserGroup([FromBody] EditUserGroupRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(ApiResult<UserGroupResult>.ErrorResult("Invalid data."));
             }
 
-            return Ok(ApiResult<UserGroupResult>.Success(result));
+            try
+            {
+                var result = userService.EditUserGroup(request);
+
+                if (result == null)
+                {
+                    return BadRequest(ApiResult<UserGroupResult>.ErrorResult("Group could not be updated."));
+                }
+
+                return Ok(ApiResult<UserGroupResult>.Success(result));
+            }
+            catch (BaseException ex)
+            {
+                return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ex.Message));
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, ApiResult<UserGroupResult>.ErrorResult("Unexpected server error."));
+            }
         }
+
     }
 }

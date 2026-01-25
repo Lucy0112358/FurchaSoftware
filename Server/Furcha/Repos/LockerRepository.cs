@@ -1,6 +1,10 @@
-﻿using Domain.Entities;
-using MqttService.Application.Repositories;
+﻿using Dapper;
+using Domain.Configuration;
+using Domain.Entities;
+using Domain.Repositories;
+using FurchaAdminApi.Models.Result;
 using Npgsql;
+using System.ComponentModel.Design;
 
 namespace FurchaAdminApi.Repos
 {
@@ -8,10 +12,53 @@ namespace FurchaAdminApi.Repos
     {
         private readonly NpgsqlConnection _dbConnection;
 
-        public LockerRepository(NpgsqlConnection dbConnection) : base(dbConnection)
+
+        public LockerRepository(NpgsqlConnection dbConnection, ISanitizer sanitizer) : base(dbConnection, sanitizer)
         {
             _dbConnection = dbConnection;
         }
+
+        public IEnumerable<LockerWithUsers> GetUserLockersByBranchId(int branchId)
+        {
+            var query = @"
+            SELECT l.""Id"", l.GroupId, l.Number, l.""LockerType"", l.""IsActive"", l.""IsOpen"", l.""BranchId"", l.""PasswordHash"", 
+                   u.""Name"" AS Name
+            FROM furcha.""Locker"" l
+            LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""Number""
+            LEFT JOIN furcha.""User"" u ON ul.""UserId"" = u.Id
+            WHERE l.""BranchId"" = @BranchId";
+
+            var connectionString = "Host=192.168.0.129;Port=7887;Database=furcha;Username=postgres;Password=Andresuga0713.;";
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+                var lockerDictionary = new Dictionary<int, LockerWithUsers>();
+                var lockers = connection.Query<LockerWithUsers, string, LockerWithUsers>(
+            query,
+            (locker, userName) =>
+            {
+                if (!lockerDictionary.TryGetValue(locker.Id, out var existingLocker))
+                {
+                    existingLocker = locker;
+                    existingLocker.Users = new List<string>();
+                    lockerDictionary.Add(locker.Id, existingLocker);
+                }
+
+                if (!string.IsNullOrEmpty(userName) && !existingLocker.Users.Contains(userName))
+                {
+                    existingLocker.Users.Add(userName);
+                }
+
+                return existingLocker;
+            },
+            param: new { BranchId = branchId },
+            splitOn: "Name"
+        );
+
+                return lockerDictionary.Values.ToList();
+            }
+        }
+
 
         /// <summary>
         /// Retrieves the lockers that are permitted for a specific user group.
@@ -23,7 +70,7 @@ namespace FurchaAdminApi.Repos
         {
             var sql = @"SELECT l.*
                         FROM furcha.""Locker"" l
-                        INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""LockerId""
+                        INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""Number""
                         WHERE ugl.""UserGroupId"" = @UserGroupId";
 
             var lockers = Query<Locker>(
@@ -43,7 +90,7 @@ namespace FurchaAdminApi.Repos
         {
             var sql = @"SELECT l.*
                         FROM furcha.""Locker"" l
-                        INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""LockerId""
+                        INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""Number""
                         INNER JOIN furcha.""UserGroup"" ug ON ug.""Id"" = ugl.""UserGroupId""
                         INNER JOIN furcha.""User"" u ON u.""UserGroupId"" = ug.""Id""
                         WHERE u.""Id"" = @UserId";
@@ -66,9 +113,9 @@ namespace FurchaAdminApi.Repos
             var sql = @"
                     SELECT DISTINCT l.*
                     FROM furcha.""Locker"" l
-                    LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""LockerId""
+                    LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""Number""
                     LEFT JOIN furcha.""User_UserGroup"" uug ON ul.""UserId"" = uug.""UserId""
-                    LEFT JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""LockerId""
+                    LEFT JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""Number""
                     LEFT JOIN furcha.""UserGroup"" ug ON ug.""Id"" = ugl.""UserGroupId""
                     WHERE ul.""UserId"" = @UserId OR uug.""UserId"" = @UserId";
 
@@ -80,13 +127,50 @@ namespace FurchaAdminApi.Repos
             return lockers;
         }
 
+        /// <summary>
+        /// Retrieves all Brain Modules associated with a specific locker group.
+        /// </summary>
+        /// <param name="groupId">The ID of the locker group.</param>
+        /// <returns>A list of Brain Modules associated with the locker group, or null if none are found.</returns>
+        public List<BrainModule> GetModulesByGroupId(int groupId)
+        {
+            var sql = @"
+        SELECT bm.*
+        FROM furcha.""BrainModule"" bm      
+        WHERE bm.""GroupId"" = @groupid AND bm.""Status"" = 2";
+
+            var brainModules = Query<BrainModule>(
+                sql: sql,
+                param: new { GroupId = groupId }
+            ).ToList();
+
+            return brainModules;
+        }
+
+
+        public List<LockerGroup> GetLockerGroupsByBranchId(int branchId)
+        {
+            var sql = @"
+        SELECT lg.*
+        FROM furcha.""LockerGroup"" lg
+        WHERE lg.""BranchId"" = @BranchId";
+
+            var lockerGroups = Query<LockerGroup>(
+                sql: sql,
+                param: new { BranchId = branchId }
+            ).ToList();
+
+            return lockerGroups;
+        }
+
+
         internal List<LockerGroup> GetLockerGroupsByUserGroup(int ugId)
         {
             var sql = @"
                     SELECT DISTINCT lg.*
                     FROM furcha.""LockerGroup"" lg
-                    INNER JOIN furcha.""Locker"" l ON lg.""Id"" = l.GroupId
-                    INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""LockerId""
+                    INNER JOIN furcha.""Locker"" l ON lg.""Id"" = l.groupid
+                    INNER JOIN furcha.""UserGroup_Locker"" ugl ON l.""Id"" = ugl.""Number""
                     WHERE ugl.""UserGroupId"" = @UserGroupId";
 
             var lockerGroups = Query<LockerGroup>(
@@ -97,6 +181,243 @@ namespace FurchaAdminApi.Repos
             return lockerGroups;
         }
 
+#warning add auth
+        /// <summary>
+        /// Retrieves lockers based on the specified locker group
+        /// </summary>
+        public List<Locker> GetLockersOfGroup(int groupId)
+        {
+            var sql = @"
+        SELECT l.*
+        FROM furcha.""Locker"" l
+        WHERE l.""groupid"" = @groupid";
+
+            var lockers = Query<Locker>(
+                sql: sql,
+                param: new { GroupId = groupId }
+            ).ToList();
+
+            return lockers ?? new List<Locker>();
+        }
+
+
+        /// <summary>
+        /// Retrieves lockers based on the specified filter criteria, including full locker details.
+        /// </summary>
+        /// <param name="lockerType">The type of the locker (optional).</param>
+        /// <param name="lockerGroupId">The ID of the locker group (optional).</param>
+        /// <param name="branchId">The ID of the branch (optional).</param>
+        /// <param name="status">The status of the locker (optional).</param>
+        /// <param name="isActive">Indicates if the locker is active (optional).</param>
+        /// <param name="lockerStatus">The specific locker status (optional).</param>
+        /// <returns>A list of lockers that match the specified criteria, with full details.</returns>
+        internal List<LockerWithUsers> GetLockersByCriteria(int branchId, string? lockerType = null, int? lockerGroupId = null, int? isOpen = null)
+        {
+            var sql = @"
+                    SELECT 
+                        l.""Id"",
+                        l.Number,
+                        l.""groupid"",
+                        l.""LockerType"",
+                        l.""IsActive"",
+                        l.""IsOpen"",
+                        l.""BranchId"",
+                        l.""PasswordHash"",
+                        u.""Name""
+                    FROM furcha.""Locker"" l 
+                    LEFT JOIN furcha.""UserLocker"" ul ON l.""Id"" = ul.""Number""
+                    LEFT JOIN furcha.""User"" u ON ul.""UserId"" = u.Id
+                    WHERE (l.""LockerType"" = @LockerType OR @LockerType IS NULL)
+                      AND (l.""groupid"" = @LockerGroupId OR @LockerGroupId IS NULL)
+                      AND (l.""BranchId"" = @BranchId OR @BranchId IS NULL)
+                      AND (l.""IsOpen"" = @IsOpen OR @IsOpen IS NULL)";
+
+            var connectionString = "Host=192.168.0.129;Port=7887;Database=furcha;Username=postgres;Password=Andresuga0713.;";
+
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+
+                var lockersDictionary = new Dictionary<int, LockerWithUsers>();
+
+                var lockers = connection.Query<LockerWithUsers, string, LockerWithUsers>(
+                    sql,
+                    (locker, userName) =>
+                    {
+                        if (!lockersDictionary.TryGetValue(locker.Id, out var lockerWithUsers))
+                        {
+                            lockerWithUsers = locker;
+                            lockerWithUsers.Users = new List<string>();
+                            lockersDictionary[locker.Id] = lockerWithUsers;
+                        }
+
+                        if (!string.IsNullOrEmpty(userName))
+                        {
+                            lockerWithUsers.Users.Add(userName);
+                        }
+
+                        return lockerWithUsers;
+                    },
+                    param: new
+                    {
+                        LockerType = lockerType,
+                        LockerGroupId = lockerGroupId,
+                        BranchId = branchId,
+                        IsOpen = isOpen,
+                    },
+                    splitOn: "Name"
+                ).Distinct().ToList();
+
+                return lockers;
+            }
+        }
+
+
+        /// <summary>
+        /// Retrieves all lockers associated with a specific branch.
+        /// </summary>
+        /// <param name="branchId">The ID of the branch.</param>
+        /// <returns>A list of lockers belonging to the specified branch.</returns>
+        public List<Locker> GetLockersByBranchId(int branchId)
+        {
+            var sql = @"
+        SELECT l.*
+        FROM furcha.""Locker"" l
+        INNER JOIN furcha.""LockerGroup"" lg ON l.""groupid"" = lg.""Id""
+        WHERE lg.""BranchId"" = @BranchId";
+
+            var lockers = Query<Locker>(
+                sql: sql,
+                param: new { BranchId = branchId }
+            ).ToList();
+
+            return lockers;
+        }
+
+        /// <summary>
+        /// Retrieves lockers associated with a specific BrainId.
+        /// </summary>
+        /// <param name="brainId">The ID of the brain module.</param>
+        /// <returns>A list of lockers associated with the specified BrainId.</returns>
+        public List<Locker> GetLockersByBrainId(int brainId)
+        {
+            var sql = @"
+        SELECT l.*
+        FROM furcha.""Locker"" l       
+        WHERE l.""BrainId"" = @BrainId";
+
+            var lockers = Query<Locker>(
+                sql: sql,
+                param: new { BrainId = brainId }
+            ).ToList();
+
+            return lockers;
+        }
+
+
+        /// <summary>
+        /// Create a locker group and connect it with a branch,
+        /// each locker group is associated with one branch physically
+        /// </summary>
+        internal LockerGroup CreateLockerGroup(LockerGroup group)
+        {
+            var result = Insert(group);
+
+            return result;
+        }
+
+        internal BrainModule CreateModule(BrainModule module)
+        {
+            var result = Insert(module);
+
+            return result;
+        }
+
+        internal BrainModule UpdateModule(BrainModule module)
+        {
+            var newModule = new Dictionary<string, object>
+            {
+                { nameof(BrainModule.Id), module.Id },
+                { nameof(BrainModule.BranchId), module.BranchId },
+                { nameof(BrainModule.GroupId), module.GroupId },
+                { nameof(BrainModule.Status), module.Status }
+            };
+
+            return Update<BrainModule>(newModule);
+        }
+
+        internal Locker UpdateLocker(Locker locker)
+        {
+            var newLocker = new Dictionary<string, object>
+            {
+                { nameof(Locker.Id), locker.Id },
+                { nameof(Locker.number), locker.number },
+                { nameof(Locker.LockerType), locker.LockerType },
+                { nameof(Locker.groupid), locker.groupid }
+            };
+
+            return Update<Locker>(newLocker);
+        }
+
+        internal Locker CreateLocker(Locker module)
+        {
+            var result = Insert(module);
+
+            return result;
+        }
+
+        internal Locker GetLockerByIdOrDefault(int Id)
+        {
+            return GetSingleOrDefault<Locker>(Id);
+        }
+
+#warning after auth get only valid for admin
+        public List<LockerGroup> GetLockerGroupsByAdminId(int adminId)
+        {
+            //string query = @"
+            //SELECT lg.Id, lg.Name, lg.Description, lg.State 
+            //FROM furcha.""LockerGroup"" lg
+            //INNER JOIN furcha.""AdminLockerGroup"" alg ON alg.LockerGroupId = lg.Id
+            //WHERE alg.AdminId = @AdminId";
+            //INNER JOIN furcha.""AdminLockerGroup"" alg ON alg.LockerGroupId = lg.Id
+            //WHERE alg.AdminId = @AdminId";
+            string query = @"
+
+            SELECT lg.""Id"", lg.""Name"", lg.""Description"", lg.""BranchId""
+            FROM furcha.""LockerGroup"" lg";
+
+
+            var lockers = Query<LockerGroup>(
+    sql: query,
+    param: adminId
+).ToList();
+
+            return lockers;
+
+        }
+
+        /// <summary>
+        /// Retrieves all Brain Modules associated with a specific branch and status.
+        /// </summary>
+        /// <param name="branchId">The ID of the branch.</param>
+        /// <param name="status">The status of the Brain Module (can be used to filter modules by status).</param>
+        /// <returns>A list of Brain Modules associated with the branch and status.</returns>
+        public List<BrainModule> GetBrainModulesByBranchAndStatus(int branchId, int status)
+        {
+            var sql = @"
+        SELECT bm.*
+        FROM furcha.""BrainModule"" bm
+        WHERE bm.""BranchId"" = @BranchId
+        AND bm.""Status"" = @Status";
+
+            // Assuming Query<BrainModule> method handles the query execution and mapping to the BrainModule entity.
+            var brainModules = Query<BrainModule>(
+                sql: sql,
+                param: new { BranchId = branchId, Status = status }
+            ).ToList();
+
+            return brainModules;
+        }
 
     }
 }

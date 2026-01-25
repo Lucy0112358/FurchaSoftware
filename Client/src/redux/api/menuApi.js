@@ -1,13 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import instance from "../../config/axios/axiosConfig";
 
-export const getUserBranches = createAsyncThunk(
-  'menu/getUserBranches',
+export const getBranches = createAsyncThunk(
+  'menu/getBranches',
   async (_, thunkAPI) => {
       try {
         const config = {
           method: "get",
-          url: 'Branch/company-branches/?adminId=8',
+          url: 'Branch/company-branches',
         };
         
         const response = await instance(config);
@@ -24,7 +24,7 @@ export const getUserGroups = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'User/user-groups/?adminId=8',
+          url: 'User/user-groups',
         };
         
         const response = await instance(config);
@@ -38,11 +38,10 @@ export const getUserGroups = createAsyncThunk(
 export const userFilter = createAsyncThunk(
   'menu/userFilter',
   async (params, thunkAPI) => {
-    console.log(params, 7444444444)
       try {
         const config = {
           method: "get",
-          url: 'User/filtered-users/?adminId=8',
+          url: 'User/filtered-users/',
           params: { ...params },
         };
         
@@ -54,18 +53,37 @@ export const userFilter = createAsyncThunk(
     }
 )
 
+// TODO: Change location to UserGroupApi
 export const setUserGroup = createAsyncThunk(
   'menu/setUserGroup',
   async (data, thunkAPI) => {
-    console.log(data, 7444444444)
       try {
         const config = {
           method: "post",
-          url: 'User/add-user-group/?adminId=8',
+          url: 'User/add-user-group',
           data: data
         };
         
         const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+export const setLockerGroup = createAsyncThunk(
+  'menu/setLockerGroup',
+  async (data, thunkAPI) => {
+      try {
+        const config = {
+          method: "post",
+          url: 'Locker',
+          data: data
+        };
+        
+        const response = await instance(config);
+        thunkAPI.dispatch(getLockerGroupsData());
         return response?.data;
       } catch (error) {
         return thunkAPI.rejectWithValue(error.response.data.error.both);
@@ -80,7 +98,7 @@ export const filterUserByName = createAsyncThunk(
       try {
         const config = {
           method: "get",
-          url: 'User/search-user/?adminId=8',
+          url: 'User/search-user/',
           params: { ...params },
         };
         
@@ -91,3 +109,23 @@ export const filterUserByName = createAsyncThunk(
       }
     }
 )
+
+
+export const getLockerGroupsData = createAsyncThunk(
+  'menu/getLockerGroupsData',
+  async (_, thunkAPI) => {
+      try {
+        const config = {
+          method: "get",
+          url: 'Locker/admin-lockerGroups',
+        };
+        
+        const response = await instance(config);
+        return response?.data;
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error.response.data.error.both);
+      }
+    }
+)
+
+

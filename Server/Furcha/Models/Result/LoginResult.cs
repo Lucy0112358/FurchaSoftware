@@ -15,7 +15,7 @@ namespace FurchaAdminApi.Models.Result
         /// </summary>
         public string Token { get; set; } = string.Empty;
 
-        public RoleEnum Role { get; set; }
+        public string Role { get; set; }
         public LoginResult(string? token)
         {
             Token = token ?? string.Empty;

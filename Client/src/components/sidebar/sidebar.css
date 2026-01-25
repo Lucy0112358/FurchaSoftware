@@ -13,10 +13,26 @@
     padding-top: 150px;
 }
 
-.sidebar__content__link p{
-   margin-left: 4px;
+.sidebar__content__link p {
+    margin-left: 4px;
 }
 
 .sidebar__content__link:hover {
     color: white;
 }
+
+.sidebar__content__link.active {
+    color: white;
+}
+
+@media (max-width: 425px) {}
+
+@media (max-width: 768px) {
+    .sidebar__logo {
+        width: 80px;
+    }
+}
+
+@media (max-width: 1024px) {}
+
+@media (max-width: 1280px) {}

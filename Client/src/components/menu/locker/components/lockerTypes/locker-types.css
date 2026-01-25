@@ -1,0 +1,31 @@
+.locker-types {
+  font-family: Arial, sans-serif;
+  color: #b0bec5;
+}
+
+.locker-container {
+  border-radius: 5px;
+  border: 1px solid #e5e2e2;
+  display: flex;
+  gap: 8px;
+  padding: 5px;
+}
+
+.locker-box {
+  width: 55px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  border-radius: 5px;
+  position: relative;
+}
+
+.circle {
+  margin-right: 5px;
+  border: 1.8px solid black;
+  width: 8px;
+  height: 8px;
+  background-color: #00e676;
+  border-radius: 50%;
+}

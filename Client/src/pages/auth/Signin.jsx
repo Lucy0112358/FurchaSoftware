@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { signin } from '../../redux/api/authApi';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useNavigate } from "react-router-dom";
+import { Formik, Form, Field, ErrorMessage, useField } from 'formik';
 import * as Yup from 'yup';
 import './auth.css';
 import { toast } from 'react-toastify';
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Signin = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
 
     const validationSchema = Yup.object({
         email: Yup.string().email('Wrong email').required('Email is required'),
@@ -17,13 +21,12 @@ const Signin = () => {
     });
 
     const handleSubmit = async (values) => {
-        toast.info("Wait ...");
-        
         try {
-            await dispatch(signin(values));
+            await dispatch(signin(values)).unwrap();
+            navigate('/users');
             toast.success("Welcome to Furcha");
         } catch (error) {
-            toast.error("Error: " + error.message);
+            toast.error("Error: " + (error.message || "Unknown error"));
         }
     };
 
@@ -32,9 +35,9 @@ const Signin = () => {
             <div className="w-96">
                 <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
                 <Formik
-                    initialValues={{ email: '', password: '' }}
+                    initialValues={{ email: 'user7@example.com', password: '123456' }}
                     validationSchema={validationSchema}
-                    onSubmit={handleSubmit} 
+                    onSubmit={handleSubmit}
                 >
                     {({ handleChange, values }) => (
                         <Form className="p-4">
@@ -51,17 +54,30 @@ const Signin = () => {
                                 />
                                 <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                             </div>
-                            <div className="mb-6">
+                            <div className="mb-6 relative">
                                 <label className="signin__container__text" htmlFor="password">
                                     Password
                                 </label>
-                                <Field
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    className="w-full px-3 py-2 text-gray-700 border rounded focus:outline-none focus:ring focus:border-blue-300"
-                                    placeholder="Enter your password"
-                                />
+                                <Field name="password">
+                                    {({ field }) => (
+                                        <div className="relative">
+                                            <input
+                                                {...field}
+                                                type={showPassword ? 'text' : 'password'}
+                                                id="password"
+                                                className="w-full px-3 py-2 text-gray-700 border rounded focus:outline-none focus:ring focus:border-blue-300 pr-10"
+                                                placeholder="Enter your password"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute top-2.5 right-3 text-gray-500"
+                                            >
+                                                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                                            </button>
+                                        </div>
+                                    )}
+                                </Field>
                                 <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
                             </div>
                             <div className="signin__container__action flex items-center justify-between">

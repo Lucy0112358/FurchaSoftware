@@ -1,50 +1,107 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { userTableGroups } from '../../data/tableIHeads'
 import { useSelector } from 'react-redux';
 import { getAllGroupsData } from '../../redux/slice/groupSlice';
+import NoData from '../no-data/NoData';
+import UnselectIds from '../button/UnselectIds';
+import CustomCheckbox from '../checkbox/CustomCheckbox';
+import { useContextMenu } from '../../hooks/useContextMenu';
+import UserGroupPopup from '../popups/userGroup/UserGroupPopup';
 
 function UserTableGroup() {
   const allUserGroups = useSelector(getAllGroupsData);
+  const [selectedIds, setSelectedIds] = useState([]);
 
-  console.log(allUserGroups, "allUserGroups");
-  
+  const handleSelectLocker = (itemId) => {
+    setSelectedIds((prevSelected) => {
+      const isSelected = prevSelected.includes(itemId);
+      if (isSelected) {
+        return prevSelected.filter((id) => id !== itemId);
+      } else {
+        return [...prevSelected, itemId];
+      }
+    });
+  };
+
+  const {
+    popup,
+    handleRightClick,
+    handleGlobalClick,
+    closePopup,
+  } = useContextMenu(selectedIds);
+
 
   return (
-    <table className="outlet__table min-w-full bg-white " style={{color: '#AAAAAA', minWidth: '1110px'}}>
-          <thead>
-            <tr className="outlet__table__header">
-              {userTableGroups.map((header) => (
-                <th className="text-left" >{header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {allUserGroups.map((group, index) => (
-              <tr key={group.id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                <td>
-                  {group.id}
-                </td>
-                <td>{group.name}</td>
-                 <td>
-                  {group.permittedLockers?.map((locker, idx) => (
-                    <>
-                      <div key={idx}>{locker.lockerGroupName}</div>
-                      <span>(1-16)</span>
-                    </>
+    <div onContextMenu={(e) => e.preventDefault()}
+      onClick={handleGlobalClick}>
+      <div className='flex justify-end mb-5'>
+        <UnselectIds setSelectedIds={setSelectedIds} buttonText="Unselect User Groups" />
+      </div>
+      {
+        allUserGroups.length ?
+          <div className="outlet__table__wrapper overflow-x-auto mt-2"
+            style={{ height: allUserGroups?.length >= 10 ? '480px' : 'auto' }}>
+            <table className="outlet__table min-w-full bg-white " style={{ color: '#AAAAAA' }}>
+              <thead>
+                <tr className="outlet__table__header">
+                  {userTableGroups.map((header) => (
+                    <th className="text-left" >{header}</th>
                   ))}
-                </td>
-                <td>
-                  {group.branchNames?.map((branch, idx) => (
-                    <div key={idx}>{branch}</div>
-                  ))}
-                </td>
-                <td className={`${group.state === 'Suspended' ? 'text-red-500' : ''}`}>
-                  {group.state}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </tr>
+              </thead>
+              <tbody>
+                {allUserGroups.map((group, index) => (
+                  <tr
+                    key={group.id}
+                    className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+                    onContextMenu={(e) => handleRightClick(e, group)}>
+                    <td className='flex items-center'>
+                      <CustomCheckbox
+                        checked={selectedIds.includes(group.id)}
+                        onChange={() => handleSelectLocker(group.id)}
+                      />
+                      {group.id}
+                    </td>
+                    <td>{group.name}</td>
+                    <td>
+                      {group.permittedLockers?.map((locker, idx) => (
+                        <>
+                          <div key={idx}>{locker.lockerGroupName}</div>
+                          <span>(1-16)</span>
+                        </>
+                      ))}
+                    </td>
+                    <td>
+                      {group.branchNames?.map((branch, idx) => (
+                        <div key={idx}>{branch}</div>
+                      ))}
+                    </td>
+                    <td className={`${group.state === 'Suspended' ? 'text-red-500' : ''}`}>
+                      {group.state}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {popup.visible && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: popup.y,
+                  left: popup.x,
+                  zIndex: 999,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <UserGroupPopup
+                  userGroup={popup.target}
+                  onClose={closePopup}
+                  selectedIds={selectedIds}
+                />
+              </div>
+            )}
+          </div> : <NoData text="No Groups" />}
+    </div>
   )
 }
 

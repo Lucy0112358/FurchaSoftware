@@ -3,6 +3,10 @@ import authReducer from '../slice/authSlice';
 import userReducer from '../slice/userSlice';
 import menuReducer from '../slice/menuSlice';
 import groupReducer from '../slice/groupSlice';
+import lockerReducer from '../slice/lockerSlice';
+import moduleReducer from '../slice/moduleSlice';
+import branchReducer from '../slice/branchSlice';
+import adminReducer from '../slice/adminSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,5 +14,9 @@ export const store = configureStore({
     user: userReducer,
     menu: menuReducer,
     group: groupReducer,
+    locker: lockerReducer,
+    modules: moduleReducer,
+    branch: branchReducer,
+    admin: adminReducer,
   },
 });

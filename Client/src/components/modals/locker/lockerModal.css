@@ -1,0 +1,63 @@
+.add__modal__content__addLockerGroup {
+    width: 610px !important;
+    height: 380px;
+    padding: 5px 18px;
+}
+
+.add__modal__content__part__group {
+    padding: 12px 10px;
+    border: 1px solid #414646;
+    border-radius: 13px;
+}
+
+.add__modal__content__part {
+    color: #191c1d;
+    font-size: 19px;
+}
+
+.user__right {
+    color: #191c1d;
+    font-size: 19px;
+}
+
+.add__modal__content__part__select {
+    color: #191c1d;
+    font-size: 19px;
+    width: 50%;
+}
+
+.credentials__input{
+    width: 118px;
+}
+
+.generation__button button{
+    padding: 1px 8px;
+}
+
+.generation__button {
+    margin-left: 6px;
+}
+
+input[type="checkbox"]::before {
+    transform-origin: bottom left;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.section__add {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+}
+
+.section__add button{
+    background-color: #475456;
+    width: 100px;
+}
+
+.modal__button button{
+    padding: 4px 8px;
+}
+
+.react-tabs__tab:focus:after {
+    content: none !important;
+}

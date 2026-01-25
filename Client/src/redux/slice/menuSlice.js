@@ -1,13 +1,17 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getUserBranches, getUserGroups } from "../api/menuApi";
+import { getBranches, getLockerGroupsData, getUserGroups, setUserGroup, userFilter } from "../api/menuApi";
+import { userSlice } from "./userSlice";
 // import { APP_BASE_URL } from "../../config";
 
 const initialState = {
   loading: false,
-  userBranches: {},
+  branches: [],
   userGroups: {},
   selectGroups: {},
-  userGroupSelect: false
+  userGroupSelect: localStorage.getItem('userGroupEnabled') === 'true',
+  lockerStatusSelect: false,
+  lockerGroups: {},
+  menuFilter: {},
 };
 
 export const menuSlice = createSlice({
@@ -18,7 +22,10 @@ export const menuSlice = createSlice({
       state.loading = action.payload.loading;
     },
     setUserBranches: (state, action) => {
-      state.userBranches = [{ id: 0, name: "All" }, ...action];
+      state.branches = action;
+    },
+    setLockerGroup: (state, action) => {
+      state.lockerGroups = [{ id: 0, name: "All" }, ...action];
     },
     setUserGroups: (state, action) => {
       state.userGroups = [{ id: 0, name: "All" }, ...action];
@@ -26,17 +33,33 @@ export const menuSlice = createSlice({
     setUserGroupSelect: (state) => {
       state.userGroupSelect = !state.userGroupSelect
     },
+    setLockerStatusSelect: (state) => {
+      state.lockerStatusSelect = !state.lockerStatusSelect
+    },
+    setMenuFilter: (state, action) => {
+      state.menuFilter = action.payload;
+    }
   },
 
   extraReducers: (builder) => {
     builder
-      .addCase(getUserBranches.fulfilled, (state, action) => {
+      .addCase(getBranches.fulfilled, (state, action) => {
         menuSlice.caseReducers.setUserBranches(state, action.payload.data);
+        // state.userBranch = action.payload;
+      })
+      .addCase(getLockerGroupsData.fulfilled, (state, action) => {
+        menuSlice.caseReducers.setLockerGroup(state, action.payload.data);
         // state.userBranch = action.payload;
       })
       .addCase(getUserGroups.fulfilled, (state, action) => {
         menuSlice.caseReducers.setUserGroups(state, action.payload.data);
         // state.userBranch = action.payload;
+      })
+      .addCase(setUserGroup.fulfilled, (state, action) => {
+        console.log(action.payload.data)
+      })
+      .addCase(setUserGroup.rejected, (state, action) => {
+       
       })
     //   .addCase(signin.pending, (state) => {
     //     state.loading = true;
@@ -60,15 +83,19 @@ export const menuSlice = createSlice({
 
 export const {
   setLoading,
-  setUserGroupSelect
+  setUserGroupSelect,
+  setLockerStatusSelect,
+  setMenuFilter
 } = menuSlice.actions;
 
 export const getLoadingNow = (state) => state.menu.loading;
-export const getUserBranchesData = (state) => state.menu.userBranches;
+export const getBranchesData = (state) => state.menu.branches;
 export const getUserGroupsData = (state) => state.menu.userGroups;
 export const getSelectGroups = (state) => state.menu.selectGroups;
 export const getSelectGroupSelect = (state) => state.menu.userGroupSelect;
-
+export const getLockerStatusSelect = (state) => state.menu.lockerStatusSelect;
+export const getMenuFilter = (state) => state.menu.menuFilter;
+export const getLockerGroups = (state) => state.menu.lockerGroups;
 
 
 export default menuSlice.reducer;

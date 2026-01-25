@@ -5,7 +5,6 @@ export const signin = createAsyncThunk(
   "auth/signin",
   async (data, thunkAPI) => {
     try {
-        console.log(data, "Dataaaaaaaaaaaaaaaa");
       const signInData = {
         email: data.email,
         password: data.password,
@@ -18,9 +17,8 @@ export const signin = createAsyncThunk(
       };
 
       const response = await instance(config);
-      console.log(response, "responsewwwwwwwwwwwwwwwwwww")
-      // localStorage.setItem("token", response.data.access_token);
-    //   window.location.href = `/users`;
+      localStorage.setItem("token", response.data.token);
+      await thunkAPI.dispatch(getAuthUser());
       return true;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data.error.both);
@@ -28,19 +26,54 @@ export const signin = createAsyncThunk(
   }
 );
 
-// export const getCurrentUser = createAsyncThunk(
-//   'auth/getCurrentUser',
-//   async (_, thunkAPI) => {
-//       try {
-//         const config = {
-//           method: "get",
-//           url: 'auth/me',
-//         };
-        
-//         const response = await instance(config);
-//         return response?.data;
-//       } catch (error) {
-//         return thunkAPI.rejectWithValue(error.response.data.error.both);
-//       }
-//     }
-// )
+export const getAuthUser = createAsyncThunk(
+  'auth/getAuthUser',
+  async (_, thunkAPI) => {
+    try {
+      const config = {
+        method: "get",
+        url: 'auth/getAuthUser',
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)
+
+export const getRoles = createAsyncThunk(
+  'auth/getRoles',
+  async (_, thunkAPI) => {
+    try {
+      const config = {
+        method: "get",
+        url: 'auth/roles',
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)
+
+export const getPermissions = createAsyncThunk(
+  'auth/getPermissions',
+  async (roleId, thunkAPI) => {
+    try {
+      const config = {
+        method: "get",
+        url: 'auth/role-permissions',
+        params: { roleId: roleId },
+      };
+
+      const response = await instance(config);
+      return response?.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data.error.both);
+    }
+  }
+)

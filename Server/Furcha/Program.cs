@@ -1,9 +1,18 @@
-using Domain.Configuration;
+﻿using Domain.Configuration;
 using FurchaAdminApi.Infrustructures;
-using MqttService.Infrastructure;
+using FurchaAdminApi.Middlewares;
+using Microsoft.OpenApi.Models;
+using MQTTnet.Client;
+using MQTTnet;
 using Npgsql;
+using FurchaBLL.Services;
+using FurchaBLL.Interfaces;
+using FurchaDAL.Models;
+using Microsoft.EntityFrameworkCore;
+using FurchaAdminApi.Services;
+using FurchaAdminApi.Hubs;
 
-namespace MqttService
+namespace FurchaAdminApi
 {
     public class Program
     {
@@ -19,6 +28,34 @@ namespace MqttService
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            /*            builder.Services.AddCors(options =>
+                             {
+                                 options.AddDefaultPolicy(builder =>
+                                 {
+                                     builder.WithOrigins("http://192.168.0.129:3033/")
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod()
+                                            .AllowCredentials();
+                                 });
+                             });*/
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend",
+                    policy =>
+                    {
+                        policy
+                              .SetIsOriginAllowed(_ => true)
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials(); // важно!
+                    });
+            });
+            builder.Services.AddSignalR(options =>
+            {
+                options.ClientTimeoutInterval = TimeSpan.FromSeconds(60); // client will wait 60s for server
+                options.KeepAliveInterval = TimeSpan.FromSeconds(15); // send ping every 15s
+            });
 
             builder.Services.AddScoped<NpgsqlConnection>(provider =>
             {
@@ -26,30 +63,102 @@ namespace MqttService
                 var connectionString = configuration.GetConnectionString("PostgreSqlConnection");
                 return new NpgsqlConnection(connectionString);
             });
+            builder.Services.AddDbContext<furchaContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("SqlConnection"),
+                    sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5,               // number of retries
+                            maxRetryDelay: TimeSpan.FromSeconds(10), // delay between retries
+                            errorNumbersToAdd: null         // you can pass custom SQL error codes if needed
+                        );
+                    }));
 
-            var encryptionSettingsSection = builder.Configuration.GetSection(nameof(EncryptionSettings));
-            builder.Services.Configure<EncryptionSettings>(encryptionSettingsSection);
-            var encryptionSettings = new EncryptionSettings();
-            encryptionSettingsSection.Bind(encryptionSettings);
 
-            JwtConfiguration.SetupJwtAuthentication(builder, EncryptionSettings.EncryptionKey, issuer: EncryptionSettings.Issuer, audience: EncryptionSettings.Audience);
 
+            var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
+            EncryptionSettings.EncryptionKey = encryptionSettings["EncryptionKey"];
+            EncryptionSettings.Issuer = encryptionSettings["Issuer"];
+            EncryptionSettings.Audience = encryptionSettings["Audience"];
+            builder.Services.AddScoped<CompanyService>();
+
+            builder.Services.AddSingleton<IMqttClient>(sp =>
+            {
+                var factory = new MqttFactory();
+                return factory.CreateMqttClient();
+            });
+
+            // Setup JWT Authentication
+            JwtConfiguration.SetupJwtAuthentication(builder, EncryptionSettings.EncryptionKey, EncryptionSettings.Issuer, EncryptionSettings.Audience);
             builder.Services.GenerateInjectionAdmin();
             builder.Services.AddHttpContextAccessor();
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            builder.Services.AddSwaggerGen(c =>
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
 
-            app.UseHttpsRedirection();
+                // Add JWT Authentication to Swagger
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter your JWT token in the format: Bearer <token>"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] { }
+                    }
+                });
+            });
+/*            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.ListenAnyIP(1010); // HTTP
+            });*/
+
+            builder.Services.AddSingleton<IMqttApiService, MqttApiService>();
+            builder.Services.AddSingleton<MqttClientOptions>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>().GetSection("MqttSettings");
+                return new MqttClientOptionsBuilder()
+                    .WithClientId(config["ClientId"])
+                    .WithTcpServer(config["Server"], int.Parse(config["Port"]))
+                    .WithCredentials(config["Username"], config["Password"])
+                    .Build();
+            });
+
+            builder.Services.AddSingleton<MqttService>();
+            builder.Services.AddSignalR();
+
+            builder.Services.AddScoped<IDoorStateService, SignalRNotificationService>();
+
+            var app = builder.Build();
+            app.UseSwagger();
+            app.UseSwaggerUI();
+
+            app.UseCors("AllowFrontend");
+            app.MapHub<DoorStatusHub>("/hubs/doorStatus");
+
+            app.UseRouting();
+            app.UseStaticFiles();
+
+            app.UseAuthentication();
             app.UseAuthorization();
+            app.UseMiddleware<PermissionMiddleware>();
             app.MapControllers();
             app.Run();
-        }     
-
+        }
     }
 }

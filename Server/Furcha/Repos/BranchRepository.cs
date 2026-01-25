@@ -1,5 +1,6 @@
-﻿using Domain.Entities;
-using MqttService.Application.Repositories;
+﻿using Domain.Configuration;
+using Domain.Entities;
+using Domain.Repositories;
 using Npgsql;
 
 namespace FurchaAdminApi.Repos
@@ -7,8 +8,9 @@ namespace FurchaAdminApi.Repos
     public class BranchRepository : BaseRepository
     {
         private readonly NpgsqlConnection _dbConnection;
+        private readonly UserRepository _userRepository;
 
-        public BranchRepository(NpgsqlConnection dbConnection) : base(dbConnection)
+        public BranchRepository(NpgsqlConnection dbConnection, ISanitizer sanitizer) : base(dbConnection, sanitizer)
         {
             _dbConnection = dbConnection;
         }
@@ -34,6 +36,44 @@ namespace FurchaAdminApi.Repos
             return GetSingle<Company>(Id);
         }
 
+        /// <summary>
+        /// Gets the branches, which are accessible to the logged in administrator
+        /// </summary>
+        public List<Branch> GetBranchesByAdminId(int adminId)
+        {
+            var sql = @"
+        SELECT b.*
+        FROM furcha.""Branch"" b
+        INNER JOIN furcha.""AdminBranch"" ab ON b.""Id"" = ab.""BranchId""
+        WHERE ab.""AdministratorId"" = @AdminId";
+
+            var branches = Query<Branch>(
+                sql: sql,
+                param: new { AdminId = adminId }
+            ).ToList();
+
+            return branches;
+        }
+
+        internal Branch CreateBranch(Branch branch)
+        {
+            var result = Insert(branch);
+
+            return result;
+        }
+
+        internal Branch UpdateBranch(Dictionary<string, object> branch)
+        {
+            return Update<Branch>(branch);
+        }
+
+        internal BranchAddress CreateBranchAddress(BranchAddress address)
+        {
+            var result = Insert(address);
+
+            return result;
+        }
+
         public List<Branch> GetBranchesOfUserGroup(int userGroupId)
         {
             var sql = @"
@@ -48,6 +88,59 @@ namespace FurchaAdminApi.Repos
             ).ToList();
 
             return branches;
+        }
+
+#warning access only those linked to admin
+        public List<Branch> GetAllBranches(int companyId)
+        {
+            return GetAll<Branch>(where: $"\"CompanyId\" = {companyId}").ToList();
+        }
+
+#warning add auth adminId
+/*        public List<Branch> SearchBranchByAdminId(string name, int AdminId)
+        {
+            var companyId = Db.Administrators
+                .Where(a => a.Id == AdminId)
+                .Select(a => a.CompanyId)
+                .FirstOrDefault();
+
+            var branches = Db.Branches
+                .Where(b => b.CompanyId == companyId &&
+                            b.Name.ToLower().Contains(name.ToLower()))
+                .ToList();
+
+            return branches;
+        }
+*/
+        public BranchAddress GetBranchAddressById(int id)
+        {
+            var res = GetSingle<BranchAddress>(where: $"\"Id\" = @id", whereParam: new { id });
+
+            return res;
+        }
+
+        internal void DeleteBranch(int id)
+        {
+            Delete<Branch>(id);
+        }
+
+
+        public List<string> GetLockerTypesByBranch(int branchId)
+        {
+            var sql = @"
+                SELECT 
+                    ARRAY_AGG(DISTINCT ""LockerType"") AS ""LockerTypes""
+                FROM 
+                    furcha.""Locker""
+                WHERE 
+                    ""BranchId"" = @BranchId";
+
+            var result = Query<string[]>(
+                sql: sql,
+                param: new { BranchId = branchId }
+            ).FirstOrDefault();
+
+            return result?.ToList() ?? new List<string>();
         }
 
 

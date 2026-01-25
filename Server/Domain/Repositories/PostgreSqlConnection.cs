@@ -2,7 +2,7 @@
 using Npgsql;
 using System.Data;
 
-namespace MqttService.Application.Repositories
+namespace Domain.Repositories
 {
     public class PostgreSqlConnection : IDisposable
     {
@@ -12,6 +12,11 @@ namespace MqttService.Application.Repositories
 
         public PostgreSqlConnection(string connectionString)
         {
+            if (!connectionString.Contains("Password"))
+            {
+                throw new Exception("Password is missing in connection string!");
+            }
+
             _connectionString = connectionString;
             _connection = new NpgsqlConnection(_connectionString);
             _connection.Open();
@@ -49,7 +54,10 @@ namespace MqttService.Application.Repositories
         {
             return GetConnection().Query<T>(sql);
         }
-
+        public IEnumerable<T> Query<T>(string sql, object param)
+        {
+            return GetConnection().Query<T>(sql, param);
+        }
         public IEnumerable<T> Query<T, T1>(string sql, Func<T, T1, T> map, object param = null, int? commandTimeout = null)
         {
             return GetConnection().Query(sql, map, param, commandTimeout: commandTimeout);

@@ -1,0 +1,20 @@
+.hand__locker {
+  .design-box {
+    width: 45px;
+    height: 45px;
+    background-color: #97d381;
+    border-radius: 10px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+  }
+
+  .number {
+    padding-top: 8px;
+    font-size: 15px;
+    color: #333;
+  }
+
+}

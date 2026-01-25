@@ -1,0 +1,68 @@
+.temprorary__locker {
+    .locker {
+        border-radius: 6px;
+        width: 45px;
+        height: 45px;
+        background-color: #F97BA2;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+    }
+
+    .mini-part {
+        width: 40px;
+        height: 40px;
+        background-color: #45d8f9;
+        position: absolute;
+        right: -20px;
+        top: -20px;
+        transform: rotate(42deg);
+    }
+
+    .label {
+        width: 17px;
+        height: 20px;
+        background-color: #45d8f9;
+        position: absolute;
+        border-radius: 5px;
+        top: 0px;
+        right: 3px;
+    }
+
+    .label-value {
+        align-content: center;
+        font-size: 13px;
+        padding-left: 3px;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        border-radius: 10px;
+    }
+
+    .label-value::before {
+        content: '';
+        width: 2px;
+        height: 20px;
+        background-color: black;
+        bottom: 0;
+    }
+
+    .locker__number {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        padding-top: 12px;
+        font-size: 17px;
+    }
+
+
+    .label-value::after {
+        content: '';
+        width: 20px;
+        height: 2px;
+        background-color: black;
+        bottom: 0;
+        left: 0;
+    }
+}

@@ -2,9 +2,9 @@
 {
     public class UserGroupRequest
     {
-        public string UserGroupName { get; set; }
-        public int adminId { get; set; }
-        public List<int> Branches
+        public string Name { get; set; }
+        public int AdminId { get; set; }
+        public List<int> LockerIds
         {
             get; set;
         }

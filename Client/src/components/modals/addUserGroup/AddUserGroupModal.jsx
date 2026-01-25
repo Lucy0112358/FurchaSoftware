@@ -4,25 +4,33 @@ import '../modal.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAddUserInfo, setAddUserInfo } from "../../../redux/slice/userSlice";
 import 'react-tabs/style/react-tabs.css';
-import CustomSelect from "../../select/CustomSelect";
-import { getUserBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
+import { getBranchesData, getUserGroupsData } from "../../../redux/slice/menuSlice";
 import { setUserGroup } from "../../../redux/api/menuApi";
+import { getFilteredLockerGroups } from "../../../redux/slice/lockerSlice";
+import NoData from "../../no-data/NoData";
+import { getLockerGroupsByBranchId } from "../../../redux/api/branchApi";
+import GroupName from "../../headers/GroupName";
+import GenerateLocker from "../../lockers/GenerateLocker";
+import { toast } from "react-toastify";
+import CloseButton from "../attributes/CloseButton";
+import ShowFormikError from "../../error/ShowFormikError";
 
 
 const AddUserGroupModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
   const dispatch = useDispatch();
-  const userBranches = useSelector(getUserBranchesData);
+  const branches = useSelector(getBranchesData);
   const [selectedBranch, setSelectedBranch] = useState([]);
   const [sentGeneralInfo, setSentGeneralInfo] = useState({
     branches: [],
     name: '',
   });
-
-  console.log(sentGeneralInfo, 111111111111)
-
+  const filteredBranchGroups = useSelector(getFilteredLockerGroups)
+  const [selectedLockerId, setSelectedLockerId] = useState([]);
   const userInfo = useSelector(getAddUserInfo);
   const [groupRight, setGroupRight] = useState({});
+  const [formErrors, setFormErrors] = useState({});
+  const [selectedLockerAddId, setSelectedLockerAddId] = useState({});
 
   const addAllInfoForUserGroup = (part, key, value) => {
     const updatedUserInfo = {
@@ -39,12 +47,55 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
     }));
   };
 
+  const sendLockerIds = () => {
+  
+      setSelectedLockerAddId((prev) => ({
+        ...prev,
+        [Object.keys(selectedBranch)]: selectedLockerId,
+      }));
+      
+      const selectedLockers = {...selectedLockerAddId, [Object.keys(selectedBranch)]: selectedLockerId};
+  
+      const generalInfo = Object.entries(selectedLockers)
+      .filter(([branchIdString, lockerIds]) => lockerIds.length > 0)
+        .map(([branchIdString, lockerIds]) => {
+          const branchId = Number(branchIdString);
+          const branch = branches.find(b => b.id === branchId);
+          const branchName = branch ? branch.name : "Unknown";
+          const lockerIdsString = lockerIds.join(",");
+          return `${branchName}: ${lockerIdsString}`;
+        })
+        .join("; ");
+  
+        dispatch(
+          setAddUserInfo({
+            'Locker': {
+              ...userInfo['Locker'],
+              ['lockers']: Object.values(selectedLockers).flat(),
+            },
+          })
+        );
+    
+        setSentGeneralInfo((prev) => ({
+          ...prev,
+          'lockerIds': Object.values(selectedLockers).flat(),
+        }));
+    
+        setGroupRight((prev) => ({
+          ...prev,
+          'Locker': {
+            ...(prev['Locker'] || {}),
+            'lockers': generalInfo,
+          },
+        }));
+      toast.success("Lockers added successfully");
+    };
+
   const formatUserRightText = () => {
     const userRightsEntries = Object.entries(groupRight);
     return userRightsEntries
       .map(([part, values]) => {
         const valuesEntries = Object.entries(values).map(([key, value]) => {
-          console.log(values , key, "valuevaluevalue")
           if (Array.isArray(value)) {
             return `${key}: ${value.join(', ')}`;
           } else if (typeof value === 'object') {
@@ -53,31 +104,30 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
           }
           return `${key}: ${value}`;
         });
-        console.log(valuesEntries, part, values, "valuesEntries")
         return `${part}:\n${valuesEntries.join('\n')}`;
       })
       .join('\n\n');
   };
-
-  const handleSelectChange = (selectedOption) => {
-    setSelectedBranch(selectedOption);
-    
-    console.log("Выбранная опция:", selectedOption);
-  };
-
-  const addBranchHandle = () => {
-    addAllInfoForUserGroup('Branch', 'name', selectedBranch) 
-    let id = selectedBranch.value
-    setSentGeneralInfo((prev) => ({
-      ...prev,
-      'branches' : [...prev.branches, id],
-    }))
+  const handleSelectBranch = (branch) => {
+    setSelectedBranch({ [branch.id]: branch.name });
+    const existAddedBranchLockers = selectedLockerAddId[branch.id];
+    if (existAddedBranchLockers) {
+      setSelectedLockerId(existAddedBranchLockers);
+    } else {
+      setSelectedLockerId([]);
+    }
+    dispatch(getLockerGroupsByBranchId(branch.id));
   };
 
   const addUserGroup = () => {
     dispatch(setUserGroup(sentGeneralInfo))
-    console.log(sentGeneralInfo,888)
-  };  
+      .then((response) => {
+        if (response && response.payload.isSuccess) {
+          onClose()
+        }
+      })
+      .catch((error) => console.error('Error updating user info:', error));
+  }
 
   const sendGroupInfo = (part, key, value) => {
     addAllInfoForUserGroup(part, key, value);
@@ -85,6 +135,44 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
       ...prev,
       [key]: value,
     }));
+  };
+
+  const handleBranchSelectAdd = (itemId) => {
+    setSelectedLockerId((prevSelected) => {
+      if (!prevSelected.includes(itemId)) {
+        return [...prevSelected, itemId];
+      }
+      return prevSelected;
+    });
+  };
+
+  const handleBranchSelectRemove = (itemId) => {
+    setSelectedLockerId((prevSelected) => {
+      if (prevSelected.includes(itemId)) {
+       return prevSelected.filter((id) => id !== itemId);
+      }
+      return prevSelected;
+    });
+  };
+
+
+  const handleClickBranchSelect = (itemId) => {
+    setSelectedLockerId((prevSelected) => {
+      if (prevSelected.includes(itemId)) {
+        return prevSelected.filter((id) => id !== itemId);
+      } else {
+        return [...prevSelected, itemId];
+      }
+    });
+  };
+
+  const renderError = (fieldName) => {
+    if (formErrors[fieldName]) {
+      return (
+        <ShowFormikError message={formErrors[fieldName]} />
+      );
+    }
+    return null;
   };
 
   return (
@@ -96,12 +184,9 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
       <div className="add__modal__content add__modal__content__addUser rounded-lg shadow-lg w-full max-w-4xl overflow-auto h-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">Add User Group</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-xl"
-          >
+          <CloseButton onClick={onClose}>
             &times;
-          </button>
+          </CloseButton>
         </div>
         <div>
           {/* User Group Info */}
@@ -118,21 +203,94 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
               </div>
             </div>
           </div>
+          <div className="flex justify-between flex-col" onContextMenu={(e) => e.preventDefault()}>
+            <div className="add__modal__content__part__select w-full">
+              <span>Branches</span>
+              <div className="add__modal__content__part__group mb-4">
+                <div className="flex mr-2">
+                  {
+                    branches.length > 0 && (
+                      branches.map((branch, index) => {
+                        return (
+                          branch.name !== 'All' &&
+                          <>
+                            <div
+                              key={index}
+                              onClick={() => handleSelectBranch(branch)}
+                              className={`
+                                flex 
+                                mr-2 
+                                bg-[#475456] 
+                                p-3 
+                                rounded-xl 
+                                text-white 
+                                cursor-pointer 
+                                ${selectedBranch.hasOwnProperty(branch.id)
+                                  ? "border-2 border-cyan-500"
+                                  : ""
+                                }
+                              `}>
+                              {branch.name}
+                            </div>
+                          </>
+                        )
+                      }
+                      ))
+                  }
+                  {renderError('branch')}
+                </div>
+              </div>
+            </div>
 
-          <div className="add__modal__content__part">
-            <span>Choose branches</span>
-            <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-              <div>
-                <CustomSelect options={userBranches} onChange={handleSelectChange} />
-              </div>
-              <div className="section__add">
-                <button 
-                  className="text-white font-bold rounded"
-                  onClick={() => addBranchHandle()}
-                >
-                  Add
-                </button>
-              </div>
+            <div>
+              {Object.keys(selectedBranch).length && filteredBranchGroups?.length ? (
+                <div className="pl-5 select-none">
+                  {filteredBranchGroups.map((lockerGroup, groupIndex) => (
+                    <React.Fragment key={groupIndex}>
+                      <GroupName name={lockerGroup.groupName} />
+                      <div className="flex flex-wrap mb-4">
+                        {lockerGroup.groupLockers.map((item, itemIndex) => (
+                          <div
+                            key={itemIndex}
+                            className={`mr-2 mb-2 ${selectedLockerId.includes(item.id)
+                              ? 'selected__branch__id'
+                              : ''
+                              }`}
+                              onMouseOver={(event) => {
+                                if (event.buttons === 1 && event.ctrlKey) {
+                                  handleBranchSelectRemove(item.id);
+                                } else if (event.buttons === 1) {
+                                  handleBranchSelectAdd(item.id);
+                                }
+                              }}
+                            onClick={() => handleClickBranchSelect(item.id)}
+                          >
+                            <GenerateLocker item={item} index={itemIndex} />
+                          </div>
+                        ))}
+                      </div>
+                    </React.Fragment>
+                  ))}
+                </div>
+              ) : (
+                <NoData text="No Selected Lockers" />
+              )}
+            </div>
+            <div>
+              {/* {selectedBranchesForShow.length > 0 && (
+                  <div className="pl-5 select-none">
+                    {selectedBranchesForShow.map((group) => (
+                     
+                    )))} */}
+            </div>
+
+            <div className="section__add">
+              <button
+                onClick={sendLockerIds}
+                className="text-white font-bold rounded p-2"
+              >
+                Add locker
+              </button>
             </div>
           </div>
 
@@ -143,8 +301,8 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
               <label className="block text-gray-300">Group rights details</label>
               <textarea
                 className="w-full p-1 border rounded h-24"
-                // value={groupRight}
                 value={formatUserRightText()}
+                readOnly
               ></textarea>
             </div>
           </div>
@@ -158,7 +316,7 @@ const AddUserGroupModal = ({ isOpen, onClose, children }) => {
             </button>
           </div>
           <div className="modal__button">
-            <button 
+            <button
               className="bg-gray-600 text-white rounded"
               onClick={addUserGroup}
             >

@@ -1,0 +1,31 @@
+{
+    "data": [
+        {
+            "officeName": "Tallin office",
+            "modules": [
+                {
+                    "groupName": "LG1 - 1st floor Lockers",
+                    "groupModules": [
+                        {
+                            "firstLocker": 1,
+                            "lastLocker": 256
+                        },
+                        {
+                            "firstLocker": 257,
+                            "lastLocker": 512
+                        }
+                    ]
+                },
+                {
+                    "groupName": "LG1 - 2st floor Lockers",
+                    "groupModules": [
+                        {
+                            "firstLocker": 1,
+                            "lastLocker": 20
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,9 +1,9 @@
-﻿using Domain.Enums;
-using MQTTnet;
+﻿using MQTTnet;
 using MQTTnet.Client;
 using MqttService.Application.Interfaces;
 using MqttService.Application.Models.MqttRequest;
 using MqttService.Application.Repositories;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 
@@ -21,6 +21,11 @@ namespace MqttService.Infrastructure.Services
             mqttClient = InitializeClient().GetAwaiter().GetResult();
         }
 
+        /// <summary>
+        /// Handle the json deserialization
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <param name="message"> JSON string</param>
         public void HandleRequest(string topic, string message)
         {
             var branchUIDStr = topic.Split('/')[1];
@@ -56,12 +61,12 @@ namespace MqttService.Infrastructure.Services
                 Console.WriteLine($"Brain: {mqttRequestConnection.Brain} IP Adress: {mqttRequestConnection.IP}");
                 SubscribeToBrainTopic(branchUID, mqttRequestConnection.Brain);
             }
-/*            else
-            {
-                MqttRequest mqttRequest = JsonSerializer.Deserialize<MqttRequest>(message);
-                string responseOne = cardLockerService.OpenLocker(mqttRequest) != MqttErrorCodeEnum.Success ? "ACCESS_DENIED" : "ACCESS_GRANTED";
-                SendResponse(branchUID, mqttRequest.lockerId, responseOne);
-            }*/
+            /*            else
+                        {
+                            MqttRequest mqttRequest = JsonSerializer.Deserialize<MqttRequest>(message);
+                            string responseOne = cardLockerService.OpenLocker(mqttRequest) != MqttErrorCodeEnum.Success ? "ACCESS_DENIED" : "ACCESS_GRANTED";
+                            SendResponse(branchUID, mqttRequest.lockerId, responseOne);
+                        }*/
         }
 
         public void SendResponseSet(int? branchUID, int brainUID, string response)
@@ -104,13 +109,13 @@ namespace MqttService.Infrastructure.Services
         {
             var factory = new MqttFactory();
             var client = factory.CreateMqttClient();
-
+          //  var certificate = new X509Certificate2("\"C:\\mosquitto\\certs\\ca.crt\"", "Andresuga0713.");
             var options = new MqttClientOptionsBuilder()
                 .WithClientId("Server")
                 //.WithTcpServer("broker.hivemq.com", 1883)
                 .WithTcpServer("2839c2c4ff524480b1631084b1055b89.s1.eu.hivemq.cloud", 8883)
                 .WithCredentials("Andresuga", "Andresuga0713.")
-                .WithTlsOptions(new MqttClientTlsOptions() { UseTls = true })
+                .WithTlsOptions(new MqttClientTlsOptions() { UseTls = true }) //need to pass the certificate
                 .Build();
 
             client.ConnectedAsync += async e =>
@@ -119,6 +124,7 @@ namespace MqttService.Infrastructure.Services
                 var branchs = cardLockerService.GetAllActiveBranches();
                 foreach (var branch in branchs)
                 {
+                    // connection topic that comes from hardware
                     await client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"connection/{branch.Id}").Build());
                     Console.WriteLine($"Subscribed to topic connection/{branch.Id}");
                 }

@@ -9,6 +9,10 @@ function GeneralAddModal() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const userGroupEnabled = useSelector(getSelectGroupSelect);
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <>
       <div className='menu__add'>
@@ -16,19 +20,21 @@ function GeneralAddModal() {
           onClick={() => setIsModalOpen(true)}
           className="menu__add__button text-white">
           <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-          {/* Изменяем текст кнопки в зависимости от состояния userGroupEnabled */}
-          <span className="">
-            {userGroupEnabled ? "Add Group User" : "Add User"}
-          </span>
+          <span>{userGroupEnabled ? "Add Group User" : "Add User"}</span>
         </button>
       </div>
 
-      {/* Условно отображаем соответствующее модальное окно */}
-      {
-        userGroupEnabled
-          ? <AddUserGroupModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-          : <AddUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-      }
+      {userGroupEnabled ? (
+        <AddUserGroupModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      ) : (
+        <AddUserModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </>
   );
 }

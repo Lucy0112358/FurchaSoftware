@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace MqttService.Infrastructure.Extensions
+namespace Domain.Extensions
 {
     public static class StringMethods
     {
@@ -12,6 +12,11 @@ namespace MqttService.Infrastructure.Extensions
         public static bool IsNotNullOrEmpty(this string @string)
         {
             return !string.IsNullOrWhiteSpace(@string);
+        }
+
+        public static bool None<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        {
+            return !source.Any(predicate);
         }
 
         /// <summary>

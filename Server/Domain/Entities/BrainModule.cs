@@ -8,16 +8,22 @@ namespace Domain.Entities
         public int Id { get; set; }
 
         [Column]
-        public int GroupId { get; set; }
+        public int? GroupId { get; set; }
 
         [Column]
         public int BranchId { get; set; }
 
         [Column]
-        public string TextField { get; set; }
+        public int Status { get; set; }
 
         [Column]
-        public string Ip { get; set; }
+        public string MacAddress { get; set; }
+
+        [Column]
+        public string Info { get; set; }
+
+        [Column]
+        public string IpAddress { get; set; } = "default";
 
     }
 }
