@@ -25,6 +25,7 @@ import { useHasPermission } from '../../../hooks/useHasPermission';
 import ModalActionButton from '../../button/ModalActionButton';
 import Manage from '../../manage/Manage';
 import { getAllBranchesData } from '../../../redux/slice/branchSlice';
+import { getManage } from '../../../redux/slice/systemSlice';
 
 function LockerMenu() {
   const dispatch = useDispatch();
@@ -39,6 +40,7 @@ function LockerMenu() {
   const lockerViewEnabled = useSelector(getLockerStatusSelect);
   const lockerFilters = useSelector(getLockerFilter);
   const { hasPermission } = useHasPermission();
+  const manage = useSelector(getManage);
 
 
   const branchOptions = Array.isArray(branches)
@@ -90,6 +92,7 @@ function LockerMenu() {
         {
           hasPermission() && <ModalActionButton
             onClick={() => setIsModalOpen(true)}
+            disabled={!manage}
             iconSrc={assets.add_icon}
             text="New Locker Group"
           />

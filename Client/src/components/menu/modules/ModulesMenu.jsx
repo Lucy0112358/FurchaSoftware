@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import '../menu.css';
 import { assets } from '../../../assets/assets';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive';
 import Connection from '../../connection/Connection';
@@ -11,11 +11,13 @@ import { useHasPermission } from '../../../hooks/useHasPermission';
 import ModalActionButton from '../../button/ModalActionButton';
 import Manage from '../../manage/Manage';
 import { getBranches } from '../../../redux/api/branchApi';
+import { getManage } from '../../../redux/slice/systemSlice';
 
 function ModulesMenu() {
   const dispatch = useDispatch();
   const [isModulesModalOpen, setIsModulesModalOpen] = useState(false);
   const { hasPermission } = useHasPermission();
+  const manage = useSelector(getManage);
 
   useEffect(() => {
     dispatch(getBranches());
@@ -29,6 +31,7 @@ function ModulesMenu() {
             onClick={() => setIsModulesModalOpen(true)}
             iconSrc={assets.add_icon}
             text="Add Modules"
+            disabled={!manage}
           />
         }
         {isModulesModalOpen && <ModulesModal onClose={() => setIsModulesModalOpen(false)} />}

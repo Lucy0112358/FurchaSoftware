@@ -9,6 +9,7 @@ import BranchModal from '../../modals/branch/BranchModal';
 import { getBranches } from '../../../redux/api/branchApi';
 import UserInfoModal from '../../userInfo/UserInfoModal';
 import Manage from '../../manage/Manage';
+import { getManage } from '../../../redux/slice/systemSlice';
 
 
 function BranchMenu() {
@@ -16,7 +17,8 @@ function BranchMenu() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [debounceTimeout, setDebounceTimeout] = useState(null);
-    const [manageEnabled, setManageEnabled] = useState(true);
+    // const [manageEnabled, setManageEnabled] = useState(true);
+    const manage = useSelector(getManage);
 
     const handleFilterName = (e) => {
         let name = e.target.value;
@@ -38,6 +40,7 @@ function BranchMenu() {
             <div className="menu flex justify-around">
                 <div className='menu__add'>
                     <button
+                        disabled={!manage}
                         onClick={() => setIsModalOpen(true)}
                         className="menu__add__button text-white">
                         <img className='menu__add__icon' src={assets.add_icon} alt="logo" />

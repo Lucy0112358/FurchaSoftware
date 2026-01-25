@@ -15,6 +15,7 @@ import Manage from '../../manage/Manage';
 import { getAllBranchesData } from '../../../redux/slice/branchSlice';
 import { getBranches } from '../../../redux/api/branchApi';
 import { getAllAdmins } from '../../../redux/api/adminApi';
+import { getManage } from '../../../redux/slice/systemSlice';
 
 
 function AdminMenu() {
@@ -25,6 +26,8 @@ function AdminMenu() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
   const { hasPermission } = useHasPermission();
+  const manage = useSelector(getManage);
+
 
   useEffect(() => {
     dispatch(getBranches());
@@ -42,7 +45,7 @@ function AdminMenu() {
     return () => clearTimeout(timeout);
   }, [filters, dispatch]);
 
- const handleSelectChange = (option) => {
+  const handleSelectChange = (option) => {
     setSelectedBranch(option);
     setFilters((prev) => ({
       ...prev,
@@ -74,7 +77,7 @@ function AdminMenu() {
   );
 
   // Safe mapping
-   const branchOptions = Array.isArray(branches)
+  const branchOptions = Array.isArray(branches)
     ? [{ label: 'All branches', value: null }, ...branches.map(branch => ({ label: branch.name, value: branch.id }))]
     : [{ label: '', value: null }];
 
@@ -85,6 +88,7 @@ function AdminMenu() {
         {
           hasPermission() && <ModalActionButton
             onClick={() => setIsModalOpen(true)}
+            disabled={!manage}
             iconSrc={assets.add_icon}
             text="Add Admin"
           />
