@@ -1,0 +1,88 @@
+CREATE TYPE furcha.user_state AS ENUM ('active', 'suspended');
+
+CREATE TABLE IF NOT EXISTS furcha."Administrators"
+(
+    "Id" SERIAL PRIMARY KEY,
+    "Name" VARCHAR(255) NOT NULL,
+    "Surname" VARCHAR(255) NOT NULL,
+    "Email" VARCHAR(255) NOT NULL UNIQUE,
+    "PasswordHash" TEXT NOT NULL,
+    "Salt" TEXT NOT NULL,
+    "IsActive" BOOLEAN NOT NULL DEFAULT TRUE,
+    "IsDeleted" BOOLEAN DEFAULT FALSE,
+    "Role" INTEGER NOT NULL,
+    "ModifiedBy" INTEGER,
+    "CompanyId" INTEGER NOT NULL,
+    "LastPasswordChangeDate" TIMESTAMPTZ,
+    "ForcePasswordReset" BOOLEAN NOT NULL DEFAULT FALSE,
+    "CreatedDate" TIMESTAMPTZ NOT NULL,
+    "ModifiedDate" TIMESTAMPTZ NOT NULL,
+    
+    CONSTRAINT "fk_ModifiedBy_Admin" FOREIGN KEY ("ModifiedBy") REFERENCES furcha."Administrators" ("Id") ON DELETE SET NULL,
+    CONSTRAINT "fk_Company_Id" FOREIGN KEY ("CompanyId") REFERENCES furcha."Company" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "fk_Role_Id" FOREIGN KEY ("Role") REFERENCES furcha."Roles" ("Id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS furcha."LockerGroup"
+(
+    "Id" SERIAL NOT NULL PRIMARY KEY,
+    "BranchId" INTEGER NOT NULL,
+    "Name" CHARACTER VARYING(100) NOT NULL,
+    "Description" TEXT,
+    "State" furcha.locker_status NOT NULL,
+    CONSTRAINT "fk_LockerGroup_Branch" FOREIGN KEY ("BranchId")
+    REFERENCES furcha."Branch" ("Id")
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS furcha."UserGroup_LockerGroup"
+(
+    "UserGroupId" INTEGER NOT NULL,
+    "LockerGroupId" INTEGER NOT NULL,
+    "Id" SERIAL NOT NULL PRIMARY KEY,
+    CONSTRAINT "fk_UserGroup_Id" FOREIGN KEY ("UserGroupId")
+    REFERENCES furcha."UserGroup" ("Id")
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE,
+    CONSTRAINT "fk_LockerGroup_Id" FOREIGN KEY ("LockerGroupId")
+    REFERENCES furcha."LockerGroup" ("Id")
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE,
+    CONSTRAINT "UserGroup_LockerGroup_unique" UNIQUE ("UserGroupId", "LockerGroupId")
+);
+
+ALTER TABLE furcha."Card"
+ADD COLUMN "CardNumber" BIGINT NOT NULL UNIQUE;
+
+ALTER TABLE furcha."User"
+ADD COLUMN "State" furcha.user_state NOT NULL DEFAULT 'active';
+
+ALTER TABLE furcha."Administrators"
+ADD COLUMN "UserId" INTEGER,
+ADD CONSTRAINT "fk_User_Id" FOREIGN KEY ("UserId") REFERENCES furcha."user" ("id")
+ON UPDATE NO ACTION
+ON DELETE CASCADE;
+
+ALTER TABLE furcha."Administrators"
+DROP COLUMN Email,
+DROP COLUMN "Name",
+DROP COLUMN "Surname";
+DROP COLUMN "Role";
+
+ALTER TABLE furcha."user" 
+ADD COLUMN "Role" INTEGER ;
+
+ALTER TABLE furcha."user"
+ADD CONSTRAINT "fk_Role_Id" FOREIGN KEY ("Role") 
+REFERENCES furcha."Roles" ("Id") 
+ON DELETE CASCADE;
+
+ALTER TABLE furcha."UserGroup"
+DROP COLUMN "BranchId";
+
+ALTER TABLE furcha."UserGroup"
+ADD COLUMN "CompanyId" INTEGER,
+ADD CONSTRAINT fk_company
+FOREIGN KEY ("CompanyId") REFERENCES furcha."Company"("Id");
+
