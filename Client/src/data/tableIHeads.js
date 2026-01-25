@@ -4,14 +4,17 @@ export const userTable = [
     'Last Name',
     'Role',
     'Card No.',
-    'Site',
+    'Branch',
     'User Group',
     'State',
+    'Active From',
+    'Active To',
 ];
 
 export const userTableGroups = [
     'User Group ID',
     'User Group Name',
+    'User Count',
     'Permitted Lockers',
     'Branch',
     'State',
@@ -19,11 +22,23 @@ export const userTableGroups = [
 
 export const lockerTable = [
     'ID',
+    'Type',
+    'User',
+    'Door status',
+    'Status',
+    'Locker mode',
+];
+
+export const parcelLockerTable = [
+    'ID',
     'Name',
     'Type',
     'User',
     'Status',
+    'Size',
+    'Order Number',
     'State',
+    'DoorState',
 ];
 
 export const adminTable = [
@@ -43,5 +58,5 @@ export const branchTable = [
     'Comment',
     'Locker Type',
     'Lockers',
-    'Mode',
+    // 'Mode',
 ];

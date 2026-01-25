@@ -1,22 +1,25 @@
-import React, { useState } from 'react'; 
+import React, { useState } from 'react';
 import './locker-types.css';
+import { getFilterLockerTypesData } from '../../../../../redux/slice/lockerSlice';
+import { useSelector } from 'react-redux';
 
 const LockerTypes = ({ addFilters }) => {
-  const [selectedType, setSelectedType] = useState(null);
+  const [selectedTypeId, setSelectedTypeId] = useState(null);
+  const lockerFilterTypes = useSelector(getFilterLockerTypesData);
+  
+  // const lockerSettings = [
+  //   { background: '#4dd0e1', type: 'personal' },
+  //   { background: '#f06292', type: 'common' },
+  //   { background: '#81c784', type: 'handover' },
+  //   { background: '#ffeb3b', type: 'parcel' },
+  //   { background: '#ffccbc', border: '2px solid #ff8a65', type: 'unspecified' }
+  // ];
 
-  const lockerSettings = [
-    { background: '#4dd0e1', type: 'personal' }, // Голубой
-    { background: '#f06292', type: 'common' }, // Розовый
-    { background: '#81c784', type: 'handOver' }, // Зеленый
-    { background: '#ffeb3b', type: 'parcel' }, // Желтый
-    { background: '#ffccbc', border: '2px solid #ff8a65', type: 'unspecified' } // Оранжевый с серым
-  ];
-
-  const handleClick = (newType) => {
-    setSelectedType((prevType) => {
-      const updatedType = prevType === newType ? "" : newType;
-      addFilters(updatedType, 'lockerType');
-      return updatedType;
+  const handleClick = (newTypeId) => {
+    setSelectedTypeId((prevTypeId) => {
+      const updatedTypeId = prevTypeId === newTypeId ? "" : newTypeId;
+      addFilters(updatedTypeId, 'lockerType');
+      return updatedTypeId;
     });
   };
 
@@ -24,15 +27,15 @@ const LockerTypes = ({ addFilters }) => {
     <div className="locker-types">
       <label className="text-white ">Locker Types</label>
       <div className="locker-container">
-        {lockerSettings.map((setting, index) => (
+        {lockerFilterTypes.map((setting, index) => (
           <div
             key={index}
             className="locker-box cursor-pointer"
             style={{
               ...setting,
-              border: selectedType === setting.type ? '2px solid #000' : setting.border || 'none',
+              border: selectedTypeId === setting.id ? '2px solid #000' : setting.border || 'none',
             }}
-            onClick={() => handleClick(setting.type)}
+            onClick={() => handleClick(setting.id)}
           >
             <div className="circle"></div>
           </div>

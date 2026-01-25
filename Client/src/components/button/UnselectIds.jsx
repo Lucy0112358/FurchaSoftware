@@ -1,6 +1,6 @@
 import React from 'react';
 
-function UnselectIds({ setSelectedIds, buttonText="Unselect Users" }) {
+function UnselectIds({ setSelectedIds, buttonText="Unselect" }) {
   const handleUnselect = () => {
     setSelectedIds([]);
   };

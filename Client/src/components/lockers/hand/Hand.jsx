@@ -1,7 +1,7 @@
 import React from 'react'
 import './hand.scss';
 
-function Hand({ lockernumber }) {
+function Hand({ lockernumber, color }) {
   return (
     <div className='hand__locker'>
       <div className="design-box">

@@ -11,9 +11,7 @@ const Admins = () => {
   }, []);
 
   return (
-    <div>
-      <AdminTable />
-    </div>
+    <AdminTable />
   );
 };
 

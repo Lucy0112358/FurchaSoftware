@@ -20,8 +20,8 @@ function BranchPopup({ branch, onClose }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Delete branch={branch} onClose={onClose} />
-            <Edit branch={branch} onClose={onClose} />
+            <Delete branch={branch} onClose={() => onClose()} />
+            <Edit branch={branch} onClose={() => onClose()} />
           </div>
         </>
       )

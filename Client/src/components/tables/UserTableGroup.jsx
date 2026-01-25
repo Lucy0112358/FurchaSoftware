@@ -35,7 +35,7 @@ function UserTableGroup() {
     <div onContextMenu={(e) => e.preventDefault()}
       onClick={handleGlobalClick}>
       <div className='flex justify-end mb-5'>
-        <UnselectIds setSelectedIds={setSelectedIds} buttonText="Unselect User Groups" />
+        <UnselectIds setSelectedIds={setSelectedIds} buttonText="Unselect" />
       </div>
       {
         allUserGroups.length ?
@@ -63,11 +63,11 @@ function UserTableGroup() {
                       {group.id}
                     </td>
                     <td>{group.name}</td>
+                    <td>{group.userCount}</td>
                     <td>
                       {group.permittedLockers?.map((locker, idx) => (
                         <>
                           <div key={idx}>{locker.lockerGroupName}</div>
-                          <span>(1-16)</span>
                         </>
                       ))}
                     </td>
@@ -76,8 +76,8 @@ function UserTableGroup() {
                         <div key={idx}>{branch}</div>
                       ))}
                     </td>
-                    <td className={`${group.state === 'Suspended' ? 'text-red-500' : ''}`}>
-                      {group.state}
+                    <td className={group.state === 1 ? 'text-green-500' : 'text-red-500 '}>
+                      {group.state === 1 ? 'Active' : 'Suspended'}
                     </td>
                   </tr>
                 ))}
@@ -89,12 +89,13 @@ function UserTableGroup() {
                   position: 'absolute',
                   top: popup.y,
                   left: popup.x,
-                  zIndex: 999,
+                  zIndex: 1,
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <UserGroupPopup
                   userGroup={popup.target}
+                  clearSelected={() => setSelectedIds([])}
                   onClose={closePopup}
                   selectedIds={selectedIds}
                 />
@@ -105,4 +106,4 @@ function UserTableGroup() {
   )
 }
 
-export default UserTableGroup
+export default UserTableGroup 

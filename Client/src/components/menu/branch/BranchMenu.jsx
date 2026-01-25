@@ -1,23 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import '../menu.css';
-import { RiAddBoxLine } from "react-icons/ri";
 import { assets } from '../../../assets/assets';
-import CustomSelect from '../../select/CustomSelect';
 import { useDispatch, useSelector } from 'react-redux';
-import { filterUserByName, getBranches, getUserGroups, userFilter } from '../../../redux/api/menuApi';
-import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter } from '../../../redux/slice/menuSlice';
-import AddUserModal from '../../modals/addUser/AddUserModal';
-import { getAllUsers } from '../../../redux/api/userApi';
-import { getAllGroups } from '../../../redux/api/groupApi';
-import GeneralAddModal from '../../modals/GeneralAddModal';
 import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive'
-import LockerTypes from '../locker/components/lockerTypes/LockerTypes';
 import Connection from '../../connection/Connection';
-import ModulesModal from '../../modals/modules/ModulesModal';
 import BranchModal from '../../modals/branch/BranchModal';
-import { getAllBranches } from '../../../redux/api/branchApi';
+import { getBranches } from '../../../redux/api/branchApi';
 import UserInfoModal from '../../userInfo/UserInfoModal';
+import Manage from '../../manage/Manage';
 
 
 function BranchMenu() {
@@ -37,8 +28,8 @@ function BranchMenu() {
 
         setDebounceTimeout(
             setTimeout(() => {
-                dispatch(getAllBranches({ 'name': name }));
-            }, 1000)
+                dispatch(getBranches({ 'name': name }));
+            }, 500)
         );
     };
 
@@ -81,21 +72,7 @@ function BranchMenu() {
                     <MediaQuery minWidth={550}>
                         <UserInfoModal />
                     </MediaQuery>
-
-                    <div className="manage__page">
-                        <label className="inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="sr-only"
-                                checked={manageEnabled}
-                                onChange={() => setManageEnabled(!manageEnabled)}
-                            />
-                            <div className={`w-10 h-6 bg-gray-400 rounded-full relative transition duration-300 ease-in-out ${manageEnabled ? 'bg-green-500' : ''}`}>
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition duration-300 ease-in-out transform ${manageEnabled ? 'translate-x-4' : ''}`}></div>
-                            </div>
-                        </label>
-                        <span>Manage</span>
-                    </div>
+                    <Manage />
                 </div>
             </div>
             <div className="menu__filter__mobile hidden">

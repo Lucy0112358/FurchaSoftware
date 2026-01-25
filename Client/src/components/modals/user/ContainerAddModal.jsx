@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { assets } from '../../assets/assets';
-import AddUserModal from './addUser/AddUserModal';
+import { assets } from '../../../assets/assets';
+import AddUserModal from './AddUserModal';
 import { useSelector } from 'react-redux';
-import { getSelectGroupSelect } from '../../redux/slice/menuSlice';
+import { getSelectGroupSelect } from '../../../redux/slice/menuSlice';
 import AddUserGroupModal from './addUserGroup/AddUserGroupModal';
 
-function GeneralAddModal() {
+function  ContainerAddModal() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const userGroupEnabled = useSelector(getSelectGroupSelect);
 
@@ -20,7 +20,7 @@ function GeneralAddModal() {
           onClick={() => setIsModalOpen(true)}
           className="menu__add__button text-white">
           <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-          <span>{userGroupEnabled ? "Add Group User" : "Add User"}</span>
+          <span>{userGroupEnabled ? "Add User Group" : "Add User"}</span>
         </button>
       </div>
 
@@ -39,4 +39,4 @@ function GeneralAddModal() {
   );
 }
 
-export default GeneralAddModal;
+export default ContainerAddModal;

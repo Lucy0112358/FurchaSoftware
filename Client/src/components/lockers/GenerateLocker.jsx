@@ -5,40 +5,39 @@ import Common from './common/Common';
 import Hand from './hand/Hand';
 import Parcel from './parcel/Parcel';
 import Unspecified from './unspecified/Unspecified';
+import { getLockerColor } from '../../Utils';
 
-function GenerateLocker({ item, index }) {
+function GenerateLocker({ item, index, doorState }) {
+  const type = item.lockerType?.type;
+  const color = getLockerColor(type);
+
   const renderLocker = () => {
-    // const name = item.user ? getInitials(item.user) : '';
-    const incrementedIndex = index + 1;
     const name = 'JB';
     const nameShort = 'Joohn Brain';
-    switch(item.lockerType.toLowerCase()) {
+    switch (type.toLowerCase()) {
       case 'personal':
-        return <Personal name={name} nameShort={nameShort} lockernumber={incrementedIndex} />;
+        return <Personal name={name} nameShort={nameShort} lockernumber={item.number} item={item} color={color} />;
       case 'temporary':
-        return <TemporaryPersonal label={name} lockernumber={incrementedIndex} />;
+        return <TemporaryPersonal label={name} lockernumber={item.number} item={item} color={color} />;
       case 'common':
-        return <Common label={name} lockernumber={incrementedIndex} />;
+        return <Common label={name} lockernumber={item.number} doorState={doorState} color={color} />;
       case 'handover':
-        return <Hand lockernumber={incrementedIndex} />;
+        return <Hand lockernumber={item.number} color={color} />;
       case 'parcel':
-        return <Parcel label={name} lockernumber={incrementedIndex} size="L" orderNum="44623598" />;
+        return <Parcel item={item} lockernumber={item.number} size="L" orderNum="44623598" color={color} />;
       case 'unspecified':
-        return <Unspecified lockernumber={incrementedIndex} />;
+        return <Unspecified lockernumber={item.number} color={color} />;
       default:
         return <div>No matching type</div>;
     }
   }
-
-  const getInitials = (name) => {
-    if (!name) return ''; 
-    const names = name.split(" "); 
-    const initials = names.map(n => n.charAt(0).toUpperCase()).join(""); 
-    return initials;
-  }
+console.log(doorState, "doorState");
 
   return (
-    <div>
+    <div
+      className="locker__border__open"
+      style={{ borderColor: doorState? '#f00909' : color }}
+    >
       {renderLocker()}
     </div>
   );

@@ -6,10 +6,19 @@ import NoData from '../no-data/NoData';
 import CustomCheckbox from '../checkbox/CustomCheckbox';
 import UnselectIds from '../button/UnselectIds';
 import UserPopup from '../popups/user/UserPopup';
+import { useContextMenu } from '../../hooks/useContextMenu';
+import { format, parseISO } from 'date-fns';
 
 function UserTable() {
   const allUsers = useSelector(getAllUsersData);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
+
+  const {
+    popup,
+    handleRightClick,
+    handleGlobalClick,
+    closePopup,
+  } = useContextMenu(selectedUserIds);
 
   const handleSelectLocker = (itemId) => {
     setSelectedUserIds((prevSelected) => {
@@ -20,39 +29,6 @@ function UserTable() {
         return [...prevSelected, itemId];
       }
     });
-  };
-  const [popup, setPopup] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    user: {}
-  });
-
-  const handleRightClick = (e, user = null) => {
-    e.preventDefault();
-    const popupX = e.clientX + window.scrollX;
-    const popupY = e.clientY + window.scrollY;
-
-    if (!user && selectedUserIds.length === 0) {
-      return closePopup();
-    }
-
-    setPopup({
-      visible: true,
-      x: popupX,
-      y: popupY,
-      user: user,
-    });
-  };
-
-  const closePopup = () => {
-    setPopup({ ...popup, visible: false });
-  };
-
-  const handleGlobalClick = () => {
-    if (popup.visible) {
-      closePopup();
-    }
   };
 
   return (
@@ -79,7 +55,7 @@ function UserTable() {
                   key={user.id}
                   className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
                   onContextMenu={(e) => handleRightClick(e, user)}>
-                  <td className='flex items-center'>
+                  <td>
                     <CustomCheckbox
                       checked={selectedUserIds.includes(user.id)}
                       onChange={() => handleSelectLocker(user.id)}
@@ -96,17 +72,29 @@ function UserTable() {
                   </td>
                   <td>
                     {user.branches?.map((branch, idx) => (
-                      <div key={idx}>{branch.name}</div>
+                      branch.name
                     ))}
                   </td>
-                  <td>
+                  <td className='w-[157px]'>
                     {user.userGroups?.map((group, idx) => (
-                      <div key={idx}>{group.groupName}</div>
+                      group.name + ', '
                     ))}
                   </td>
-                  <td className={` ${user.state === 'Suspended' ? 'text-red-500' : ''}`}>
-                    {user.state}
+                  <td
+                    className={{
+                      1: 'text-green-500',
+                      2: 'text-red-500',
+                      3: 'text-yellow-500'
+                    }[user.state] || 'text-yellow-500'}
+                  >
+                    {{
+                      1: 'Active',
+                      2: 'Suspended',
+                      3: 'Inactive'
+                    }[user.state] || 'Unknown'}
                   </td>
+                  <td>{user.activeFrom ? format(parseISO(user.activeFrom), 'yyyy-MM-dd') : '-'}</td>
+                  <td>{user.activeTo ? format(parseISO(user.activeTo), 'yyyy-MM-dd') : '-'}</td>
                 </tr>
               ))}
             </tbody>
@@ -117,11 +105,16 @@ function UserTable() {
                 position: 'absolute',
                 top: popup.y,
                 left: popup.x,
-                zIndex: 999,
+                zIndex: 1,
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <UserPopup user={popup.user} onClose={closePopup} selectedIds={selectedUserIds} />
+              <UserPopup
+                user={popup.target}
+                onClose={closePopup}
+                clearSelected={() => setSelectedUserIds([])}
+                selectedIds={selectedUserIds}
+              />
             </div>
           )}
         </div> : <NoData text="No Users" />

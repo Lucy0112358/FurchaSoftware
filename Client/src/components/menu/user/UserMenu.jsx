@@ -2,16 +2,19 @@ import { useState, useRef, useEffect } from 'react';
 import '../menu.css';
 import { assets } from '../../../assets/assets';
 import { useDispatch, useSelector } from 'react-redux';
-import { filterUserByName, getBranches, getLockerGroupsData, getUserGroups, userFilter } from '../../../redux/api/menuApi';
+import { getLockerGroupsData, getUserGroups } from '../../../redux/api/menuApi';
 import { getSelectGroupSelect, getBranchesData, getUserGroupsData, setMenuFilter, setUserGroupSelect } from '../../../redux/slice/menuSlice';
-import { getAllUsers } from '../../../redux/api/userApi';
+import { getUsers } from '../../../redux/api/userApi';
 import { getAllGroups } from '../../../redux/api/groupApi';
-import GeneralAddModal from '../../modals/GeneralAddModal';
+import GeneralAddModal from '../../modals/user/ContainerAddModal';
 import { TbPlugConnected } from "react-icons/tb";
 import MediaQuery from 'react-responsive'
 import Connection from '../../connection/Connection';
 import CustomSelect from '../../select/CustomSelect';
 import UserInfoModal from '../../userInfo/UserInfoModal';
+import Manage from '../../manage/Manage';
+import { getAllBranchesData } from '../../../redux/slice/branchSlice';
+import { getBranches } from '../../../redux/api/branchApi';
 
 
 function UserMenu() {
@@ -20,40 +23,42 @@ function UserMenu() {
     const [selectedGroups, setSelectedGroups] = useState(null);
     const userGroupEnabled = useSelector(getSelectGroupSelect);
     const [filters, setFilters] = useState({});
-    const branches = useSelector(getBranchesData);
+    const branches = useSelector(getAllBranchesData);
     const userGroups = useSelector(getUserGroupsData);
-    const [manageEnabled, setManageEnabled] = useState(true);
     const [inputValue, setInputValue] = useState('');
     const [debounceTimeout, setDebounceTimeout] = useState(null);
     const fileInputRef = useRef(null);
 
+    const branchOptions = Array.isArray(branches)
+        ? [{ label: 'All branches', value: null }, ...branches.map(branch => ({ label: branch.name, value: branch.id }))]
+        : [{ label: '', value: null }];
+
+    const groupOptions = Array.isArray(userGroups)
+        ? [{ label: 'All groups', value: null }, ...userGroups.map(group => ({ label: group.name, value: group.id }))]
+        : [{ label: '', value: null }];
+
     const handleSelectChange = (selectedOption) => {
         setSelectedBranch(selectedOption);
-        addFilters(selectedOption, 'branchId')
-    }
+        addFilters(selectedOption?.value, 'branchId');
+    };
+
     const handleGroupsSelectChange = (selectedOption) => {
         setSelectedGroups(selectedOption);
-        addFilters(selectedOption, 'groupId')
-        // dispatch(userFilter({ 'filterByGroupId': selectedOption.value }));
+        addFilters(selectedOption?.value, 'groupId');
     };
 
     useEffect(() => {
-        const storedValue = localStorage.getItem('userGroupEnabled');
-        if (storedValue !== null) {
-            const parsedValue = storedValue === 'true';
-            dispatch(setUserGroupSelect(parsedValue));
-            parsedValue ? dispatch(getAllGroups()) : dispatch(getAllUsers());
-        }
-    }, [dispatch]);
+        userGroupEnabled ? dispatch(getAllGroups()) : dispatch(getUsers());
+    }, [userGroupEnabled]);
 
-    const addFilters = (selectedOption, key) => {
+    const addFilters = (value, key) => {
         setFilters((prevFilters) => {
             const updatedFilters = {
                 ...prevFilters,
-                [key]: selectedOption.value,
+                [key]: value,
             };
 
-            dispatch(userFilter(updatedFilters));
+            dispatch(getUsers(updatedFilters));
             return updatedFilters;
         });
     }
@@ -75,19 +80,18 @@ function UserMenu() {
     };
 
     const handleFilterName = (e) => {
-        let name = e.target.value;
-        setFilters({})
+        const name = e.target.value;
         setInputValue(name);
-        if (debounceTimeout) {
-            clearTimeout(debounceTimeout);
-        }
 
-        setDebounceTimeout(
-            setTimeout(() => {
-                dispatch(filterUserByName({ 'name': name }));
-            }, 1000)
-        );
+        if (debounceTimeout) clearTimeout(debounceTimeout);
+
+        const timeout = setTimeout(() => {
+            addFilters(name, 'name');
+        }, 500);
+
+        setDebounceTimeout(timeout);
     };
+
 
     const handleUserGroupSelect = () => {
         const newValue = !userGroupEnabled;
@@ -97,7 +101,7 @@ function UserMenu() {
         if (newValue) {
             dispatch(getAllGroups());
         } else {
-            dispatch(getAllUsers());
+            dispatch(getUsers());
         }
     };
 
@@ -126,21 +130,16 @@ function UserMenu() {
                     <div className='flex flex-col'>
                         <div className='menu__filter__select'>
                             <CustomSelect
-                                options={(Array.isArray(branches) ? branches : []).map(branch => ({
-                                    label: branch.name,
-                                    value: branch.id,
-                                }))}
+                                options={branchOptions}
                                 value={selectedBranch}
                                 onChange={handleSelectChange}
                             />
-                            <label className="text-white block">Site</label>
+                            <label className="text-white block">Branch</label>
                         </div>
                         <div className='menu__filter__select'>
                             <CustomSelect
-                                options={(Array.isArray(userGroups) ? userGroups : []).map(group => ({
-                                    label: group.name,
-                                    value: group.id,
-                                }))}
+                                options={groupOptions}
+
                                 value={selectedGroups}
                                 onChange={handleGroupsSelectChange}
                             />
@@ -192,21 +191,7 @@ function UserMenu() {
                     <MediaQuery minWidth={550}>
                         <UserInfoModal />
                     </MediaQuery>
-
-                    <div className="manage__page">
-                        <label className="inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="sr-only"
-                                checked={manageEnabled}
-                                onChange={() => setManageEnabled(!manageEnabled)}
-                            />
-                            <div className={`w-10 h-6 bg-gray-400 rounded-full relative transition duration-300 ease-in-out ${manageEnabled ? 'bg-green-500' : ''}`}>
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition duration-300 ease-in-out transform ${manageEnabled ? 'translate-x-4' : ''}`}></div>
-                            </div>
-                        </label>
-                        <span>Manage</span>
-                    </div>
+                    <Manage />
                 </div>
                 {/* </div> */}
                 {/* <LockerTypes /> */}
@@ -223,7 +208,7 @@ function UserMenu() {
                             value={selectedBranch}
                             onChange={handleSelectChange}
                         />
-                        <label className="text-white block">Site</label>
+                        <label className="text-white block">Branch</label>
                     </div>
                     <div className='menu__filter__select'>
                         <CustomSelect

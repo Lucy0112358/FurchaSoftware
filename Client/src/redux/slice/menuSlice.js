@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getBranches, getLockerGroupsData, getUserGroups, setUserGroup, userFilter } from "../api/menuApi";
+import {getLockerGroupsData, getUserGroups } from "../api/menuApi";
 import { userSlice } from "./userSlice";
+import { getBranches } from "../api/branchApi";
 // import { APP_BASE_URL } from "../../config";
 
 const initialState = {
@@ -10,7 +11,9 @@ const initialState = {
   selectGroups: {},
   userGroupSelect: localStorage.getItem('userGroupEnabled') === 'true',
   lockerStatusSelect: false,
-  lockerGroups: {},
+  parcelLockerStatusSelect: false,
+  lockerGroups: [],
+  filteredLockerGroups: {},
   menuFilter: {},
 };
 
@@ -25,15 +28,21 @@ export const menuSlice = createSlice({
       state.branches = action;
     },
     setLockerGroup: (state, action) => {
-      state.lockerGroups = [{ id: 0, name: "All" }, ...action];
+      state.lockerGroups = action;
+    },
+    setLockerGroupWithFilters: (state, action) => {
+      state.filteredLockerGroups =  state.lockerGroups.filter(group => group.branchId === action.payload);
     },
     setUserGroups: (state, action) => {
-      state.userGroups = [{ id: 0, name: "All" }, ...action];
+      state.userGroups = action;
     },
     setUserGroupSelect: (state) => {
       state.userGroupSelect = !state.userGroupSelect
     },
-    setLockerStatusSelect: (state) => {
+    setParcelLockerStatusSelect: (state) => {
+      state.parcelLockerStatusSelect = !state.parcelLockerStatusSelect
+    },
+      setLockerStatusSelect: (state) => {
       state.lockerStatusSelect = !state.lockerStatusSelect
     },
     setMenuFilter: (state, action) => {
@@ -54,12 +63,6 @@ export const menuSlice = createSlice({
       .addCase(getUserGroups.fulfilled, (state, action) => {
         menuSlice.caseReducers.setUserGroups(state, action.payload.data);
         // state.userBranch = action.payload;
-      })
-      .addCase(setUserGroup.fulfilled, (state, action) => {
-        console.log(action.payload.data)
-      })
-      .addCase(setUserGroup.rejected, (state, action) => {
-       
       })
     //   .addCase(signin.pending, (state) => {
     //     state.loading = true;
@@ -85,7 +88,9 @@ export const {
   setLoading,
   setUserGroupSelect,
   setLockerStatusSelect,
-  setMenuFilter
+  setParcelLockerStatusSelect,
+  setMenuFilter,
+  setLockerGroupWithFilters
 } = menuSlice.actions;
 
 export const getLoadingNow = (state) => state.menu.loading;
@@ -94,8 +99,10 @@ export const getUserGroupsData = (state) => state.menu.userGroups;
 export const getSelectGroups = (state) => state.menu.selectGroups;
 export const getSelectGroupSelect = (state) => state.menu.userGroupSelect;
 export const getLockerStatusSelect = (state) => state.menu.lockerStatusSelect;
+export const getParcelLockerStatusSelect = (state) => state.menu.parcelLockerStatusSelect;
 export const getMenuFilter = (state) => state.menu.menuFilter;
 export const getLockerGroups = (state) => state.menu.lockerGroups;
+export const getFilteredLockerGroups = (state) => state.menu.filteredLockerGroups;
 
 
 export default menuSlice.reducer;

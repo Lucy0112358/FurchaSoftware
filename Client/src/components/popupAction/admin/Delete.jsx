@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from "react-toastify";
 import ConfirmModal from '../../confirm/ConfirmModal';
-import { deleteAdmins } from '../../../redux/api/adminApi';
+import { deleteAdmins, getAllAdmins } from '../../../redux/api/adminApi';
 
 function Delete({ ids, onClose }) {
     const dispatch = useDispatch();
@@ -14,7 +14,8 @@ function Delete({ ids, onClose }) {
                 .unwrap()
                 .then((res) => {
                     toast.success(res.message);
-                    onClose();
+                    dispatch(getAllAdmins());
+                    if (onClose) onClose();
                 })
                 .catch((err) => {
                     toast.error(err?.message || "Ошибка при удалении");

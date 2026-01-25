@@ -1,13 +1,20 @@
-import React from 'react';
-import UserPopupMultiItem from './AdminPopupMultiItem';
+import React, { useEffect } from 'react';
 import Edit from '../../popupAction/admin/Edit';
 import Delete from '../../popupAction/admin/Delete';
 import State from '../../popupAction/admin/State';
 import AdminPopupMultiItem from './AdminPopupMultiItem';
+import { useDispatch } from 'react-redux';
+import { adminShow } from '../../../redux/api/adminApi';
 
 
 function AdminPopup({ admin, onClose, selectedIds }) {
-console.log(admin, "admin popup");
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (admin.id) {
+      dispatch(adminShow({ id: admin.id }));
+    }
+  }, [admin]);
 
   return (
     <div
@@ -26,9 +33,9 @@ console.log(admin, "admin popup");
             </div>
 
             <div className="flex flex-col gap-2">
-              <Edit lockers={admin} onClose={onClose} />
-              <Delete ids={[admin.id]} onClose={onClose} />
-              <State admin={admin} onClose={onClose} />
+              <Edit onClose={() => onClose()} />
+              <Delete ids={[admin.id]} onClose={() => onClose()} />
+              <State onClose={() => onClose()} />
             </div>
           </>
         )

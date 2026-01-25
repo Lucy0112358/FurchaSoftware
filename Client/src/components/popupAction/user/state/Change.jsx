@@ -2,26 +2,33 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from "react-toastify";
 import ConfirmModal from '../../../confirm/ConfirmModal';
-import { changeUserState } from '../../../../redux/api/userApi';
+import { changeUserState, getUsers } from '../../../../redux/api/userApi';
 
-function Change({ user={}, onClose }) {
-    console.log(user, 8888888888888);
-
+function Change({ user = {}, onClose }) {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 
     const handleChange = () => {
-        
+
         if (user?.id) {
+            let newState;
+
+            if (user.state === 3) {
+                newState = 2;
+            } else {
+                newState = user.state === 1 ? 2 : 1;
+            }
+
             const data = {
                 ids: [user.id],
-                state: user.state === 'active' ? 2 : 1
-            }
+                state: newState,
+            };
             dispatch(changeUserState(data))
                 .unwrap()
                 .then((res) => {
                     toast.success(res.message);
-                    onClose();
+                    dispatch(getUsers());
+                    if (onClose) onClose();
                 })
                 .catch((err) => {
                     toast.error(err?.message || "Ошибка при изменении состояния пользователя");
@@ -35,7 +42,12 @@ function Change({ user={}, onClose }) {
                 className='bg-gray-600 text-white rounded cursor-pointer'
                 onClick={() => setShowConfirm(true)}
             >
-                {user.state === 'active' ? 'Suspend' : 'Activate'}
+                {user.state === 1
+                    ? 'Suspended'
+                    : user.state === 2
+                        ? 'Active'
+                        : 'Suspended'
+                }
             </button>
 
             {showConfirm && (

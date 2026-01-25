@@ -31,7 +31,7 @@ function AdminTable() {
   return (
     <div onContextMenu={(e) => e.preventDefault()} onClick={handleGlobalClick}>
       <div className="flex justify-end mb-5">
-        <UnselectIds setSelectedIds={setSelectedIds} buttonText="Unselect Admins" />
+        <UnselectIds setSelectedIds={setSelectedIds} buttonText="Unselect" />
       </div>
 
       {allAdmins?.length ? (
@@ -60,7 +60,7 @@ function AdminTable() {
                   className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
                   onContextMenu={(e) => handleRightClick(e, admin)}
                 >
-                  <td className="flex items-center">
+                  <td>
                     <CustomCheckbox
                       checked={selectedIds.includes(admin.id)}
                       onChange={() => handleSelectLocker(admin.id)}
@@ -80,8 +80,8 @@ function AdminTable() {
                       <div key={idx}>{branch}</div>
                     ))}
                   </td>
-                  <td className={admin.state === 'Suspended' ? 'text-red-500' : ''}>
-                    {admin.state}
+                  <td className={admin.isActive === false ? 'text-red-500' : ''}>
+                    {admin.isActive ? 'Active' : 'Suspended'}
                   </td>
                 </tr>
               ))}
@@ -93,7 +93,7 @@ function AdminTable() {
                 position: 'absolute',
                 top: popup.y,
                 left: popup.x,
-                zIndex: 999,
+                zIndex: 1,
               }}
               onClick={(e) => e.stopPropagation()}
             >

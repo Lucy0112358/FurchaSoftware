@@ -4,51 +4,18 @@ import { useSelector, useDispatch } from 'react-redux';
 import NoData from '../no-data/NoData';
 import { getAllBranchesData } from '../../redux/slice/branchSlice';
 import BranchPopup from '../popups/branch/BranchPopup';
+import { getManage } from '../../redux/slice/systemSlice';
+import { useContextMenu } from '../../hooks/useContextMenu';
 
 function BranchTable() {
   const allBranches = useSelector(getAllBranchesData);
-  const [popup, setPopup] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    branch: null,
-  });
 
-  const handleRightClick = (e, branch = null) => {
-    e.preventDefault();
-    const popupX = e.clientX + window.scrollX;
-    const popupY = e.clientY + window.scrollY;
-
-    setPopup({
-      visible: true,
-      x: popupX,
-      y: popupY,
-      branch,
-    });
-  };
-
-  const popupRef = useRef(null);
-
-  const closePopup = () => {
-    setPopup((prev) => ({ ...prev, visible: false }));
-  };
-
-  const handleGlobalClick = () => {
-    if (popup.visible) closePopup();
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (popup.visible && popupRef.current && !popupRef.current.contains(e.target)) {
-        closePopup();
-      }
-    };
-
-    window.addEventListener('click', handleClickOutside);
-    return () => {
-      window.removeEventListener('click', handleClickOutside);
-    };
-  }, [popup.visible]);
+  const {
+    popup,
+    handleRightClick,
+    handleGlobalClick,
+    closePopup,
+  } = useContextMenu();
 
   return (
     <div
@@ -57,24 +24,25 @@ function BranchTable() {
       onClick={handleGlobalClick}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {allBranches?.length ? (
-        <div
-          className="outlet__table__wrapper overflow-x-auto"
-          style={{ height: allBranches.length >= 10 ? '480px' : 'auto' }}
+          {allBranches?.length ? (
+
+      <div
+        className="outlet__table__wrapper overflow-x-auto"
+        style={{ height: allBranches.length >= 10 ? '480px' : 'auto' }}
+      >
+        <table
+          className="outlet__table min-w-full bg-white"
+          style={{ color: '#AAAAAA' }}
         >
-          <table
-            className="outlet__table min-w-full bg-white"
-            style={{ color: '#AAAAAA' }}
-          >
-            <thead>
-              <tr className="outlet__table__header">
-                {branchTable.map((header, index) => (
-                  <th key={index} className="text-left">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+          <thead>
+            <tr className="outlet__table__header">
+              {branchTable.map((header, index) => (
+                <th key={index} className="text-left">
+                  {header}
+                </th>
+              ))}
+            </tr>
+          </thead>
             <tbody>
               {allBranches.map((branch, index) => (
                 <tr
@@ -88,11 +56,11 @@ function BranchTable() {
                   <td>{branch.name}</td>
                   <td>{branch.address}</td>
                   <td>{branch.comment}</td>
-                  <td>{branch.lockerTypes?.toString()}</td>
+                  <td>{branch.lockerTypes?.map((type) => type.name).join(', ')}</td>
                   <td>{branch.lockersCount}</td>
-                  <td className={branch.mode === 0 ? 'text-red-500' : 'text-green-500'}>
+                  {/* <td className={branch.mode === 0 ? 'text-red-500' : 'text-green-500'}>
                     {branch.mode === 0 ? 'Inactive' : 'Active'}
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>
@@ -103,16 +71,15 @@ function BranchTable() {
       )}
       {popup.visible && (
         <div
-          ref={popupRef}
           style={{
             position: 'absolute',
             top: popup.y,
             left: popup.x,
-            zIndex: 999,
+            zIndex: 1,
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <BranchPopup branch={popup.branch} onClose={closePopup} />
+          <BranchPopup branch={popup.target} onClose={closePopup} />
         </div>
       )}
     </div>

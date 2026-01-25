@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { getFilteredUsers } from '../../../redux/slice/userSlice';
-import { filterUserWithOutPaginte } from '../../../redux/api/userApi';
-import { setUser } from '../../../redux/api/lockerApi';
+import { getAllUsersData, getUserData } from '../../../redux/slice/userSlice';
+import { getUsers } from '../../../redux/api/userApi';
+import { getLockers, setUser } from '../../../redux/api/lockerApi';
 import { toast } from "react-toastify";
 import CustomSelect from '../../select/CustomSelect';
 
 function SetUser({ lockers, onClose, branchId = null }) {
     const dispatch = useDispatch();
-    const filteredUsers = useSelector(getFilteredUsers);
+    const usersData = useSelector(getAllUsersData);
     const [userOptions, setUserOptions] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const hasFetched = useRef(false);
@@ -17,18 +17,18 @@ function SetUser({ lockers, onClose, branchId = null }) {
         if (!hasFetched.current) {
             hasFetched.current = true;
             if (lockers && lockers.length > 1) {
-                dispatch(filterUserWithOutPaginte({}));
+                dispatch(getUsers({}));
             } else if (lockers && lockers.length === 1) {
-                dispatch(filterUserWithOutPaginte({ branchId }));
+                dispatch(getUsers({ branchId }));
             }
         }
 
-        let options = filteredUsers.map((user) => ({
+        let options = usersData.map((user) => ({
             value: user.id,
             label: user.name,
         }));
         setUserOptions(options);
-    }, [filteredUsers])
+    }, [usersData])
 
     const handle = () => {
         if (lockers.length) {
@@ -36,6 +36,7 @@ function SetUser({ lockers, onClose, branchId = null }) {
                 .then((response) => {
                     if (response && response.payload.isSuccess) {
                         toast.success("Lockers set successfully");
+                        dispatch(getLockers());
                         onClose();
                     }
                 })

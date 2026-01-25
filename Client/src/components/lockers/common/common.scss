@@ -1,7 +1,7 @@
 .common__locker {
   .design-box {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
     background-color: #ff7da8;
     border-radius: 10px;
     position: relative;
@@ -10,22 +10,30 @@
     align-items: center;
     font-family: Arial, sans-serif;
   }
-  
+
   .number {
     padding-top: 8px;
     font-size: 15px;
     color: #333;
   }
-  
+
   .corner {
     border-radius: 6px;
     position: absolute;
     top: 0;
     left: 0;
-    border-top: 21px solid green;
-    border-right: 22px solid transparent;
-}
-  
+    border-top: 17px solid transparent;
+    border-right: 17px solid transparent;
+
+    &.open {
+      border-top-color: green;
+    }
+
+    &.closed {
+      border-top-color: transparent;
+    }
+  }
+
   .corner-white {
     position: absolute;
     top: 0;

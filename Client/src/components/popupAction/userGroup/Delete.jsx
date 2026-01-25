@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import ConfirmModal from '../../confirm/ConfirmModal';
 import { deleteUserGroups } from '../../../redux/api/groupApi';
 
-function Delete({ ids, onClose }) {
+function Delete({ ids, onClose, clearSelected  }) {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -13,11 +13,12 @@ function Delete({ ids, onClose }) {
             dispatch(deleteUserGroups(ids))
                 .unwrap()
                 .then((res) => {
-                    toast.success(res.message);
+                    toast.success("User group(s) deleted successfully");
+                    clearSelected();
                     onClose();
                 })
                 .catch((err) => {
-                    toast.error(err?.message || "Ошибка при удалении");
+                    toast.error(err?.message || "Error deleting user group(s)");
                 });
         }
     };

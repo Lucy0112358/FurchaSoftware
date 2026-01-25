@@ -3,6 +3,8 @@ import { MdLogout } from "react-icons/md";
 import { logout } from '../../redux/api/userApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAuthUserData } from '../../redux/slice/authSlice';
+import { CgProfile } from 'react-icons/cg';
+import { Link } from 'react-router-dom';
 
 const UserInfoModal = () => {
     const [open, setOpen] = useState(false);
@@ -41,6 +43,16 @@ const UserInfoModal = () => {
                     <div className="p-4 border-b">
                         <div className="text-base text-gray-500">{authUser.email}</div>
                     </div>
+
+                    <Link
+                        to="/profile"
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 border rounded-lg flex items-center"
+                    >
+                        <div className='flex items-center space-x-2'>
+                            <CgProfile className='text-gray-500' />
+                            <p className='text-lg text-gray-500'>Profile</p>
+                        </div>
+                    </Link>
                     <button
                         className="w-full text-left px-4 py-2 hover:bg-gray-100 border rounded-lg flex items-center"
                         onClick={handleClick}

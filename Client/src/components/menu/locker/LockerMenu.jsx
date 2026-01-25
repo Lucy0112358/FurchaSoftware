@@ -22,29 +22,32 @@ import { getLockers } from '../../../redux/api/lockerApi';
 import CustomSelect from '../../select/CustomSelect';
 import UserInfoModal from '../../userInfo/UserInfoModal';
 import { useHasPermission } from '../../../hooks/useHasPermission';
+import ModalActionButton from '../../button/ModalActionButton';
+import Manage from '../../manage/Manage';
+import { getAllBranchesData } from '../../../redux/slice/branchSlice';
 
 function LockerMenu() {
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [manageEnabled, setManageEnabled] = useState(true);
   const [selectedGroups, setSelectedGroups] = useState(null);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [inputValue, setInputValue] = useState('');
   const [debounceTimeout, setDebounceTimeout] = useState(null);
 
-  const branches = useSelector(getBranchesData);
+  const branches = useSelector(getAllBranchesData);
   const lockerGroups = useSelector(getLockerGroups);
   const lockerViewEnabled = useSelector(getLockerStatusSelect);
   const lockerFilters = useSelector(getLockerFilter);
   const { hasPermission } = useHasPermission();
 
+
   const branchOptions = Array.isArray(branches)
-    ? branches.map(branch => ({ label: branch.name, value: branch.id }))
-    : [];
+    ? [{ label: 'All branches', value: null }, ...branches.map(branch => ({ label: branch.name, value: branch.id }))]
+    : [{ label: '', value: null }];
 
   const groupOptions = Array.isArray(lockerGroups)
-    ? lockerGroups.map(group => ({ label: group.name, value: group.id }))
-    : [];
+    ? [{ label: 'All groups', value: null }, ...lockerGroups.map(group => ({ label: group.name, value: group.id }))]
+    : [{ label: '', value: null }];
 
   const handleSelectChange = (selectedOption) => {
     setSelectedBranch(selectedOption);
@@ -84,15 +87,13 @@ function LockerMenu() {
     <>
       <div className="menu flex justify-around">
         {/* Add Locker Group Button */}
-        <div className='menu__add'>
-          <button
+        {
+          hasPermission() && <ModalActionButton
             onClick={() => setIsModalOpen(true)}
-            className="menu__add__button text-white"
-          >
-            <img className='menu__add__icon' src={assets.add_icon} alt="logo" />
-            <span>New Locker Group</span>
-          </button>
-        </div>
+            iconSrc={assets.add_icon}
+            text="New Locker Group"
+          />
+        }
         {isModalOpen && <LockerModal onClose={() => setIsModalOpen(false)} />}
         {/* Filters */}
         <div className="menu__filter flex space-x-4">
@@ -157,14 +158,14 @@ function LockerMenu() {
                   onChange={handleLockerStatusSelect}
                 />
                 {
-                  hasPermission(['admin'], ['locker_group_create']) && (
-                    <div className='menu__group__general mt-2'>
-                      <div className={`w-10 h-6 rounded-full relative transition ${lockerViewEnabled ? 'bg-green-500' : 'bg-gray-400'}`}>
-                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition transform ${lockerViewEnabled ? 'translate-x-4' : ''}`}></div>
-                      </div>
-                      <span className="text-white">View</span>
+                  // hasPermission(['admin'], ['locker_group_create']) && (
+                  <div className='menu__group__general mt-2'>
+                    <div className={`w-10 h-6 rounded-full relative transition ${lockerViewEnabled ? 'bg-green-500' : 'bg-gray-400'}`}>
+                      <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition transform ${lockerViewEnabled ? 'translate-x-4' : ''}`}></div>
                     </div>
-                  )
+                    <span className="text-white">View</span>
+                  </div>
+                  // )
                 }
               </label>
             </div>
@@ -176,21 +177,7 @@ function LockerMenu() {
           <MediaQuery minWidth={550}>
             <UserInfoModal />
           </MediaQuery>
-
-          <div className="manage__page">
-            <label className="inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={manageEnabled}
-                onChange={() => setManageEnabled(!manageEnabled)}
-              />
-              <div className={`w-10 h-6 rounded-full relative transition ${manageEnabled ? 'bg-green-500' : 'bg-gray-400'}`}>
-                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition transform ${manageEnabled ? 'translate-x-4' : ''}`}></div>
-              </div>
-            </label>
-            <span>Manage</span>
-          </div>
+          <Manage />
         </div>
       </div>
 

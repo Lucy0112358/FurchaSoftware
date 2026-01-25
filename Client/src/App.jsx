@@ -14,6 +14,8 @@ import { useDispatch } from 'react-redux';
 import { useEffect } from 'react';
 import { getAuthUser } from './redux/api/authApi';
 import NotFound from './pages/not-found/NotFound';
+import Parcels from './pages/lockers/parcels/Parcels';
+import Profile from './pages/profile/Profile';
 
 function App() {
 
@@ -35,7 +37,9 @@ function App() {
               <Route path="/admins" element={<Admins />} />
               <Route path="/branches" element={<Branch />} />
               <Route path="/lockers" element={<Lockers />} />
-              <Route path="modules" element={<Modules />} />
+              {/* <Route path="/parcels" element={<Parcels />} /> */}
+              <Route path="/modules" element={<Modules />} />
+              <Route path="/profile" element={<Profile />} />
             </Route>
           </Route>
           <Route path="login" element={<Signin />}></Route>

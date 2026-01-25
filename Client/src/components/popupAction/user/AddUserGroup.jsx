@@ -29,7 +29,7 @@ function AddUserGroup({ ids, onClose }) {
                 .unwrap()
                 .then((res) => {
                     toast.success(res.message);
-                    onClose();
+                    if (onClose) onClose();
                 })
                 .catch((err) => {
                     toast.error(err?.message || "Ошибка при изменении група пользователя");
@@ -60,12 +60,12 @@ function AddUserGroup({ ids, onClose }) {
                 defaultValue={{ label: 'Select group', value: null }}
                 onChange={handleChangeState}
             />
-             {
+            {
                 selectedValue && <button
                     className='bg-gray-600 text-white rounded cursor-pointer'
                     onClick={() => setShowConfirm(true)}
                 >
-                    Save Group
+                    Add Group
                 </button>
             }
 

@@ -13,10 +13,11 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import CustomSelect from "../../select/CustomSelect";
 import ShowFormikError from "../../error/ShowFormikError";
+import { getAllBranchesData } from "../../../redux/slice/branchSlice";
 
 const LockerModal = ({ onClose }) => {
   const dispatch = useDispatch();
-  const branches = useSelector(getBranchesData);
+  const branches = useSelector(getAllBranchesData);
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
 
   const validationSchema = Yup.object({
@@ -86,16 +87,13 @@ const LockerModal = ({ onClose }) => {
                     <ShowFormikError message={formik.errors.branchId} />
                   )}
                 </div>
-                <div className="flex w-1/6">
+                <div className="flex">
                   <button
                     type="button"
                     onClick={() => setAddBranchModalSwitch(true)}
                     className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                   >
-                    <IoMdAdd
-                      className="fill-current"
-                      style={{ fontSize: "xx-large" }}
-                    />
+                    <IoMdAdd className="fill-current text-2xl" />
                     {addBranchModalSwitch && <BranchModal onClose={(e) => {
                       if (e?.stopPropagation) e.stopPropagation();
                       setAddBranchModalSwitch(false);

@@ -4,12 +4,15 @@ import { getSelectedLockerIds } from '../../../redux/slice/lockerSlice';
 import LockerPopupMultiItem from './LockerPopupMultiItem';
 import Edit from '../../popupAction/locker/Edit';
 import OpenLocker from '../../popupAction/locker/OpenLocker';
-import SuspendLocker from '../../popupAction/locker/SuspendLocker';
+import ChangeLockerMode from '../../popupAction/locker/ChangeLockerMode';
 import SetUser from '../../popupAction/locker/SetUser';
 import HandAction from '../../popupAction/locker/HandAction';
+import { useHasPermission } from '../../../hooks/useHasPermission';
 
-function LockerPopup({ locker, onClose, branchId=null }) {
+function LockerPopup({ locker, onClose, branchId = null }) {
   const selectedLockerIds = useSelector(getSelectedLockerIds);
+  const { hasPermission } = useHasPermission();
+console.log(locker, "Locker");
 
   return (
     <div
@@ -25,21 +28,23 @@ function LockerPopup({ locker, onClose, branchId=null }) {
               <h3 className="text-lg font-bold text-gray-800">
                 Locker #{locker.id}
                 <span className="ml-2 inline-block text-sm text-gray-500 bg-gray-100 rounded px-2 py-1">
-                  {locker.lockerType}
+                  {/* {locker.lockerType} */}
                 </span>
               </h3>
             </div>
 
             <div className="flex flex-col gap-2">
-              <Edit lockers={[locker]} onClose={onClose} />
-              <OpenLocker lockers={[locker.id]} onClose={onClose} />
-              <SuspendLocker lockers={[locker.id]} onClose={onClose} />
+              {/* <Edit lockers={[locker]} onClose={onClose} /> */}
+              {
+                hasPermission(['LVL3_Admin'], ['Open_Locker']) && <OpenLocker lockers={[locker.id]} onClose={onClose} />
+              }
+              <ChangeLockerMode ids={[locker.id]} action={locker.isActive == 1 ? 'Suspend' : 'Active'} onClose={onClose} />
 
-              {locker.lockerType === 'handOver' && (
+              {locker.lockerType?.type === 'handover' && (
                 <HandAction lockers={[locker]} onClose={onClose} />
               )}
 
-              {(locker.lockerType === 'parcel' || locker.lockerType === 'personal') && (
+              {(locker.lockerType?.type === 'parcel' || locker.lockerType?.type === 'personal') && (
                 <SetUser lockers={[locker]} onClose={onClose} branchId={branchId} />
               )}
             </div>

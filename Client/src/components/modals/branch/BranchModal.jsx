@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import "../modal.css";
 import "./branchModal.css";
-import { createBranch, updateBranch, getAllBranches } from "../../../redux/api/branchApi";
+import { createBranch, updateBranch, getBranches } from "../../../redux/api/branchApi";
 import { toast } from "react-toastify";
 import CloseButton from "../attributes/CloseButton";
 import ShowFormikError from "../../error/ShowFormikError";
@@ -34,7 +34,7 @@ const BranchModal = ({ onClose, mode = "add", initialData = {} }) => {
             toast.error(response.error.message);
           } else if (response?.payload?.isSuccess) {
             toast.success(`Branch ${isEditMode ? "updated" : "created"} successfully`);
-            dispatch(getAllBranches());
+            dispatch(getBranches());
             onClose();
           } else {
             toast.error("Something went wrong");
@@ -50,7 +50,7 @@ const BranchModal = ({ onClose, mode = "add", initialData = {} }) => {
 
   return (
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
-      <div className="add__modal__content add__modal__content__addModules rounded-lg shadow-lg w-full max-w-4xl overflow-auto">
+      <div className="add__modal__content add__modal__content__addBranch rounded-lg shadow-lg w-full max-w-4xl overflow-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">
             {isEditMode ? "Edit branch" : "Add branch"}

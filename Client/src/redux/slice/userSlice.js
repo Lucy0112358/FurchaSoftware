@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { filterUserWithOutPaginte, getAllUsers, setUserInfo } from "../api/userApi";
-import { filterUserByName, userFilter } from "../api/menuApi";
+import { getUsers, setUserInfo, userShow } from "../api/userApi";
+// import { userFilter } from "../api/menuApi";
 // import { getUserSites } from "../api/userApi";
 // import { APP_BASE_URL } from "../../config";
 
@@ -8,7 +8,7 @@ const initialState = {
   loading: false,
   allUsers: [],
   userInfo: {},
-  filteredUsers: [],
+  getUser: {},
 };
 
 export const userSlice = createSlice({
@@ -31,16 +31,19 @@ export const userSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      .addCase(getAllUsers.pending, (state) => {
+      .addCase(getUsers.pending, (state) => {
         state.loading = true;
       })
-      .addCase(getAllUsers.fulfilled, (state, action) => {
+      .addCase(getUsers.fulfilled, (state, action) => {
         state.loading = false;
         userSlice.caseReducers.setUser(state, action);
       })
-      .addCase(getAllUsers.rejected, (state, action) => {
+      .addCase(getUsers.rejected, (state, action) => {
         state.errorMessage = action.payload;
         state.loading = false;
+      })
+      .addCase(userShow.fulfilled, (state, action) => {
+        state.getUser = action.payload;
       })
       .addCase(setUserInfo.pending, (state) => {
         state.loading = true;
@@ -54,16 +57,9 @@ export const userSlice = createSlice({
         state.errorMessage = action.payload;
         state.loading = false;
       })
-      .addCase(userFilter.fulfilled, (state, action) => {
-        userSlice.caseReducers.setUser(state, action);
-      })
-      .addCase(filterUserByName.fulfilled, (state, action) => {
-        userSlice.caseReducers.setUser(state, action);
-      })
-      .addCase(filterUserWithOutPaginte.fulfilled, (state, action) => {
-        state.filteredUsers = action.payload.data;
-      })
-      
+      // .addCase(userFilter.fulfilled, (state, action) => {
+      //   userSlice.caseReducers.setUser(state, action);
+      // })
   },
 });
 
@@ -73,8 +69,8 @@ export const {
 } = userSlice.actions;
 
 export const getLoadingNow = (state) => state.user.loading;
+export const getUserData = (state) => state.user.getUser;
 export const getAllUsersData = (state) => state.user.allUsers;
 export const getAddUserInfo = (state) => state.user.userInfo;
-export const getFilteredUsers = (state) => state.user.filteredUsers;
 
 export default userSlice.reducer;

@@ -1,11 +1,12 @@
 import React from 'react'
 import './common.scss';
 
-function Common({ label, lockernumber }) {
+function Common({ label, lockernumber, doorState, color }) {
+  
   return (
     <div className='common__locker'>
       <div className="design-box">
-        <div className="corner">
+         <div className={`corner ${doorState?.toLowerCase() === 'open' ? 'open' : 'close'}`} style={{ backgroundColor: color }}>
           <div className="corner-white"></div>
         </div>
         <div className="number">{lockernumber}</div>

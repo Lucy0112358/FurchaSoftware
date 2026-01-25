@@ -7,53 +7,20 @@ import GenerateLocker from '../lockers/GenerateLocker';
 import LockerPopup from '../popups/locker/LockerPopup';
 import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '../../redux/slice/lockerSlice';
 import UnselectLockers from '../button/UnselectLockers';
+import { useContextMenu } from '../../hooks/useContextMenu';
+import Delete from '../button/lockerGroup/Delete';
 
 function LockerTableGroup() {
   const dispatch = useDispatch();
   const selectedLockerIds = useSelector(getSelectedLockerIds)
   const allLockers = useSelector(getAllLockersData);
 
-  const [popup, setPopup] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    locker: null,
-    branchId: null
-  });
-
-  const handleRightClick = (e, locker = null) => {
-    e.preventDefault();
-    let popupX, popupY;
-    if (locker) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      popupX = rect.left + window.scrollX + 10;
-      popupY = rect.top + window.scrollY + rect.height + 5;
-    } else {
-      popupX = e.clientX + window.scrollX;
-      popupY = e.clientY + window.scrollY;
-    }
-    if (!locker && selectedLockerIds.length === 0) {
-      return closePopup();
-    }
-
-    setPopup({
-      visible: true,
-      x: popupX,
-      y: popupY,
-      locker: locker,
-      branchId: locker ? locker.branchId : null,
-    });
-  };
-
-  const closePopup = () => {
-    setPopup({ ...popup, visible: false });
-  };
-
-  const handleGlobalClick = () => {
-    if (popup.visible) {
-      closePopup();
-    }
-  };
+  const {
+    popup,
+    handleRightClick,
+    handleGlobalClick,
+    closePopup,
+  } = useContextMenu(selectedLockerIds);
 
   const handleBranchSelectAdd = (itemId) => {
     const newSelected = selectedLockerIds.includes(itemId)
@@ -79,7 +46,7 @@ function LockerTableGroup() {
   return (
     <div className='select-none' onContextMenu={(e) => e.preventDefault()}>
       <div className='flex justify-end'>
-       <UnselectLockers />
+        <UnselectLockers />
       </div>
       {allLockers.length ? (
         allLockers.map((locker, index) => {
@@ -109,10 +76,12 @@ function LockerTableGroup() {
 
                   return (
                     <React.Fragment key={groupIndex}>
-                      <GroupName name={lockerGroup.groupName} />
-
+                      <div className="ml-2 mt-3 flex  items-center">
+                        <GroupName name={lockerGroup.groupName} id={lockerGroup.id} />
+                        <Delete lockerCount={lockerGroup.groupLockers.length} id={lockerGroup.id} />
+                      </div>
                       <div
-                        className="flex flex-wrap mb-4 ">
+                        className="flex flex-wrap mb-4 mt-4">
                         {lockerGroup.groupLockers.map((item, itemIndex) => (
                           <div
                             key={itemIndex}
@@ -125,7 +94,7 @@ function LockerTableGroup() {
                             }}
                             className={`mr-2 mb-2 ${selectedLockerIds.includes(item.id)
                               ? 'selected__branch__id'
-                              : ''
+                              : 'locker__border'
                               }`}
                             onMouseOver={(event) => {
                               if (event.buttons === 1 && event.ctrlKey) {
@@ -136,7 +105,7 @@ function LockerTableGroup() {
                             }}
                             onClick={() => handleClickBranchSelect(item.id)}
                           >
-                            <GenerateLocker item={item} index={itemIndex} />
+                            <GenerateLocker item={item} index={itemIndex + 1} doorState={item.doorState || ''} />
 
                           </div>
                         ))}
@@ -151,11 +120,11 @@ function LockerTableGroup() {
                     position: 'absolute',
                     top: popup.y,
                     left: popup.x,
-                    zIndex: 999,
+                    zIndex: 1,
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <LockerPopup locker={popup.locker} onClose={closePopup} branchId={popup.branchId} />
+                  <LockerPopup locker={popup.target} onClose={closePopup} branchId={popup.branchId} />
                 </div>
               )}
             </React.Fragment>

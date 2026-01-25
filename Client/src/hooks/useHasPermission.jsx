@@ -16,12 +16,13 @@ export const useHasPermission = () => {
     if (requiredRole.length !== 0) {
       hasRole = requiredRole.some(item => userPermissions?.role?.includes(item));
     };
+    
     if (requiredPermission.length != 0) {
       hasPermissions = requiredPermission.some(item => userPermissions?.permissions?.includes(item));
     };
     console.log(hasRole, hasPermissions);
     
-    return hasRole && hasPermissions;
+    return hasRole || hasPermissions;
   };
 
   return { hasPermission };

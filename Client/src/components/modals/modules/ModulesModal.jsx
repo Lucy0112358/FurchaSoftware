@@ -3,45 +3,33 @@ import '../modal.css';
 import { useDispatch, useSelector } from 'react-redux';
 import 'react-tabs/style/react-tabs.css';
 import './modulesModal.css';
-import { getBranches, getLockerGroupsData } from "../../../redux/api/menuApi";
+import { getLockerGroupsData } from "../../../redux/api/menuApi";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import { IoMdAdd } from "react-icons/io";
-import CustomCheckbox from "../../checkbox/CustomCheckbox";
-import { filterGroupByBranch, getLockerGroupMinMax, getModuleModalBranches, getModuleModalGroupes, getNewBrainsData } from "../../../redux/slice/moduleSlice";
-import { addModuleFunc, getLockerGroupRange, getNewBrains } from "../../../redux/api/moduleApi";
-import { getLockerOptions } from "../../../enums/Locker/Types";
+import { filterGroupByBranch, getModuleData, getNewBrainsData } from "../../../redux/slice/moduleSlice";
+import { addModuleFunc, deleteBrainId, getNewBrains, moduleShow, updateModule } from "../../../redux/api/moduleApi";
 import CloseButton from "../attributes/CloseButton";
 import BranchModal from "../branch/BranchModal";
 import { useFormik } from 'formik';
-import LockerModal from "../locker/LockerModal";
 import CustomSelect from "../../select/CustomSelect";
+import { getBranches } from "../../../redux/api/branchApi";
+import { getAllBranchesData } from "../../../redux/slice/branchSlice";
+import { MdDelete } from "react-icons/md";
+import ConfirmModal from "../../confirm/ConfirmModal";
+import CustomSelectWithAction from "../../select/CustomSelectWithAction";
 
 
-const ModulesModal = ({ onClose }) => {
-  const branches = useSelector(getModuleModalBranches);
-  const lockerGroups = useSelector(getModuleModalGroupes)
+const ModulesModal = ({ onClose, id, mode = "add" }) => {
+  const branches = useSelector(getAllBranchesData);
   const newBrains = useSelector(getNewBrainsData);
-  const lockerGroupRange = useSelector(getLockerGroupMinMax);
-  const [addGroupModalSwitch, setAddGroupModalSwitch] = useState(false);
-  const lockerOptions = getLockerOptions().map((lockerType) => ({
-    name: lockerType,
-    label: lockerType.charAt(0).toUpperCase() + lockerType.slice(1),
-  }));
-
-  const handleLockerTypeChange = (selectedOption) => {
-    sendGroupInfo('lockerType', selectedOption.value);
-  };
-
+  const module = useSelector(getModuleData);
   const dispatch = useDispatch();
-  // const branches = useSelector(getBranchesData);
-  // const [selectedBranch, setSelectedBranch] = useState([]);
-  const [sentGeneralInfo, setSentGeneralInfo] = useState({
-    lockerType: null,
-    startBegin: false,
-    lockerGroupId: null,
-  });
+
   const [addBranchModalSwitch, setAddBranchModalSwitch] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [brainToDelete, setBrainToDelete] = useState(null);
+
 
   const newBrainsOptions = Object.values(newBrains)?.map(brain => ({
     value: brain.id,
@@ -52,251 +40,189 @@ const ModulesModal = ({ onClose }) => {
     dispatch(getBranches());
     dispatch(getLockerGroupsData());
     dispatch(getNewBrains());
-  }, []);
+  }, [dispatch]);
 
-
-  const addModules = () => {
-    dispatch(addModuleFunc(sentGeneralInfo))
-      .then((response) => {
-        if (response && response.payload.isSuccess) {
-          toast.success("Modules created successfully");
-          onClose();
-        }
-      })
-      .catch((error) => {
-        toast.error("Something went wrong");
-      });
-  }
-
-  const sendGroupInfo = (key, value) => {
-    setSentGeneralInfo((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
+  useEffect(() => {
+    if (id) {
+      dispatch(moduleShow({ id }));
+    }
+  }, [id]);
+  console.log(module, 'module in modal');
 
   const formik = useFormik({
     initialValues: {
-      lockerType: '',
-      branchId: '',
-      lockerGroupId: '',
-      startBegin: false,
-      lockerFrom: '',
-      lockerTo: '',
-      brainId: '',
+      branchId: module.branchId || '',
+      brainId: module.brainUid || '',
     },
+    enableReinitialize: true,
     validationSchema: Yup.object().shape({
-      brainId: Yup.number().required('Brain ID is required'),
-      branchId: Yup.number().required('Branch ID is required'),
-      lockerGroupId: Yup.number().nullable(),
-      lockerType: Yup.string().nullable(),
-      lockerFrom: Yup.number()
-        .required('Required')
-        .min(1, 'Min 1')
-        .max(256, 'Max 256'),
-
-      lockerTo: Yup.number()
-        .required('Required')
-        .min(Yup.ref('lockerFrom'), 'Must be greater than or equal to "from"')
-        .max(256, 'Max 256'),
+      brainId: mode === "edit"
+        ? Yup.string().required("Brain ID is required")
+        : Yup.number().required("Brain ID is required"),
+      branchId: Yup.number().required("Branch ID is required"),
     }),
     onSubmit: (values) => {
-      addModules();
-    },
+      console.log(values, 'form values');
 
-    // onSubmit: (values) => {
-    //   dispatch(addModuleFunc(values));
-    // },
+      const action = mode === "edit"
+        ? updateModule({
+          id, data: {
+            branchId: values.branchId,
+            // brainUid:values.brainId
+          }
+        })
+        : addModuleFunc(values);
+
+      dispatch(action)
+        .then((response) => {
+          if (response?.payload?.isSuccess) {
+            toast.success(
+              mode === "edit" ? "Module updated successfully" : "Module created successfully"
+            );
+            onClose();
+          }
+        })
+        .catch(() => {
+          toast.error("Something went wrong");
+        });
+    },
   });
 
-  const handleBranchChange = (selectedOption) => {
-    sendGroupInfo('branchId', selectedOption.value);
-    dispatch(filterGroupByBranch(selectedOption.value));
+  const handleBranchChange = (option) => {
+    formik.setFieldValue('branchId', option?.value);
+    dispatch(filterGroupByBranch(option.value));
   };
 
-  const handleNewBrainChange = (selectedOption) => {
-    sendGroupInfo('id', selectedOption.value);
-    dispatch(getLockerGroupRange({ brainId: selectedOption.value, groupId: sentGeneralInfo.lockerGroupId }));
+  const handleNewBrainChange = (option) => {
+    formik.setFieldValue('brainId', option?.value);
   };
 
-  const handleLockerGroupChange = (selectedOption) => {
-    sendGroupInfo('lockerGroupId', selectedOption.value);
-    if (sentGeneralInfo?.id) {
-      dispatch(getLockerGroupRange({ brainId: sentGeneralInfo.id, groupId: selectedOption.value }));
-    }
-  };
+  const handleDeleteBrainId = () => {
+    if (!brainToDelete) return
+    dispatch(deleteBrainId(brainToDelete))
+      .then((response) => {
+        if (response.payload?.isSuccess) {
+          setBrainToDelete(null)
+        }
+      });
+  }
 
   return (
-    <div
-      className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10"
-    >
+    <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
       <form onSubmit={formik.handleSubmit}>
         <div className="add__modal__content add__modal__content__addModules rounded-lg shadow-lg w-full max-w-4xl overflow-auto">
+          {/* Header */}
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-white">Add brain modules</h2>
-            <CloseButton onClick={onClose}>
-              &times;
-            </CloseButton>
+            <h2 className="text-2xl font-semibold text-white">
+              {mode === "edit" ? "Edit brain module" : "Add brain module"}
+            </h2>
+            <CloseButton onClick={onClose}>&times;</CloseButton>
           </div>
+
+          {/* Form fields */}
           <div>
             <div className="add__modal__content__part">
               <span>General</span>
               <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
+                {/* Brain Module */}
                 <label className="block text-gray-300">Brain Module</label>
-                <div>
-                  <div className="w-5/6 mr-2">
-                    <CustomSelect
+                <div className="w-5/6 mr-2">
+                  {mode === "edit" && formik.values.brainId ? (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        name="brainId"
+                        value={formik.values.brainId}
+                        readOnly
+                        className="w-full px-3 py-2 rounded"
+                      />
+
+                      {/* <button
+                        type="button"
+                        onClick={() => setShowConfirm(true)}
+                        className="bg-red-500 text-white p-3 rounded-md hover:bg-red-700"
+                      >
+                        <MdDelete />
+                      </button> */}
+                    </div>
+                  ) : (
+                    <CustomSelectWithAction
                       options={newBrainsOptions}
                       name="brainId"
-                      onChange={(option) => {
-                        formik.setFieldValue('brainId', option?.name);
-                        handleNewBrainChange(option);
+                      onChange={handleNewBrainChange}
+                      value={
+                        newBrainsOptions.find(
+                          (opt) => String(opt.value) === String(formik.values.brainId)
+                        ) || null
+                      }
+                      onDeleteOption={(option) => {
+                        setBrainToDelete(option.value);
+                        setShowConfirm(true);
                       }}
-                    // onChange={(option) => formik.setFieldValue('brainId', option?.id)}
                     />
-                    {formik.touched.brainId && formik.errors.brainId && (
-                      <div className="text-red-500">{formik.errors.brainId}</div>
-                    )}
-                  </div>
-
+                  )}
                 </div>
+
+                {/* Branch */}
                 <label className="block text-gray-300">Branch</label>
-                <div className="flex ">
+                <div className="flex">
                   <div className="w-5/6 mr-2">
                     <CustomSelect
-                      options={branches?.map((branch) => ({
+                      options={branches?.map(branch => ({
                         label: branch.name,
                         value: branch.id,
                       }))}
-                      value={branches?.find(option => option.value === formik.values.branchId)}
-                      onChange={(option) => {
-                        formik.setFieldValue('branchId', option?.value);
-                        handleBranchChange(option);
-                      }}
+                      onChange={handleBranchChange}
+                      value={branches
+                        ?.map(branch => ({
+                          label: branch.name,
+                          value: branch.id,
+                        }))
+                        .find(opt => opt.value === formik.values.branchId) || null}
                     />
                     {formik.touched.branchId && formik.errors.branchId && (
                       <div className="text-red-500">{formik.errors.branchId}</div>
                     )}
                   </div>
-                  <div className="flex w-1/6">
+                  <div className="flex">
                     <button
+                      type="button"
                       onClick={() => setAddBranchModalSwitch(true)}
                       className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
                     >
-                      <IoMdAdd className="fill-current" style={{ fontSize: 'xx-large' }} />
-                      {addBranchModalSwitch && <BranchModal onClose={(e) => {
-                        if (e?.stopPropagation) e.stopPropagation();
-                        setAddBranchModalSwitch(false);
-                      }} />}
+                      <IoMdAdd className="fill-current text-2xl" />
                     </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="add__modal__content__part" >
-              <span>Specify</span>
-              <div className="add__modal__content__part__group grid grid-cols-1 gap-4 mb-4">
-                <label className="block text-gray-300">Locker group(optional)</label>
-                <div className="flex ">
-                  <div className="w-5/6 mr-2">
-                    <CustomSelect
-                      options={lockerGroups.map((group) => ({
-                        label: group.name,
-                        value: group.id,
-                      }))}
-                      onChange={handleLockerGroupChange}
-                    />
-                  </div>
-                  <div className="flex w-1/6">
-                    <button
-                      onClick={() => setAddGroupModalSwitch(true)}
-                      className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 rounded inline-flex items-center h-[43px]"
-                    >
-                      <IoMdAdd className="fill-current" style={{ fontSize: 'xx-large' }} />
-                      {addGroupModalSwitch && <LockerModal
+                    {addBranchModalSwitch && (
+                      <BranchModal
                         onClose={(e) => {
                           if (e?.stopPropagation) e.stopPropagation();
-                          setAddGroupModalSwitch(false);
+                          setAddBranchModalSwitch(false);
                         }}
-                      />}
-                    </button>
+                      />
+                    )}
+
+                    {showConfirm && (
+                      <ConfirmModal
+                        message={'Are you sure you want to delete this module chain? Deleting it will permanently remove all associated components, including lockers, doors, and sensors, from the cloud software.'}
+                        onConfirm={() => {
+                          handleDeleteBrainId();
+                          setShowConfirm(false);
+                        }}
+                        onCancel={() => setShowConfirm(false)}
+                      />
+                    )}
                   </div>
                 </div>
-                <label className="block text-gray-300">Locker type(optional)</label>
-                <div className="flex ">
-                  <div className="w-5/6 mr-2">
-                    <CustomSelect options={Array.isArray(lockerOptions) ? lockerOptions.map((option) => ({
-                      value: option.label === "All" ? "" : option.name,
-                      label: option.label
-                    })) : []}
-                      onChange={handleLockerTypeChange} />
-                  </div>
-                </div>
-                <label className="block text-gray-300">Locker numbers</label>
-                <div className="flex">
-                  <div className="generation w-full">
-                    <div className="generation__checkbox flex items-center">
-                      <CustomCheckbox onChange={(checked) => sendGroupInfo('startBegin', checked)} />
-                      <span className="text-gray-800">Begin from last locker no, in the group</span>
-                    </div>
-                  </div>
-                </div>
-                {/* <div className="flex items-center space-x-2">
-                  <input
-                    type="number"
-                    placeholder="1"
-                    onChange={(e) => sendGroupInfo('firstLocker', e.target.value)}
-                    className="w-20 border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-800">to</span>
-                  <input
-                    type="number"
-                    placeholder="256"
-                    onChange={(e) => sendGroupInfo('lastLocker', e.target.value)}
-                    className="w-20 border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div> */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    name="lockerFrom"
-                    placeholder={lockerGroupRange?.min || '1'}
-                    value={formik.values.lockerFrom}
-                    onChange={(e) => {
-                      formik.handleChange(e);
-                      const value = e.target.value ? parseInt(e.target.value, 10) : '';
-                      formik.setFieldValue('lockerFrom', value);
-                      sendGroupInfo('firstLocker', value);
-                    }}
-                    onBlur={formik.handleBlur}
-                    className="w-20 border border-gray-300 rounded-md px-2 py-1"
-                  />
-                  <span className="text-gray-800">to</span>
-                  <input
-                    type="number"
-                    name="lockerTo"
-                    placeholder="256"
-                    value={formik.values.lockerTo}
-                    onChange={(e) => {
-                      formik.handleChange(e);
-                      const value = e.target.value ? parseInt(e.target.value, 10) : '';
-                      formik.setFieldValue('lockerTo', value);
-                      sendGroupInfo('lastLocker', value);
-                    }}
-                    onBlur={formik.handleBlur}
-                    className="w-20 border border-gray-300 rounded-md px-2 py-1"
-                  />
-                </div>
-                {formik.touched.lockerFrom && formik.errors.lockerFrom && <div className="text-red-500">{formik.errors.lockerFrom}</div>}
-                {formik.touched.lockerTo && formik.errors.lockerTo && <div className="text-red-500">{formik.errors.lockerTo}</div>}
               </div>
             </div>
           </div>
-          <div className="flex justify-end space-x-4 m-5 ">
+
+          {/* Buttons */}
+          <div className="flex justify-end space-x-4 m-5">
             <div className="modal__button">
               <button
                 type="button"
-                className="bg-gray-600 text-white rounded"
+                className="bg-gray-600 text-white rounded px-4 py-2"
                 onClick={onClose}
               >
                 Cancel
@@ -304,14 +230,14 @@ const ModulesModal = ({ onClose }) => {
             </div>
             <div className="modal__button">
               <button
-                className="bg-gray-600 text-white rounded"
                 type="submit"
-                onClick={addModules}
+                className="bg-gray-600 text-white rounded px-4 py-2"
               >
-                Save
+                {mode === "edit" ? "Update" : "Save"}
               </button>
             </div>
           </div>
+
         </div>
       </form>
     </div>

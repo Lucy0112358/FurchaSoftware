@@ -1,23 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import instance from "../../config/axios/axiosConfig";
 
-export const getBranches = createAsyncThunk(
-  'menu/getBranches',
-  async (_, thunkAPI) => {
-      try {
-        const config = {
-          method: "get",
-          url: 'Branch/company-branches',
-        };
-        
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
-    }
-)
-
 export const getUserGroups = createAsyncThunk(
   'menu/getUserGroups',
   async (_, thunkAPI) => {
@@ -35,42 +18,6 @@ export const getUserGroups = createAsyncThunk(
     }
 )
 
-export const userFilter = createAsyncThunk(
-  'menu/userFilter',
-  async (params, thunkAPI) => {
-      try {
-        const config = {
-          method: "get",
-          url: 'User/filtered-users/',
-          params: { ...params },
-        };
-        
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
-    }
-)
-
-// TODO: Change location to UserGroupApi
-export const setUserGroup = createAsyncThunk(
-  'menu/setUserGroup',
-  async (data, thunkAPI) => {
-      try {
-        const config = {
-          method: "post",
-          url: 'User/add-user-group',
-          data: data
-        };
-        
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
-    }
-)
 
 export const setLockerGroup = createAsyncThunk(
   'menu/setLockerGroup',
@@ -91,26 +38,6 @@ export const setLockerGroup = createAsyncThunk(
     }
 )
 
-//Temprorary for testing
-export const filterUserByName = createAsyncThunk(
-  'menu/filterUserByName',
-  async (params, thunkAPI) => {
-      try {
-        const config = {
-          method: "get",
-          url: 'User/search-user/',
-          params: { ...params },
-        };
-        
-        const response = await instance(config);
-        return response?.data;
-      } catch (error) {
-        return thunkAPI.rejectWithValue(error.response.data.error.both);
-      }
-    }
-)
-
-
 export const getLockerGroupsData = createAsyncThunk(
   'menu/getLockerGroupsData',
   async (_, thunkAPI) => {
@@ -127,5 +54,3 @@ export const getLockerGroupsData = createAsyncThunk(
       }
     }
 )
-
-

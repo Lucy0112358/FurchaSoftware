@@ -1,18 +1,30 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getBranches, getLockerGroupsData} from "../api/menuApi";
+import {  getLockerGroupsData } from "../api/menuApi";
 import { userSlice } from "./userSlice";
-import { getLockerGroupRange, getModules, getNewBrains} from "../api/moduleApi";
+import { getModuleLocker, getModules, getNewBrains, moduleShow } from "../api/moduleApi";
+import { LockerTypes } from "../../enums/Locker/Types";
+import { getBranches } from "../api/branchApi";
 
 const initialState = {
   modalBranches: [],
   allModules: {},
-  modalGroups: {},
-  modalGroupsCopy: {},
+  modalGroups: [],
+  modalGroupsCopy: [],
   newBrains: {},
   lockerGroupMinMax: {
     min: 1,
     max: 256,
   },
+  module: {},
+  moduleLocker: {
+    // lockerType: 'personal',
+    // lockerGroupId: 1,
+    // lockerRange: {
+    //   start: 1,
+    //   end: 256
+    // }
+  }
+
 };
 
 export const moduleSlice = createSlice({
@@ -42,17 +54,23 @@ export const moduleSlice = createSlice({
         moduleSlice.caseReducers.setLockerGroup(state, action.payload.data);
       })
       .addCase(getModules.fulfilled, (state, action) => {
-        state.allModules =  action.payload.data;
+        state.allModules = action.payload.data;
+      })
+      .addCase(moduleShow.fulfilled, (state, action) => {
+        state.module= action.payload;
       })
       .addCase(getNewBrains.fulfilled, (state, action) => {
         state.newBrains = action.payload.data;
       })
-      .addCase(getLockerGroupRange.fulfilled, (state, action) => {
-        state.lockerGroupMinMax = {
-          min: action.payload.data?.lastLocker?? 1,
-          max: 256,
-        };
-      });
+      .addCase(getModuleLocker.fulfilled, (state, action) => {
+        state.moduleLocker = action.payload.data;
+      })
+    // .addCase(getLockerGroupRange.fulfilled, (state, action) => {
+    //   state.lockerGroupMinMax = {
+    //     min: action.payload.data?.lastLocker ?? 1,
+    //     max: 256,
+    //   };
+    // });
   },
 });
 
@@ -65,6 +83,8 @@ export const getModuleModalBranches = (state) => state.modules.modalBranches;
 export const getModulesData = (state) => state.modules.allModules;
 export const getNewBrainsData = (state) => state.modules.newBrains;
 export const getLockerGroupMinMax = (state) => state.modules.lockerGroupMinMax;
+export const getModuleLockerData = (state) => state.modules.moduleLocker;
+export const getModuleData = (state) => state.modules.module;
 
 
 export default moduleSlice.reducer;

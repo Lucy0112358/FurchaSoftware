@@ -6,7 +6,7 @@ import State from '../../popupAction/user/State';
 import AddUserGroup from '../../popupAction/user/AddUserGroup';
 
 
-function UserPopup({ user, onClose, selectedIds }) {
+function UserPopup({ user, onClose, selectedIds, clearSelected }) {
 
   return (
     <div
@@ -14,7 +14,7 @@ function UserPopup({ user, onClose, selectedIds }) {
       onClick={(e) => e.stopPropagation()}
     >
       {selectedIds?.length > 0 ? (
-        <UserPopupMultiItem selectedIds={selectedIds} onClose={onClose} />
+        <UserPopupMultiItem selectedIds={selectedIds} clearSelected={clearSelected} onClose={onClose} />
       ) : (
         user && (
           <>
@@ -22,16 +22,16 @@ function UserPopup({ user, onClose, selectedIds }) {
               <h3 className="text-lg font-bold text-gray-800">
                 User #{user.id}
                 <span className="ml-2 inline-block text-sm text-gray-500 bg-gray-100 rounded px-2 py-1">
-                  {user.lockerType}
+                  {/* {user.lockerType.name} */}
                 </span>
               </h3>
             </div>
 
             <div className="flex flex-col gap-2">
-              <Edit lockers={user} onClose={onClose} />
-              <Delete ids={[user.id]} onClose={onClose} />
-              <State user={user} onClose={onClose} />
-              <AddUserGroup ids={[user.id]} onClose={onClose} />
+              <Edit id={user.id}  onClose={() => onClose()} />
+              <Delete ids={[user.id]}  onClose={() => onClose()} clearSelected={clearSelected} />
+              <State user={user}  onClose={() => onClose()} />
+              <AddUserGroup ids={[user.id]}  onClose={() => onClose()} />
             </div>
           </>
         )

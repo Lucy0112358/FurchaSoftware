@@ -1,9 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAllGroups } from "../api/groupApi";
+import { getAllGroups, userGroupShow } from "../api/groupApi";
 
 const initialState = {
   loading: false,
   allGroup: [],
+  getUserGroup: {},
 };
 
 export const groupSlice = createSlice({
@@ -28,6 +29,9 @@ export const groupSlice = createSlice({
         state.errorMessage = action.payload;
         state.loading = false;
       })
+      .addCase(userGroupShow.fulfilled, (state, action) => {
+        state.getUserGroup = action.payload;
+      })
   },
 });
 
@@ -36,7 +40,7 @@ export const {
 } = groupSlice.actions;
 
 export const getLoadingNow = (state) => state.group.loading;
-
+export const getUserGroupData = (state) => state.group.getUserGroup;
 export const getAllGroupsData = (state) => state.group.allGroup;
 
 export default groupSlice.reducer;

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import Delete from '../../popupAction/userGroup/Delete';
-import Suspend from '../../popupAction/userGroup/Suspend';
+import ChangeState from '../../popupAction/userGroup/ChangeState';
 
-function UserGroupPopupMultiItem({ selectedIds, onClose }) {
+function UserGroupPopupMultiItem({ selectedIds, onClose, clearSelected }) {
   return (
     <div className="bg-white rounded-xl max-w-md mx-auto">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Edit Selected Groups</h2>
@@ -17,8 +17,9 @@ function UserGroupPopupMultiItem({ selectedIds, onClose }) {
         </div>
       </div>
       <div className='flex flex-col gap-2'>
-        <Delete ids={selectedIds} onClose={onClose} />
-        <Suspend ids={selectedIds} onClose={onClose} />
+        <Delete ids={selectedIds} clearSelected={clearSelected} onClose={onClose} />
+        <ChangeState ids={selectedIds} action='Suspend' onClose={onClose} />
+        <ChangeState ids={selectedIds} action='Active' onClose={onClose} />
       </div>
     </div>
   )

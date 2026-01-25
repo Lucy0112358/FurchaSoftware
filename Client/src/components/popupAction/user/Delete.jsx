@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from "react-toastify";
 import ConfirmModal from '../../confirm/ConfirmModal';
-import { deleteUsers } from '../../../redux/api/userApi';
+import { deleteUsers, getUsers } from '../../../redux/api/userApi';
 
-function Delete({ ids, onClose }) {
-    console.log(ids);
-
+function Delete({ ids, onClose, clearSelected }) {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -16,7 +14,9 @@ function Delete({ ids, onClose }) {
                 .unwrap()
                 .then((res) => {
                     toast.success(res.message);
-                    onClose();
+                    dispatch(getUsers())
+                    clearSelected();
+                    if (onClose) onClose();
                 })
                 .catch((err) => {
                     toast.error(err?.message || "Ошибка при удалении");
