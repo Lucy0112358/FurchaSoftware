@@ -868,5 +868,49 @@ namespace FurchaAdminApi.Services
             }
         }
 
+        public bool DeleteLockerGroup(int groupId)
+        {
+            using var transaction = Db.Database.BeginTransaction();
+            try
+            {
+                var group = Db.LockerGroups
+                    .Include(g => g.AdminLockerGroups)
+                    .Include(g => g.BrainModules)
+                        .ThenInclude(m => m.Lockers)
+                    .FirstOrDefault(g => g.Id == groupId);
+
+                if (group == null)
+                    return false;
+
+                if (group.AdminLockerGroups.Any())
+                {
+                    Db.AdminLockerGroups.RemoveRange(group.AdminLockerGroups);
+                }
+
+                foreach (var module in group.BrainModules)
+                {
+                    module.GroupId = null;
+
+                    foreach (var locker in module.Lockers)
+                    {
+                        locker.IsDeleted = true;
+                        locker.LockerType = 1; 
+                    }
+                }
+
+                Db.LockerGroups.Remove(group);
+
+                Db.SaveChanges();
+                transaction.Commit();
+
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
     }
 }

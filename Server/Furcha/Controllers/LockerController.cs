@@ -254,5 +254,22 @@ namespace FurchaAdminApi.Controllers
             return Ok(ApiResult<LockerGroupResultDto>.Success(dto));
         }
 
+        [Authorize]
+       // [RequiresPermission("ManageLockerGroups")]
+        [HttpPost("deleteLockerGroup/{id}")]
+        public ActionResult<ApiResult<bool>> DeleteLockerGroup(int id)
+        {
+            if (id <= 0)
+                return BadRequest(ApiResult<bool>.ErrorResult("Invalid locker group id."));
+
+            var isDeleted = _lockerService.DeleteLockerGroup(id);
+
+            if (!isDeleted)
+                return NotFound(ApiResult<bool>.ErrorResult("Locker group not found or could not be deleted."));
+
+            return Ok(ApiResult<bool>.Success(true));
+        }
+
+
     }
 }
