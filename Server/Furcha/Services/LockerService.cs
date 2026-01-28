@@ -267,161 +267,97 @@ namespace FurchaAdminApi.Services
         /// <summary>
         /// Retrieves editingLockers based on specified filtering criteria.
         /// </summary>
-   /*     public List<Models.Result.ModuleResult> GetModules(int adminId)
-        {
-#warning auth
-            var adminBranches = Db.Branches
-        .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
-        .ToList(); //_branchRepository.GetBranchesByAdminId(8);
+        /*     public List<Models.Result.ModuleResult> GetModules(int adminId)
+             {
+     #warning auth
+                 var adminBranches = Db.Branches
+             .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
+             .ToList(); //_branchRepository.GetBranchesByAdminId(8);
 
-            var result = new List<Models.Result.ModuleResult>();
-
-
-            foreach (var branch in adminBranches)
-            {
-                var branchLockerGroups = Db.LockerGroups
-        .Where(lg => lg.BranchId == branch.Id)
-        .ToList();// _lockerRepository.GetLockerGroupsByBranchId(branch.Id);
-
-                var moduleInfos = new List<ModuleInfo>();
-
-                foreach (var group in branchLockerGroups)
-                {
-                    var groupModules = Db.BrainModules
-        .Where(bm => bm.GroupId == group.Id && bm.Status == 2)
-        .ToList(); //_lockerRepository.GetModulesByGroupId(mLockers.Id);
-
-                    if (groupModules.Any())
-                    {
-                        var moduleLockers = new List<ModuleLockers>();
-
-                        foreach (var module in groupModules)
-                        {
-                            var lockers = Db.Lockers
-        .Where(l => l.BrainId == module.Id)
-        .ToList();
-                            //_lockerRepository.GetLockersByBrainId(module.Id);
-                            if (!lockers.Any()) continue;
-                            moduleLockers.Add(new ModuleLockers
-                            {
-                                FirstLocker = (int)lockers.First().Number,
-                                LastLocker = (int)lockers.Last().Number,
-                            });
+                 var result = new List<Models.Result.ModuleResult>();
 
 
-                        }
+                 foreach (var branch in adminBranches)
+                 {
+                     var branchLockerGroups = Db.LockerGroups
+             .Where(lg => lg.BranchId == branch.Id)
+             .ToList();// _lockerRepository.GetLockerGroupsByBranchId(branch.Id);
 
-                        moduleInfos.Add(new ModuleInfo
-                        {
-                            GroupName = group.Name,
-                            GroupModules = moduleLockers
-                        });
-                    }
-                }
+                     var moduleInfos = new List<ModuleInfo>();
 
-                if (moduleInfos.Any())
-                {
-                    result.Add(new Models.Result.ModuleResult
-                    {
-                        OfficeName = branch.Name,
-                        Modules = moduleInfos
-                    });
-                }
-            }
+                     foreach (var group in branchLockerGroups)
+                     {
+                         var groupModules = Db.BrainModules
+             .Where(bm => bm.GroupId == group.Id && bm.Status == 2)
+             .ToList(); //_lockerRepository.GetModulesByGroupId(mLockers.Id);
 
-            return result;
-        }
-*/
+                         if (groupModules.Any())
+                         {
+                             var moduleLockers = new List<ModuleLockers>();
+
+                             foreach (var module in groupModules)
+                             {
+                                 var lockers = Db.Lockers
+             .Where(l => l.BrainId == module.Id)
+             .ToList();
+                                 //_lockerRepository.GetLockersByBrainId(module.Id);
+                                 if (!lockers.Any()) continue;
+                                 moduleLockers.Add(new ModuleLockers
+                                 {
+                                     FirstLocker = (int)lockers.First().Number,
+                                     LastLocker = (int)lockers.Last().Number,
+                                 });
+
+
+                             }
+
+                             moduleInfos.Add(new ModuleInfo
+                             {
+                                 GroupName = group.Name,
+                                 GroupModules = moduleLockers
+                             });
+                         }
+                     }
+
+                     if (moduleInfos.Any())
+                     {
+                         result.Add(new Models.Result.ModuleResult
+                         {
+                             OfficeName = branch.Name,
+                             Modules = moduleInfos
+                         });
+                     }
+                 }
+
+                 return result;
+             }
+     */
         internal bool CreateModule(ModuleRequest request)
         {
-            /* using (var transaction = new TransactionScope())
-             {*/
-            /*  if (request.LockerGroupId == null)
-              {
-                  var newGroup = new LockerGroup
-                  {
-                      Name = "Unassigned 1", // index names
-                      BranchId = request.BranchId,
-                  };
+            var module = Db.BrainModules
+                .Include(m => m.Lockers)
+                .FirstOrDefault(m => m.Id == request.BrainId);
 
-                  var unassignedGroup = Db.LockerGroups.Add(newGroup);
-                  Db.SaveChanges();
-                  //_lockerRepository.CreateLockerGroup(newGroup);
+            if (module == null)
+                throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "Module not found");
 
-                  request.LockerGroupId = unassignedGroup.Entity.Id;
-              }*/
+            module.BranchId = request.BranchId;
+            module.Status = 2;
 
-            var existingModule = Db.BrainModules.FirstOrDefault(m => m.Id == request.BrainId);
-            if (existingModule != null)
+            int lockerNumber = 1;
+
+            foreach (var locker in module.Lockers.OrderBy(l => l.Id))
             {
-                existingModule.BranchId = request.BranchId;
-                existingModule.Status = 2;
-
-                Db.SaveChanges();
+                locker.IsDeleted = false;
+                locker.LockerType = 1;
+                locker.Number = lockerNumber++;
             }
 
-            /*   int startIndex = 1;
-
-               var lockersWithNumber = Db.Lockers
-                   .Where(l => l.GroupId == (int)request.LockerGroupId)
-                   .ToList() // _lockerRepository.GetLockersOfGroup((int)request.LockerGroupId)
-                   .OrderBy(x => (int)x.Number).ToList();
-
-               if (request.StartBegin)
-               {
-                   if (lockersWithNumber.Any())
-                   {
-                       foreach (var locker in lockersWithNumber)
-                       {
-                           var l = Db.Lockers.FirstOrDefault(l => l.Id == locker.Id);
-                           if (l != null)
-                           {
-                               l.Number = locker.Number + request.LastLocker;
-                               Db.SaveChanges();
-                           }
-
-                           //_lockerRepository.UpdateLocker(l);
-                       }
-                   }
-               }
-               else
-               {
-                   if (lockersWithNumber.Any())
-                   {
-                       startIndex = lockersWithNumber.Select(x => (int)x.Number).Max() + 1;
-                   }
-                   else
-                   {
-                       startIndex = 1;
-                   }
-               }
-
-
-               if (startIndex >= request.LastLocker || request.FirstLocker < startIndex)
-               {
-                   throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "locker number is wrong");
-               }
-
-               for (int i = startIndex; i < request.LastLocker; i++)
-               {
-                   var locker = new Locker
-                   {
-                       Number = i,
-                       LockerType = locker_type.Common.ToString(),
-                       PasswordHash = "default",
-                       BranchId = request.BranchId,
-                       GroupId = request.LockerGroupId,
-                       BrainId = request.Id
-                   };
-
-                   //  _lockerRepository.CreateLocker(locker);
-                   Db.Lockers.Add(locker);
-                   Db.SaveChanges();
-               }
-   */
-            /*     }*/
+            Db.SaveChanges();
             return true;
         }
+
+
         internal bool CreateLockerGroup(int branchId, string name)
         {
             var result = new LockerGroup()
@@ -838,78 +774,68 @@ namespace FurchaAdminApi.Services
 
         public bool DeleteModulePermanently(int moduleId)
         {
-            using var transaction = Db.Database.BeginTransaction();
-            try
-            {
-                var module = Db.BrainModules
-                    .Include(m => m.Lockers)
-                    .FirstOrDefault(m => m.Id == moduleId);
+            var module = Db.BrainModules
+                .Include(m => m.Lockers)
+                .FirstOrDefault(m => m.Id == moduleId);
 
-                if (module == null)
-                    throw new Exception("Module not found");
+            if (module == null)
+                throw new Exception("Module not found");
 
-                // Delete associated lockers if needed
-                if (module.Lockers != null && module.Lockers.Any())
-                {
-                    Db.Lockers.RemoveRange(module.Lockers);
-                }
+            Db.Lockers.RemoveRange(module.Lockers);
+            Db.BrainModules.Remove(module);
 
-                Db.BrainModules.Remove(module);
-
-                Db.SaveChanges();
-                transaction.Commit();
-
-                return true;
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+            Db.SaveChanges();
+            return true;
         }
+
 
         public bool DeleteLockerGroup(int groupId)
         {
-            using var transaction = Db.Database.BeginTransaction();
-            try
+            var strategy = Db.Database.CreateExecutionStrategy();
+
+            return strategy.Execute(() =>
             {
-                var group = Db.LockerGroups
-                    .Include(g => g.AdminLockerGroups)
-                    .Include(g => g.BrainModules)
-                        .ThenInclude(m => m.Lockers)
-                    .FirstOrDefault(g => g.Id == groupId);
-
-                if (group == null)
-                    return false;
-
-                if (group.AdminLockerGroups.Any())
+                using var transaction = Db.Database.BeginTransaction();
+                try
                 {
-                    Db.AdminLockerGroups.RemoveRange(group.AdminLockerGroups);
-                }
+                    var group = Db.LockerGroups
+                        .Include(g => g.AdminLockerGroups)
+                        .Include(g => g.BrainModules)
+                            .ThenInclude(m => m.Lockers)
+                        .FirstOrDefault(g => g.Id == groupId);
 
-                foreach (var module in group.BrainModules)
-                {
-                    module.GroupId = null;
+                    if (group == null)
+                        return false;
 
-                    foreach (var locker in module.Lockers)
+                    if (group.AdminLockerGroups.Any())
                     {
-                        locker.IsDeleted = true;
-                        locker.LockerType = 1; 
+                        Db.AdminLockerGroups.RemoveRange(group.AdminLockerGroups);
                     }
+
+                    foreach (var module in group.BrainModules)
+                    {
+                        module.GroupId = null;
+
+                        foreach (var locker in module.Lockers)
+                        {
+                            locker.IsDeleted = true;
+                            locker.LockerType = 1; 
+                        }
+                    }
+
+                    Db.LockerGroups.Remove(group);
+
+                    Db.SaveChanges();
+                    transaction.Commit();
+
+                    return true;
                 }
-
-                Db.LockerGroups.Remove(group);
-
-                Db.SaveChanges();
-                transaction.Commit();
-
-                return true;
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            });
         }
 
     }

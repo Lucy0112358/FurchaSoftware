@@ -304,13 +304,12 @@ namespace FurchaAdminApi.Services
 
             Db.Users
               .Where(u =>
-                  // u.CompanyId == companyId && /* uncomment this line */ 
-                  u.State == (int)StateEnum.active &&               
+                  u.State == (int)StateEnum.active &&
                   u.ActiveTo.HasValue &&
                   u.ActiveTo.Value.Date < today)
-              .ExecuteUpdate(s => s.SetProperty(u => u.State, (int)StateEnum.expanded)); 
+              .ExecuteUpdate(s =>
+                  s.SetProperty(u => u.State, (int)StateEnum.expanded));
         }
-
 
         public List<User> GetUsersForLVL5Admin(int companyId)
         {
@@ -692,7 +691,7 @@ namespace FurchaAdminApi.Services
             if (string.IsNullOrWhiteSpace(email))
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "Email is required.");
 
-            // Dates (store as Unspecified if that's your DB convention)
+            // Dates
             DateTime? activeFrom = null;
             if (newUser.ActiveFrom.HasValue)
                 activeFrom = DateTime.SpecifyKind(newUser.ActiveFrom.Value.Date, DateTimeKind.Unspecified);
@@ -703,18 +702,29 @@ namespace FurchaAdminApi.Services
 
             var today = DateTime.UtcNow.Date;
 
-            // Use your enum names (based on your memory: Active=0, Suspended=1, Scheduled=2, Expanded=?)
-            var state = StateEnum.active;
-            if (activeTo.HasValue && activeTo.Value.Date < today)
-                state = StateEnum.expanded;
-
             try
             {
                 var user = Db.Users.FirstOrDefault(u => u.Id == newUser.Id);
 
+                // 🔐 STATE RESOLUTION (FIX)
+                StateEnum newState;
+
+                if (user != null && user.State == (int)StateEnum.suspended)
+                {
+                    // Admin suspension always wins
+                    newState = StateEnum.suspended;
+                }
+                else
+                {
+                    newState = StateEnum.active;
+
+                    if (activeTo.HasValue && activeTo.Value.Date < today)
+                        newState = StateEnum.expanded;
+                }
+
                 if (user == null)
                 {
-                    // ADD: prevent duplicates (I recommend per-company; change if your rule is global)
+                    // ADD
                     var emailExists = Db.Users.Any(u => u.CompanyId == companyId && u.Email == email);
                     if (emailExists)
                         throw new BaseException(ErrorCodeEnum.EmailAlreadyExists,
@@ -727,7 +737,7 @@ namespace FurchaAdminApi.Services
                         Email = email,
                         Phone = newUser.Phone,
                         CreatedDate = DateTime.UtcNow,
-                        State = (int)state,
+                        State = (int)newState,
                         CompanyId = companyId,
                         ActiveFrom = activeFrom,
                         ActiveTo = activeTo
@@ -737,11 +747,10 @@ namespace FurchaAdminApi.Services
                 }
                 else
                 {
-                    // EDIT: security - don't allow editing user from another company
+                    // EDIT
                     if (user.CompanyId != companyId)
                         throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "Access denied.");
 
-                    // EDIT: allow changing email, but ensure uniqueness excluding self
                     var emailExists = Db.Users.Any(u =>
                         u.CompanyId == companyId &&
                         u.Email == email &&
@@ -753,10 +762,9 @@ namespace FurchaAdminApi.Services
 
                     user.Name = newUser.Name;
                     user.Surname = newUser.Surname;
-                    user.Email = email;          // <- keep if you want to allow edit
+                    user.Email = email;
                     user.Phone = newUser.Phone;
-
-                    user.State = (int)state;
+                    user.State = (int)newState;
                     user.ActiveFrom = activeFrom;
                     user.ActiveTo = activeTo;
                 }
@@ -790,8 +798,8 @@ namespace FurchaAdminApi.Services
             }
             catch (Exception ex)
             {
-                // If you also have a UNIQUE index in DB, keep this as fallback
-                if (ex.InnerException is SqlException sqlEx && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+                if (ex.InnerException is SqlException sqlEx &&
+                    (sqlEx.Number == 2601 || sqlEx.Number == 2627))
                 {
                     throw new BaseException(
                         ErrorCodeEnum.EmailAlreadyExists,
@@ -802,6 +810,7 @@ namespace FurchaAdminApi.Services
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, ex.Message);
             }
         }
+
 
         private DateTime? Normalize(DateTime? dt)
         {
