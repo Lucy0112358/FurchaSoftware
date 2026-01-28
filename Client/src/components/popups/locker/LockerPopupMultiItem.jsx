@@ -4,7 +4,7 @@ import ChangeLockerMode from '../../popupAction/locker/ChangeLockerMode';
 import LockerType from '../../popupAction/locker/LockerType';
 import { useHasPermission } from '../../../hooks/useHasPermission';
 
-function LockerPopupMultiItem({ selectedLockerIds, onClose }) {
+function LockerPopupMultiItem({ selectedLockerIds, onClose, manage = true }) {
   const { hasPermission } = useHasPermission();
 
   return (
@@ -22,12 +22,12 @@ function LockerPopupMultiItem({ selectedLockerIds, onClose }) {
       </div>
       <div className='flex flex-col gap-2'>
         {
-          hasPermission(['LVL3_Admin'], ['Open_Locker']) && <OpenLocker lockers={selectedLockerIds} onClose={onClose} />
+          hasPermission(['LVL3_Admin'], ['Open_Locker']) && <OpenLocker lockers={selectedLockerIds} onClose={onClose} manage={manage} />
         }
         <ChangeLockerMode ids={selectedLockerIds} action='Suspend' onClose={onClose} />
         <ChangeLockerMode ids={selectedLockerIds} action='Active' onClose={onClose} />
         {
-          hasPermission() && <LockerType lockers={selectedLockerIds} onClose={onClose} />
+          hasPermission() && <LockerType lockers={selectedLockerIds} onClose={onClose} manage={manage} />
         }
       </div>
     </div>

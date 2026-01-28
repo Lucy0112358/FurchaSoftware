@@ -7,10 +7,12 @@ import UnselectIds from '../button/UnselectIds';
 import CustomCheckbox from '../checkbox/CustomCheckbox';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import UserGroupPopup from '../popups/userGroup/UserGroupPopup';
+import { getManage } from '../../redux/slice/systemSlice';
 
 function UserTableGroup() {
   const allUserGroups = useSelector(getAllGroupsData);
   const [selectedIds, setSelectedIds] = useState([]);
+  const manage = useSelector(getManage);
 
   const handleSelectLocker = (itemId) => {
     setSelectedIds((prevSelected) => {
@@ -98,6 +100,7 @@ function UserTableGroup() {
                   clearSelected={() => setSelectedIds([])}
                   onClose={closePopup}
                   selectedIds={selectedIds}
+                  manage={manage}
                 />
               </div>
             )}

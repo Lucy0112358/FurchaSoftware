@@ -6,7 +6,7 @@ import { getLockerTypesData, setSelectedLockerIds } from '../../../redux/slice/l
 import { useDispatch, useSelector } from 'react-redux';
 import CustomSelect from '../../select/CustomSelect';
 
-function LockerType({ lockers, onClose }) {
+function LockerType({ lockers, onClose, manage=true }) {
     const dispatch = useDispatch();
     const [selectedTypeId, setSelectedTypeId] = useState(null);
     // const lockerOptions = getLockerOptions().map((lockerType) => ({
@@ -48,7 +48,7 @@ function LockerType({ lockers, onClose }) {
             />
             {
                 selectedTypeId && (
-                    <button className='bg-gray-600 text-white rounded' onClick={handle}>
+                    <button className='bg-gray-600 text-white rounded' disabled={!manage} onClick={handle}>
                         Send Locker Type
                     </button>
                 )

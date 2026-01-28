@@ -2,17 +2,15 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { getSelectedLockerIds } from '../../../redux/slice/lockerSlice';
 import LockerPopupMultiItem from './LockerPopupMultiItem';
-import Edit from '../../popupAction/locker/Edit';
 import OpenLocker from '../../popupAction/locker/OpenLocker';
 import ChangeLockerMode from '../../popupAction/locker/ChangeLockerMode';
 import SetUser from '../../popupAction/locker/SetUser';
 import HandAction from '../../popupAction/locker/HandAction';
 import { useHasPermission } from '../../../hooks/useHasPermission';
 
-function LockerPopup({ locker, onClose, branchId = null }) {
+function LockerPopup({ locker, onClose, branchId = null, manage = true }) {
   const selectedLockerIds = useSelector(getSelectedLockerIds);
   const { hasPermission } = useHasPermission();
-console.log(locker, "Locker");
 
   return (
     <div
@@ -20,7 +18,7 @@ console.log(locker, "Locker");
       onClick={(e) => e.stopPropagation()}
     >
       {selectedLockerIds?.length > 0 ? (
-        <LockerPopupMultiItem selectedLockerIds={selectedLockerIds} onClose={onClose} />
+        <LockerPopupMultiItem selectedLockerIds={selectedLockerIds} onClose={onClose} manage={manage} />
       ) : (
         locker && (
           <>
@@ -36,7 +34,7 @@ console.log(locker, "Locker");
             <div className="flex flex-col gap-2">
               {/* <Edit lockers={[locker]} onClose={onClose} /> */}
               {
-                hasPermission(['LVL3_Admin'], ['Open_Locker']) && <OpenLocker lockers={[locker.id]} onClose={onClose} />
+                hasPermission(['LVL3_Admin'], ['Open_Locker']) && <OpenLocker lockers={[locker.id]} onClose={onClose} manage={manage} />
               }
               <ChangeLockerMode ids={[locker.id]} action={locker.isActive == 1 ? 'Suspend' : 'Active'} onClose={onClose} />
 

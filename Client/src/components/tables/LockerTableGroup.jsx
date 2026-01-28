@@ -9,11 +9,14 @@ import { getAllLockersData, getSelectedLockerIds, setSelectedLockerIds } from '.
 import UnselectLockers from '../button/UnselectLockers';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import Delete from '../button/lockerGroup/Delete';
+import { getManage } from '../../redux/slice/systemSlice';
 
 function LockerTableGroup() {
   const dispatch = useDispatch();
   const selectedLockerIds = useSelector(getSelectedLockerIds)
   const allLockers = useSelector(getAllLockersData);
+  const manage = useSelector(getManage);
+
 
   const {
     popup,
@@ -77,8 +80,8 @@ function LockerTableGroup() {
                   return (
                     <React.Fragment key={groupIndex}>
                       <div className="ml-2 mt-3 flex  items-center">
-                        <GroupName name={lockerGroup.groupName} id={lockerGroup.id} />
-                        <Delete lockerCount={lockerGroup.groupLockers.length} id={lockerGroup.id} />
+                        <GroupName name={lockerGroup.groupName} id={lockerGroup.id} manage={manage} />
+                        <Delete lockerCount={lockerGroup.groupLockers.length} id={lockerGroup.id} manage={manage} />
                       </div>
                       <div
                         className="flex flex-wrap mb-4 mt-4">
@@ -124,7 +127,7 @@ function LockerTableGroup() {
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <LockerPopup locker={popup.target} onClose={closePopup} branchId={popup.branchId} />
+                  <LockerPopup locker={popup.target} onClose={closePopup} branchId={popup.branchId} manage={manage} />
                 </div>
               )}
             </React.Fragment>

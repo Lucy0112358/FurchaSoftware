@@ -31,7 +31,6 @@ function GenerateLocker({ item, index, doorState }) {
         return <div>No matching type</div>;
     }
   }
-console.log(doorState, "doorState");
 
   return (
     <div

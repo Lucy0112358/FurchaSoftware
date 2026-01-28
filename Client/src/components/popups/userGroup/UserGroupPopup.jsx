@@ -7,8 +7,8 @@ import ChangeState from '../../popupAction/userGroup/ChangeState';
 import { useSelector } from 'react-redux';
 
 
-function UserGroupPopup({ userGroup, clearSelected , onClose, selectedIds }) {
-    const groupData = useSelector(getUserGroupData);
+function UserGroupPopup({ userGroup, clearSelected, onClose, selectedIds, manage = true }) {
+  const groupData = useSelector(getUserGroupData);
 
   return (
     <div
@@ -16,7 +16,7 @@ function UserGroupPopup({ userGroup, clearSelected , onClose, selectedIds }) {
       onClick={(e) => e.stopPropagation()}
     >
       {selectedIds?.length > 0 ? (
-        <UserGroupPopupMultiItem selectedIds={selectedIds}  clearSelected ={clearSelected } onClose={onClose} />
+        <UserGroupPopupMultiItem selectedIds={selectedIds} clearSelected={clearSelected} onClose={onClose} />
       ) : (
         userGroup && (
           <>
@@ -27,9 +27,9 @@ function UserGroupPopup({ userGroup, clearSelected , onClose, selectedIds }) {
             </div>
 
             <div className="flex flex-col gap-2">
-               <Edit id={userGroup.id} onClose={onClose} />
-               <Delete ids={[userGroup.id]} clearSelected ={clearSelected } onClose={onClose} />
-               <ChangeState ids={[userGroup.id]} action={groupData.state == 1 ? 'Suspend' : 'Active'} onClose={onClose} />
+              <Edit id={userGroup.id} onClose={onClose} manage={manage} />
+              <Delete ids={[userGroup.id]} clearSelected={clearSelected} onClose={onClose} manage={manage} />
+              <ChangeState ids={[userGroup.id]} action={groupData.state == 1 ? 'Suspend' : 'Active'} onClose={onClose} />
             </div>
           </>
         )

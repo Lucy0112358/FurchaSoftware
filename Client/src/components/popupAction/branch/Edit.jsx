@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import BranchModal from '../../modals/branch/BranchModal';
 
-function Edit({ branch, onClose }) {
+function Edit({ branch, onClose, manage }) {
   const [showModal, setShowModal] = useState(false);
 
   const handleEdit = () => {
@@ -15,7 +15,11 @@ function Edit({ branch, onClose }) {
 
   return (
     <>
-      <button className="bg-gray-600 text-white rounded" onClick={handleEdit}>
+      <button
+        className="bg-gray-600 text-white rounded"
+        onClick={handleEdit}
+        disabled={!manage}
+      >
         Edit
       </button>
 

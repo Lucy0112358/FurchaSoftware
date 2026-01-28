@@ -7,7 +7,7 @@ import AddUserGroupModal from '../../modals/user/addUserGroup/AddUserGroupModal'
 import { userGroupShow } from '../../../redux/api/groupApi';
 import { getUserGroupData } from '../../../redux/slice/groupSlice';
 
-function Edit({ id, onClose }) {
+function Edit({ id, onClose, manage = true }) {
     const dispatch = useDispatch();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const data = useSelector(getUserGroupData);
@@ -23,12 +23,9 @@ function Edit({ id, onClose }) {
         onClose();
     };
 
-    console.log(data, 'data');
-    
-
     return (
         <>
-            <button className='bg-gray-600 text-white rounded' onClick={() => setIsModalOpen(true)}>
+            <button className='bg-gray-600 text-white rounded' disabled={!manage} onClick={() => setIsModalOpen(true)}>
                 Edit
             </button>
             <AddUserGroupModal

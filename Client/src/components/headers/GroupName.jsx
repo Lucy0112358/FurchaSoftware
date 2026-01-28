@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { CiEdit } from "react-icons/ci";
 import LockerGroupModal from '../modals/locker-group/LockerGroupModal'
 
-function GroupName({ name, id, type="allLocker" }) {
+function GroupName({ name, id, type="allLocker", manage=true }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const handleOpen = () => setIsModalOpen(true)
   const handleClose = () => setIsModalOpen(false)
@@ -15,6 +15,7 @@ function GroupName({ name, id, type="allLocker" }) {
             onClick={handleOpen}
             className="ml-5 text-xl"
             style={{ color: '#AAAAAA' }}
+            disabled={!manage}
           >
             <CiEdit className='text-3xl' style={{ color: '#AAAAAA' }} />
           </button>

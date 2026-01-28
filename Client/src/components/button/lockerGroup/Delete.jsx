@@ -8,7 +8,7 @@ import { MdDeleteOutline } from "react-icons/md";
 import { deleteLockerGroup } from '../../../redux/api/lockerGroupApi';
 import { getLockers } from '../../../redux/api/lockerApi';
 
-function Delete({ lockerCount, id }) {
+function Delete({ lockerCount, id, manage=true }) {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -38,11 +38,11 @@ function Delete({ lockerCount, id }) {
     return (
         <>
             <button
-                className='cursor-pointer'
                 onClick={() => {
                     if (checkIsNotEmpty()) return;
                     setShowConfirm(true)
                 }}
+                disabled={!manage}
             >
                 <MdDeleteOutline className='text-3xl' style={{ color: '#AAAAAA' }} />
             </button>

@@ -3,7 +3,7 @@ import { openLockers } from '../../../redux/api/lockerApi';
 import { useDispatch } from 'react-redux';
 import { toast } from "react-toastify";
 
-function OpenLocker({ lockers, onClose }) {
+function OpenLocker({ lockers, onClose, manage=true }) {
     const dispatch = useDispatch();
     const handle = () => {       
         if (lockers.length) {
@@ -20,7 +20,7 @@ function OpenLocker({ lockers, onClose }) {
         }
     }
     return (
-        <button className='bg-gray-600 text-white rounded' onClick={handle}>
+        <button className='bg-gray-600 text-white rounded' onClick={handle} disabled={!manage}>
             Open Locker(s)
         </button>
     )

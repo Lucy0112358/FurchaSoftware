@@ -1,8 +1,12 @@
 import React from 'react';
 import Edit from '../../popupAction/branch/Edit';
 import Delete from '../../popupAction/branch/Delete';
+import { getManage } from '../../../redux/slice/systemSlice';
+import { useSelector } from 'react-redux';
 
 function BranchPopup({ branch, onClose }) {
+  const manage = useSelector(getManage);
+
   return (
     <div
       className="bg-white shadow-xl rounded-lg p-5 w-72 border border-gray-200"
@@ -20,8 +24,8 @@ function BranchPopup({ branch, onClose }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Delete branch={branch} onClose={() => onClose()} />
-            <Edit branch={branch} onClose={() => onClose()} />
+            <Delete branch={branch} onClose={() => onClose()} manage={manage} />
+            <Edit branch={branch} onClose={() => onClose()} manage={manage} />
           </div>
         </>
       )

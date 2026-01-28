@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { deleteBranch } from '../../../redux/api/branchApi';
 import ConfirmModal from '../../confirm/ConfirmModal';
 
-function Delete({ branch, onClose }) {
+function Delete({ branch, onClose, manage }) {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -25,7 +25,8 @@ function Delete({ branch, onClose }) {
     return (
         <>
             <button
-                className='bg-gray-600 text-white rounded cursor-pointer'
+                className={`bg-gray-600 text-white rounded ${manage ? 'cursor-pointer' : ''}`}
+                disabled={!manage}
                 onClick={() => setShowConfirm(true)}
             >
                 Delete

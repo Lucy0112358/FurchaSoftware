@@ -8,10 +8,13 @@ import UnselectIds from '../button/UnselectIds';
 import UserPopup from '../popups/user/UserPopup';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { format, parseISO } from 'date-fns';
+import { getManage } from '../../redux/slice/systemSlice';
 
 function UserTable() {
   const allUsers = useSelector(getAllUsersData);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const manage = useSelector(getManage);
+
 
   const {
     popup,
@@ -114,6 +117,7 @@ function UserTable() {
                 onClose={closePopup}
                 clearSelected={() => setSelectedUserIds([])}
                 selectedIds={selectedUserIds}
+                manage={manage}
               />
             </div>
           )}

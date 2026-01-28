@@ -4,11 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getUserData } from '../../../redux/slice/userSlice';
 import { userShow } from '../../../redux/api/userApi';
 
-function Edit({ id, onClose }) {
+function Edit({ id, onClose, manage = true }) {
     const dispatch = useDispatch();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const userData = useSelector(getUserData);
-    console.log(userData, 'userData');
 
     useEffect(() => {
         if (id) {
@@ -23,7 +22,7 @@ function Edit({ id, onClose }) {
 
     return (
         <>
-            <button className='bg-gray-600 text-white rounded' onClick={() => setIsModalOpen(true)}>
+            <button className='bg-gray-600 text-white rounded' disabled={!manage} onClick={() => setIsModalOpen(true)}>
                 Edit
             </button>
             <AddUserModal

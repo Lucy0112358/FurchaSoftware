@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import ConfirmModal from '../../confirm/ConfirmModal';
 import { deleteUsers, getUsers } from '../../../redux/api/userApi';
 
-function Delete({ ids, onClose, clearSelected }) {
+function Delete({ ids, onClose, clearSelected, manage = true }) {
     const dispatch = useDispatch();
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -27,7 +27,8 @@ function Delete({ ids, onClose, clearSelected }) {
     return (
         <>
             <button
-                className='bg-gray-600 text-white rounded cursor-pointer'
+                className='bg-gray-600 text-white rounded'
+                disabled={!manage}
                 onClick={() => setShowConfirm(true)}
             >
                 Delete user(s)
