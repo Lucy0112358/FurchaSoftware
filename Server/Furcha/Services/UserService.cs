@@ -1039,6 +1039,7 @@ namespace FurchaAdminApi.Services
                             .ThenInclude(b => b.Lockers)
                 .Include(u => u.Lockers)
                     .ThenInclude(l => l.Brain)
+                        .ThenInclude(l => l.Group)
                 .Include(x => x.Cards)
                 .Include(u => u.UserGroups)
                 .First(u => u.Id == id);
@@ -1067,6 +1068,19 @@ namespace FurchaAdminApi.Services
                         .Where(l => l.Brain.BranchId == b.BranchId)
                         .Select(x => x.Id)
                         .ToList(),
+                    LockerGroups = user.Lockers
+                        .Where(l => l.Brain.BranchId == b.BranchId && l.Brain?.Group != null)
+                        .GroupBy(x => x.Brain?.Group?.Name)
+                        .Select(g => new LockerGroupResult
+                        {
+                            LockerGroupName = g.Key,
+                            LockersFromGroup = g.Select(lg => new PermittedLockerResult
+                            {
+                                LockerId = lg.Id,
+                                LockerNumber = (long)lg.Number.GetValueOrDefault(0)
+                            })
+                            .ToList()
+                        })
                 }).ToList(),
             };
         }
@@ -1076,7 +1090,7 @@ namespace FurchaAdminApi.Services
         {
             var group = Db.UserGroups
              .Include(g => g.UserGroupBranches)
-             .FirstOrDefault(g => g.Id == id);      
+             .FirstOrDefault(g => g.Id == id);
 
             if (group == null)
                 return null;
