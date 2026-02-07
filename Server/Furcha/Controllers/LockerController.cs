@@ -122,7 +122,8 @@ namespace FurchaAdminApi.Controllers
         [HttpGet("get-new-brains")]
         public ActionResult<ApiResult<List<NewModulesResult>>> GetNewModules([FromQuery] int branchId)
         {
-            var modules = _lockerService.GetNewModules(branchId);
+            var adminId = GetClaimValue("AdminId");
+            var modules = _lockerService.GetNewModules(int.Parse(adminId));
 
             return Ok(ApiResult<List<NewModulesResult>>.Success(modules));
         }

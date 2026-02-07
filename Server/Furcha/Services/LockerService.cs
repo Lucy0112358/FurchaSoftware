@@ -228,21 +228,22 @@ namespace FurchaAdminApi.Services
 
         public List<NewModulesResult> GetNewModules(int adminId)
         {
-            var accountId = Db.Administrators
+            var companyId = Db.Administrators
                 .Where(a => a.Id == adminId)
                 .Select(a => a.CompanyId)
                 .FirstOrDefault(); // _userRepository.GetCompanyIdByAdminId(AdminId);
 
             // var lockerGroups = _lockerRepository.GetBrainModulesByBranchAndStatus(4, 1);
-            var lockerGroups = Db.BrainModules
-              .Where(bm => bm.Status == 1)
+            var brainModules = Db.BrainModules
+              .Where(bm => bm.CompanyId == companyId && bm.Status == (int)BrainStatuses.New)
               .ToList();
 
-            var results = lockerGroups.Select(l => new NewModulesResult
+            var results = brainModules.Select(b => new NewModulesResult
             {
-                Info = l.Description,
-                Id = l.Id,
-                MacAddress = l.MacAddress,
+                Info = b.Description,
+                Id = b.Id,
+                MacAddress = b.MacAddress,
+                BrainUid = b.BrainUid
             }).ToList();
 
             return results;
