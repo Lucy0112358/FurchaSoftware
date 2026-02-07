@@ -126,7 +126,7 @@ namespace FurchaAdminApi.Controllers
             {
                 return BadRequest(ApiResult<UserResult>.ErrorResult(
                     ErrorCodeEnum.GenericErrorRetry,
-                    "Unexpected error while creating the user: " + ex.Message
+                    ex.Message
                 ));
             }
         }
