@@ -552,6 +552,8 @@ namespace FurchaAdminApi.Services
         {
             var result = Db.Branches
                 .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
+                    .Include(b => b.BrainModules)
+                        .ThenInclude(m => m.Group)
                 .Select(b => new AllModulesResult
                 {
                     BranchName = b.Name,
@@ -560,7 +562,8 @@ namespace FurchaAdminApi.Services
                         .Select(m => new BranchModules
                         {
                             Id = m.Id,
-
+                            Info = m.Description,
+                            GroupName = m.Group.Name,
                             LockerRange = m.Lockers.Any()
                                 ? (
                                     m.Lockers.Min(l => l.Number) == m.Lockers.Max(l => l.Number)
