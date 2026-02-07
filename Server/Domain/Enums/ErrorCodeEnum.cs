@@ -28,5 +28,8 @@ namespace Domain.Enums
         [Description("A user with this email already exists in your company.")]
         EmailAlreadyExists = 2,
 
+        [Description("A locker group with this name already exists.")]
+        LockerGroupNameExists = 3,
+
     }
 }

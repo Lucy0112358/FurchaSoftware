@@ -361,6 +361,14 @@ namespace FurchaAdminApi.Services
 
         internal bool CreateLockerGroup(int branchId, string name)
         {
+            var existsWithSameName = Db.LockerGroups
+                .Any(ug => ug.BranchId == branchId && ug.Name == name);
+
+            if (existsWithSameName)
+            {
+                throw new BaseException(ErrorCodeEnum.LockerGroupNameExists, "A locker group with this name already exists.");
+            }
+
             var result = new LockerGroup()
             {
                 BranchId = branchId,
@@ -768,7 +776,17 @@ namespace FurchaAdminApi.Services
 
         public bool EditGroup(int id, string name)
         {
+            name = name?.Trim();
+
             var group = Db.LockerGroups.FirstOrDefault(m => m.Id == id);
+
+            var existsWithSameName = Db.LockerGroups
+                .Any(ug => ug.BranchId == group.BranchId && ug.Name == name && ug.Id != id);
+
+            if (existsWithSameName)
+            {
+                throw new BaseException(ErrorCodeEnum.LockerGroupNameExists, "A locker group with this name already exists.");
+            }
 
             group.Name = name;
 
