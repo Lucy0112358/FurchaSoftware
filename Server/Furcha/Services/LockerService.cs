@@ -746,7 +746,8 @@ namespace FurchaAdminApi.Services
             {
                 Id = id,
                 BrainUid = module.BrainUid,
-                BranchId = (int)module.BranchId
+                BranchId = (int)module.BranchId,
+                Info = module.Description
             };
 
         }
