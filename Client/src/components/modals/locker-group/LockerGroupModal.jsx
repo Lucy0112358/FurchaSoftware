@@ -36,19 +36,19 @@ const LockerGroupModal = ({ onClose, id, type }) => {
     onSubmit: (values) => {
       dispatch(editLockerGroup({ id, data: values }))
         .then((response) => {
-          if (response && response.payload.isSuccess) {
+          if (response && response?.payload?.isSuccess) {
             toast.success("Locker Group edited successfully");
             if (type === "allLocker") {
               dispatch(getLockers())
-            } else if(type === "parcelLocker") {
+            } else if (type === "parcelLocker") {
               dispatch(getParcelLockers())
             }
             onClose();
           }
+          else {
+            toast.error(response.payload || 'Error occurred');
+          }
         })
-        .catch(() => {
-          toast.error("Something went wrong");
-        });
     },
   });
 

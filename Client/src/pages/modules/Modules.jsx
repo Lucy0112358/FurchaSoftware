@@ -87,16 +87,16 @@ const Modules = () => {
                                                         onContextMenu={(e) => rightClickHandler(e, module, 'module')}
                                                     >
                                                         <ModuleChain id={module.id} />
-                                                        <h3 className="text-xl ml-[35px] " style={{ color: '#AAAAAA' }}>{module.moduleName}</h3>
+                                                        <h3 className="text-xl ml-[35px] " style={{ color: '#AAAAAA' }}>{module.info}</h3>
                                                     </td>
                                                     <td
                                                         className="py-3 px-4 border-none"
                                                         onContextMenu={(e) => rightClickHandler(e, module, 'locker')}
                                                     >
-                                                        {module.lockerRange && <LockerPhoto  />}
+                                                        {module.lockerRange && <LockerPhoto />}
                                                         <div className="text-[#AAAAAA] flex">
                                                             <h3 className="text-md mr-1 ">
-                                                                {module.lockerGroupName}
+                                                                {module.groupName}
                                                             </h3>
                                                             ({module.lockerRange})
                                                         </div>

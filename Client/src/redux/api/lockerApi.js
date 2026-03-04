@@ -59,7 +59,7 @@ export const editLockersType = createAsyncThunk(
       console.log("response", response);
       return response?.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data.error.both);
+      return thunkAPI.rejectWithValue(error.response.data.errorMessage);
     }
   }
 )
@@ -153,7 +153,7 @@ export const getParcelMessages = createAsyncThunk(
           { id: 2, title: "Parcel Pickup", content: "Please collect your parcel within 3 days.", parcelType: 1 },
           { id: 3, title: "Parcel Pickup2", content: "Your parcel is ready for pickup.", parcelType: 2 }
         ]
-      } 
+      }
 
       // const response = await instance(config);
       // return response?.data;
@@ -167,7 +167,7 @@ export const updateMessage = createAsyncThunk(
   'locker/updateMessage',
   async (data, thunkAPI) => {
     try {
-       const config = {
+      const config = {
         method: "post",
         data: data,
         url: 'Locker/updateMessage',
@@ -187,7 +187,7 @@ export const createMessage = createAsyncThunk(
     console.log(data);
     alert(1)
     try {
-       const config = {
+      const config = {
         method: "post",
         data: data,
         url: 'Locker/createMessage',

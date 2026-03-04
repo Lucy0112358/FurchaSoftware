@@ -20,9 +20,8 @@ export const getUsers = createAsyncThunk(
 )
 
 export const setUserInfo = createAsyncThunk(
-  'menu/setUserInfo',
+  'user/setUserInfo',
   async (data, thunkAPI) => {
-    data.adminId = 8;
     try {
       const config = {
         method: "post",

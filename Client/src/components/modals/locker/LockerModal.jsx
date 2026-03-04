@@ -35,14 +35,13 @@ const LockerModal = ({ onClose }) => {
     validationSchema: validationSchema,
     onSubmit: (values) => {
       dispatch(setLockerGroup(values))
-        .then((response) => {
-          if (response && response.payload.isSuccess) {
+        .then(res => {
+          if (res?.payload?.isSuccess) {
             toast.success("Locker Group created successfully");
             onClose();
+          } else {
+            toast.error(res.payload || 'Error occurred');
           }
-        })
-        .catch((error) => {
-          toast.error("Something went wrong");
         });
     },
   });

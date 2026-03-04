@@ -32,12 +32,12 @@ export const editAuthUser = createAsyncThunk(
     try {
       const config = {
         method: "post",
-        url: "auth/edid-profile",
+        url: "auth/edit-profile",
         data: data,
       };
 
       const response = await instance(config);
-     
+
       await thunkAPI.dispatch(getAuthUser());
       return true;
     } catch (error) {
@@ -57,7 +57,7 @@ export const changePassword = createAsyncThunk(
       };
 
       const response = await instance(config);
-     
+
       await thunkAPI.dispatch(getAuthUser());
       return true;
     } catch (error) {

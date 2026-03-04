@@ -132,7 +132,7 @@ const ModulesModal = ({ onClose, id, mode = "add" }) => {
                       <input
                         type="text"
                         name="brainId"
-                        value={formik.values.brainId}
+                        value={formik.values.brainId + " " + module.info}
                         readOnly
                         className="w-full px-3 py-2 rounded"
                       />
