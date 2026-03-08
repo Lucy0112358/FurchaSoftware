@@ -44,6 +44,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
   const [userRight, setUserRight] = useState({});
   const [sentGeneralInfo, setSentGeneralInfo] = useState({ isPinRequired: false });
   const [selectedBranch, setSelectedBranch] = useState({});
+  const [pooledLockers, setPooledLockers] = useState([]);
 
   useEffect(() => {
     dispatch(getAllGroups());
@@ -51,7 +52,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (mode === "edit" && initialData) {
+    if (mode === "edit" && initialData && Object.keys(initialData).length > 0) {
       setSentGeneralInfo({
         ...initialData,
         name: initialData.name || '',
@@ -72,57 +73,90 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
           label: userGroups.find(group => group.id === id)?.name || "Unknown"
         })) || []
       );
-    }
-  }, [mode, initialData, userGroups]);
 
+      // Initialize Locker Map for editing
+      if (initialData.branches?.length) {
+        const lockerMap = {};
+        initialData.branches.forEach(branch => {
+          lockerMap[branch.id] = branch.lockers || [];
+          // Pre-fetch all user's branch groups to populate names
+          dispatch(getLockerGroupsByBranchId(branch.id));
+        });
+        setSelectedLockerAddId(lockerMap);
+      }
+    }
+  }, [mode, initialData, userGroups, dispatch]);
+
+  // Pool locker data from all branch fetches to ensure names aren't lost
+  useEffect(() => {
+    if (filteredBranchGroups?.length) {
+      const newLockers = filteredBranchGroups.flatMap(group =>
+        (group.groupLockers || []).map(l => ({ 
+          ...l, 
+          groupName: group.groupName,
+          branchId: filteredBranchGroups[0]?.branchId // Optional: helps with clarity
+        }))
+      );
+      
+      setPooledLockers(prev => {
+        const existingIds = new Set(prev.map(l => String(l.id)));
+        const uniqueNew = newLockers.filter(l => !existingIds.has(String(l.id)));
+        return [...prev, ...uniqueNew];
+      });
+    }
+  }, [filteredBranchGroups]);
+
+  // Separate effect to handle User Right Details formatting so it updates once data loads
   useEffect(() => {
     if (mode === "edit" && initialData?.branches?.length) {
-      const lockerMap = {};
-      initialData.branches.forEach(branch => {
-        lockerMap[branch.id] = branch.lockers || [];
-      });
-
-      setSelectedLockerAddId(lockerMap);
-      setSentGeneralInfo(prev => ({
-        ...prev,
-        lockerIds: Object.values(lockerMap).flat()
-      }));
-
       const generalInfo = initialData.branches
         .map(branch => {
-          const lockerNumbers = changeLockerIdsToLockerNumbers(branch.lockers);
-          return `${branch.name}: ${lockerNumbers.join(",")}`;
+          const lockerDetails = getFormattedLockerString(branch.lockers);
+          return `\n    ${branch.name}\n${lockerDetails}`;
         })
-        .join("; ");
+        .join("\n");
 
       setUserRight(prev => ({
         ...prev,
-        Locker: { lockers: generalInfo }
+        Locker: { details: generalInfo }
       }));
     }
-  }, [mode, initialData, getLockersData, filteredBranchGroups]);
+  }, [mode, initialData?.branches, getLockersData, filteredBranchGroups]);
 
-  const changeLockerIdsToLockerNumbers = (lockerIds) => {
-    if (!lockerIds || !Array.isArray(lockerIds)) return [];
+  const getFormattedLockerString = (lockerIds) => {
+    if (!lockerIds || !Array.isArray(lockerIds)) return "";
 
+    // Flatten all possible sources: pooled lockers from branch fetches + global data
     const allFlatLockers = [
+      ...pooledLockers,
       ...(getLockersData || [])
         .flatMap(office => office.lockers || [])
-        .flatMap(group => group.groupLockers || []),
-      ...(filteredBranchGroups || [])
-        .flatMap(group => group.groupLockers || [])
+        .flatMap(group => (group.groupLockers || []).map(l => ({ ...l, groupName: group.groupName })))
     ];
 
-    return lockerIds.map((idOrObj) => {
-      if (idOrObj && typeof idOrObj === 'object' && idOrObj.number !== undefined && idOrObj.number !== null) {
-        return idOrObj.number;
-      }
-
+    const foundLockers = lockerIds.map(idOrObj => {
       const idToFind = idOrObj && typeof idOrObj === 'object' ? idOrObj.id : idOrObj;
-      const locker = allFlatLockers.find((l) => String(l.id) === String(idToFind));
+      const locker = allFlatLockers.find(l => String(l.id) === String(idToFind));
       
-      return (locker && locker.number !== undefined && locker.number !== null) ? locker.number : idToFind;
+      const gName = (locker && locker.groupName) ? locker.groupName : null;
+      const lNumber = (locker && locker.number !== undefined && locker.number !== null) ? locker.number : idToFind;
+
+      return {
+        number: lNumber,
+        groupName: gName || (mode === 'edit' && !getLockersData?.length && !pooledLockers.length ? "Loading..." : "Unknown")
+      };
     });
+
+    const groupedByGroup = {};
+    foundLockers.forEach(l => {
+      const key = l.groupName;
+      if (!groupedByGroup[key]) groupedByGroup[key] = [];
+      groupedByGroup[key].push(l.number);
+    });
+
+    return Object.entries(groupedByGroup)
+      .map(([gName, numbers]) => `        ${gName}: ${numbers.join(", ")}`)
+      .join("\n");
   };
 
   const formatUserRightText = () => {
@@ -224,10 +258,10 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
       .map(([bId, ids]) => {
         const branch = branches.find((b) => b.id === Number(bId));
         const branchName = branch ? branch.name : "Unknown";
-        const lockerNumbers = changeLockerIdsToLockerNumbers(ids);
-        return `${branchName}: ${lockerNumbers.join(",")}`;
+        const lockerDetails = getFormattedLockerString(ids);
+        return `\n    ${branchName}\n${lockerDetails}`;
       })
-      .join("; ");
+      .join("\n");
 
     dispatch(
       setAddUserInfo({
@@ -247,7 +281,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
       ...prev,
       Locker: {
         ...(prev["Locker"] || {}),
-        lockers: displayInfo,
+        details: displayInfo,
       },
     }));
 
@@ -324,6 +358,7 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
     setSelectedBranch({});
     setCards([]);
     setSelectedGroups(null);
+    setPooledLockers([]);
     setFormErrors({});
     dispatch(clearFilteredLockerGroups([]));
     onClose();
