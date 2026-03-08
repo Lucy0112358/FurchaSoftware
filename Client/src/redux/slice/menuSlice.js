@@ -10,7 +10,7 @@ const initialState = {
   userGroups: {},
   selectGroups: {},
   userGroupSelect: localStorage.getItem('userGroupEnabled') === 'true',
-  lockerStatusSelect: false,
+  lockerStatusSelect: true,
   parcelLockerStatusSelect: false,
   lockerGroups: [],
   filteredLockerGroups: {},
