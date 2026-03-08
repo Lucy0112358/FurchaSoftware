@@ -89,7 +89,10 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
       }));
 
       const generalInfo = initialData.branches
-        .map(branch => `${branch.name}: ${changeLockerIdsToLockerNumbers(branch.lockers).join(",")}`)
+        .map(branch => {
+          const lockerNumbers = changeLockerIdsToLockerNumbers(branch.lockers);
+          return `${branch.name}: ${lockerNumbers.join(",")}`;
+        })
         .join("; ");
 
       setUserRight(prev => ({
@@ -97,16 +100,28 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
         Locker: { lockers: generalInfo }
       }));
     }
-  }, [mode, initialData]);
+  }, [mode, initialData, getLockersData, filteredBranchGroups]);
 
   const changeLockerIdsToLockerNumbers = (lockerIds) => {
-    return lockerIds.map((id) => {
-      const lockers = getLockersData
-        .flatMap(office => office.lockers)
-        .flatMap(group => group.groupLockers);
+    if (!lockerIds || !Array.isArray(lockerIds)) return [];
 
-      const locker = lockers?.find((l) => l.id === id);
-      return locker ? (locker.number || id) : id;
+    const allFlatLockers = [
+      ...(getLockersData || [])
+        .flatMap(office => office.lockers || [])
+        .flatMap(group => group.groupLockers || []),
+      ...(filteredBranchGroups || [])
+        .flatMap(group => group.groupLockers || [])
+    ];
+
+    return lockerIds.map((idOrObj) => {
+      if (idOrObj && typeof idOrObj === 'object' && idOrObj.number !== undefined && idOrObj.number !== null) {
+        return idOrObj.number;
+      }
+
+      const idToFind = idOrObj && typeof idOrObj === 'object' ? idOrObj.id : idOrObj;
+      const locker = allFlatLockers.find((l) => String(l.id) === String(idToFind));
+      
+      return (locker && locker.number !== undefined && locker.number !== null) ? locker.number : idToFind;
     });
   };
 
@@ -315,7 +330,6 @@ const AddUserModal = ({ isOpen, onClose, mode = "add", initialData = {} }) => {
   };
 
   const renderError = (field) => formErrors[field] ? <ShowFormikError message={formErrors[field]} /> : null;
-console.log(selectedBranch, "selectedBranchselectedBranch");
 
   return (
     <div className="add__modal fixed inset-0 bg-gray-600 bg-opacity-50 flex mt-2 justify-center z-10">
