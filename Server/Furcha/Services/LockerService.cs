@@ -228,21 +228,22 @@ namespace FurchaAdminApi.Services
 
         public List<NewModulesResult> GetNewModules(int adminId)
         {
-            var accountId = Db.Administrators
+            var companyId = Db.Administrators
                 .Where(a => a.Id == adminId)
                 .Select(a => a.CompanyId)
                 .FirstOrDefault(); // _userRepository.GetCompanyIdByAdminId(AdminId);
 
             // var lockerGroups = _lockerRepository.GetBrainModulesByBranchAndStatus(4, 1);
-            var lockerGroups = Db.BrainModules
-              .Where(bm => bm.Status == 1)
+            var brainModules = Db.BrainModules
+              .Where(bm => bm.CompanyId == companyId && bm.Status == (int)BrainStatuses.New)
               .ToList();
 
-            var results = lockerGroups.Select(l => new NewModulesResult
+            var results = brainModules.Select(b => new NewModulesResult
             {
-                Info = l.Description,
-                Id = l.Id,
-                MacAddress = l.MacAddress,
+                Info = b.Description,
+                Id = b.Id,
+                MacAddress = b.MacAddress,
+                BrainUid = b.BrainUid
             }).ToList();
 
             return results;
@@ -360,6 +361,14 @@ namespace FurchaAdminApi.Services
 
         internal bool CreateLockerGroup(int branchId, string name)
         {
+            var existsWithSameName = Db.LockerGroups
+                .Any(ug => ug.BranchId == branchId && ug.Name == name);
+
+            if (existsWithSameName)
+            {
+                throw new BaseException(ErrorCodeEnum.LockerGroupNameExists, "A locker group with this name already exists.");
+            }
+
             var result = new LockerGroup()
             {
                 BranchId = branchId,
@@ -551,6 +560,8 @@ namespace FurchaAdminApi.Services
         {
             var result = Db.Branches
                 .Where(b => b.AdminBranches.Any(ab => ab.AdministratorId == adminId))
+                    .Include(b => b.BrainModules)
+                        .ThenInclude(m => m.Group)
                 .Select(b => new AllModulesResult
                 {
                     BranchName = b.Name,
@@ -559,7 +570,8 @@ namespace FurchaAdminApi.Services
                         .Select(m => new BranchModules
                         {
                             Id = m.Id,
-
+                            Info = m.Description,
+                            GroupName = m.Group.Name,
                             LockerRange = m.Lockers.Any()
                                 ? (
                                     m.Lockers.Min(l => l.Number) == m.Lockers.Max(l => l.Number)
@@ -745,7 +757,8 @@ namespace FurchaAdminApi.Services
             {
                 Id = id,
                 BrainUid = module.BrainUid,
-                BranchId = (int)module.BranchId
+                BranchId = (int)module.BranchId,
+                Info = module.Description
             };
 
         }
@@ -763,7 +776,17 @@ namespace FurchaAdminApi.Services
 
         public bool EditGroup(int id, string name)
         {
+            name = name?.Trim();
+
             var group = Db.LockerGroups.FirstOrDefault(m => m.Id == id);
+
+            var existsWithSameName = Db.LockerGroups
+                .Any(ug => ug.BranchId == group.BranchId && ug.Name == name && ug.Id != id);
+
+            if (existsWithSameName)
+            {
+                throw new BaseException(ErrorCodeEnum.LockerGroupNameExists, "A locker group with this name already exists.");
+            }
 
             group.Name = name;
 

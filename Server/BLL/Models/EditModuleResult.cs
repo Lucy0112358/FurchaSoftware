@@ -7,6 +7,7 @@
         public string BrainUid { get; set; }
 
         public int BranchId { get; set; }
+        public string Info { get; set; }
 
     }
 }

@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using FurchaAdminApi.Services;
+﻿using Domain.Attributes;
 using Domain.Configuration;
-using FurchaAdminApi.Models.Result;
-using Microsoft.AspNetCore.Authorization;
+using Domain.Enums;
+using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
-using Domain.Attributes;
-using FurchaDAL.Models;
+using FurchaAdminApi.Models.Result;
+using FurchaAdminApi.Services;
 using FurchaBLL.Interfaces;
+using FurchaDAL.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FurchaAdminApi.Controllers
 {
@@ -69,15 +71,23 @@ namespace FurchaAdminApi.Controllers
             {
                 return BadRequest(ApiResult<string>.ErrorResult("Invalid request data."));
             }
-
-            bool isCreated = _lockerService.CreateLockerGroup(request.BranchId, request.Name);
-
-            if (!isCreated)
+            try
             {
-                return StatusCode(500, ApiResult<string>.ErrorResult("Failed to create LockerGroup."));
+                bool isCreated = _lockerService.CreateLockerGroup(request.BranchId, request.Name);
+
+                if (!isCreated)
+                {
+                    return StatusCode(500, ApiResult<string>.ErrorResult("Failed to create LockerGroup."));
+                }
+
+                return Ok(ApiResult<string>.Success("LockerGroup created successfully."));
+            }
+            catch (BaseException e)
+            {
+                return BadRequest(ApiResult<UserResult>
+                    .ErrorResult(e.errorCodeEnum, e.Message));
             }
 
-            return Ok(ApiResult<string>.Success("LockerGroup created successfully."));
         }
         /*
                 [Authorize]
@@ -122,7 +132,8 @@ namespace FurchaAdminApi.Controllers
         [HttpGet("get-new-brains")]
         public ActionResult<ApiResult<List<NewModulesResult>>> GetNewModules([FromQuery] int branchId)
         {
-            var modules = _lockerService.GetNewModules(branchId);
+            var adminId = GetClaimValue("AdminId");
+            var modules = _lockerService.GetNewModules(int.Parse(adminId));
 
             return Ok(ApiResult<List<NewModulesResult>>.Success(modules));
         }
@@ -165,7 +176,7 @@ namespace FurchaAdminApi.Controllers
             if (request == null || request.LockerIds == null || !request.LockerIds.Any())
             {
                 return ApiResult<EditLockerResult>.ErrorResult("Invalid request data.");
-        }
+            }
 
             return _lockerService.EditLocker(request.LockerIds, request.Type);
         }
@@ -230,8 +241,17 @@ namespace FurchaAdminApi.Controllers
         [HttpPost("editLockerGroup/{id}")]
         public ActionResult Edit(int id, [FromBody] EditLockerGroupRequest request)
         {
-            var g = _lockerService.EditGroup(id, request.Name);
-            return Ok(ApiResult<bool>.Success(g));
+            try
+            {
+                var g = _lockerService.EditGroup(id, request.Name);
+                return Ok(ApiResult<bool>.Success(g));
+            }
+            catch (BaseException e)
+            {
+                return BadRequest(ApiResult<UserResult>
+                    .ErrorResult(e.errorCodeEnum, e.Message));
+            }
+
         }
 
 
@@ -248,14 +268,14 @@ namespace FurchaAdminApi.Controllers
             {
                 Id = g.Id,
                 Name = g.Name,
-              // BranchId = g.BranchId
+                // BranchId = g.BranchId
             };
 
             return Ok(ApiResult<LockerGroupResultDto>.Success(dto));
         }
 
         [Authorize]
-       // [RequiresPermission("ManageLockerGroups")]
+        // [RequiresPermission("ManageLockerGroups")]
         [HttpPost("deleteLockerGroup/{id}")]
         public ActionResult<ApiResult<bool>> DeleteLockerGroup(int id)
         {

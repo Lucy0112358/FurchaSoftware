@@ -13,6 +13,8 @@
         public int Id { get; set; }
 
         public string? LockerRange { get; set; }
+        public string? Info { get; set; }
+        public string? GroupName { get; set; }
 
         public int? AcessControl { get; set; } = null;
 
