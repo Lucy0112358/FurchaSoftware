@@ -227,7 +227,7 @@ public class MqttService
 
                             if (saved > 0)
                             {
-                                PublishToMqtt<int>(new MqttBaseRequest<int>
+                                await PublishToMqtt<int>(new MqttBaseRequest<int>
                                 {
                                     Operation = (int)OperationTypes.Success,
                                     Command = (int)CommandTypes.CreateBrainModule
@@ -295,7 +295,7 @@ public class MqttService
 
                                 if (success > 0)
                                 {
-                                    PublishToMqtt<int>(new MqttBaseRequest<int>
+                                    await PublishToMqtt<int>(new MqttBaseRequest<int>
                                     {
                                         Operation = (int)OperationTypes.Success,
                                         Command = (int)CommandTypes.AddLockersToBrain
@@ -362,9 +362,13 @@ public class MqttService
         try
         {
             if (!_mqttClient.IsConnected)
-                await _mqttClient.ConnectAsync(_mqttOptions);
+            {
+                _logger.LogWarning("MQTT not connected. Skipping publish to {Topic}", topic);
+                return;
+            }
 
             var payload = JsonSerializer.Serialize(request);
+
             var message = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
                 .WithPayload(payload)
@@ -372,6 +376,10 @@ public class MqttService
                 .Build();
 
             await _mqttClient.PublishAsync(message);
+        }
+        catch (MQTTnet.Exceptions.MqttClientNotConnectedException)
+        {
+            _logger.LogWarning("MQTT disconnected while publishing to {Topic}", topic);
         }
         catch (Exception ex)
         {
