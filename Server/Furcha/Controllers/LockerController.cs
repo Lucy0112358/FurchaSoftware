@@ -1,6 +1,5 @@
 ﻿using Domain.Attributes;
 using Domain.Configuration;
-using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;

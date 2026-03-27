@@ -17,7 +17,7 @@ public partial class User
 
     public string Surname { get; set; }
 
-    public DateTime? CreatedDate { get; set; }
+    public DateOnly? CreatedDate { get; set; }
 
     public int? CompanyId { get; set; }
 
@@ -25,9 +25,9 @@ public partial class User
 
     public byte? IsMqtt { get; set; }
 
-    public DateTime? ActiveFrom { get; set; }
+    public DateOnly? ActiveFrom { get; set; }
 
-    public DateTime? ActiveTo { get; set; }
+    public DateOnly? ActiveTo { get; set; }
 
     public virtual ICollection<Administrator> Administrators { get; set; } = new List<Administrator>();
 

@@ -196,9 +196,10 @@ namespace FurchaAdminApi.Controllers
 
                 return Ok(ApiResult<UserGroupResult>.Success(result));
             }
-            catch (BaseException ex)
+            catch (BaseException e)
             {
-                return BadRequest(ApiResult<UserGroupResult>.ErrorResult(ErrorCodeEnum.GenericErrorRetry, "Group could not be created."));
+                return BadRequest(ApiResult<UserResult>
+                  .ErrorResult(e.errorCodeEnum, e.Message));
             }
             catch (Exception ex)
             {

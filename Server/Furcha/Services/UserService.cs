@@ -550,7 +550,16 @@ namespace FurchaAdminApi.Services
 
         public UserGroupResult AddUserGroup(UserGroupRequest request)
         {
-            // 1. Create group
+
+            var existsWithSameName = Db.UserGroups
+    .Any(ug => ug.Name == request.Name);
+
+            if (existsWithSameName)
+            {
+                throw new BaseException(ErrorCodeEnum.UserGroupNameExists, "A group with this name already exists.");
+            }
+
+
             var group = AddUserGroupToDb(request);
 
             // ---------------------------------------

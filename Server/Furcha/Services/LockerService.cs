@@ -709,10 +709,23 @@ namespace FurchaAdminApi.Services
 
         public bool DeleteModule(int moduleId)
         {
-            var module = Db.BrainModules.Include(m => m.Lockers).First(x => x.Id == moduleId);
+            var module = Db.BrainModules
+                .Include(m => m.Lockers)
+                .First(x => x.Id == moduleId);
 
             module.Status = 1;
             module.GroupId = null;
+
+            var lockerIds = module.Lockers.Select(l => l.Id).ToList();
+
+            Db.Database.ExecuteSqlRaw(
+                $"DELETE FROM furcha.UserLocker WHERE LockerId IN ({string.Join(",", lockerIds)})");
+
+            var groupLockers = Db.UserGroupLockers
+                .Where(x => lockerIds.Contains(x.LockerId))
+                .ToList();
+
+            Db.UserGroupLockers.RemoveRange(groupLockers);
 
             foreach (var locker in module.Lockers)
             {

@@ -478,7 +478,7 @@ namespace FurchaAdminApi.Repos
                     }
 
                     AddCardsByNumbers(newUser.Cards, insertedUser.Id);
-                    AssignLockersToUser(newUser.LockerIds, insertedUser.Id);
+                    AssignLockersToUser(newUser.ExternalIds, insertedUser.Id);
                     AssignUserGroupsToUser(newUser.UserGroups, insertedUser.Id);
 
                     transactionScope.Complete();

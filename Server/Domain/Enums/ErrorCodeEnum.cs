@@ -31,5 +31,8 @@ namespace Domain.Enums
         [Description("A locker group with this name already exists.")]
         LockerGroupNameExists = 3,
 
+        [Description("A group with this name already exists.")]
+        UserGroupNameExists = 4,
+
     }
 }

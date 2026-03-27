@@ -27,6 +27,8 @@ public partial class Locker
 
     public bool IsDeleted { get; set; }
 
+    public int? ReaderGroupId { get; set; }
+
     public virtual BrainModule Brain { get; set; }
 
     public virtual LockerType LockerTypeNavigation { get; set; }

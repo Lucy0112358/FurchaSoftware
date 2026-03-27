@@ -236,46 +236,77 @@ public class MqttService
                         }
                         break;
 
-
                     case CommandTypes.AddLockersToBrain:
-                        using (var Db = furchaContext.Create())
                         {
-                            var mqttRequest = JsonSerializer.Deserialize<MqttBaseRequest<MqttLockerCount>>(responseMessage);
+                            using (var Db = furchaContext.Create())
+                            {
+                                var mqttRequest =
+                                    JsonSerializer.Deserialize<MqttBaseRequest<MqttLAddLockersInput>>(responseMessage);
 
-                            var brain = Db.BrainModules.Include(b => b.Lockers).FirstOrDefault(x => x.BrainUid == mqttRequest.Data.BrainUid);
-                            var count = brain.Lockers.Count;
-                            if (count < mqttRequest.Data.LockerCount)
-                            {
-                                for (int i = 0; i < (mqttRequest.Data.LockerCount - count); i++)
+                                var brain = Db.BrainModules
+                                    .Include(b => b.Lockers)
+                                    .FirstOrDefault(x => x.BrainUid == mqttRequest.Data.BrainUid);
+
+                                if (brain == null)
+                                    break;
+
+                                using var transaction = Db.Database.BeginTransaction();
+
+                                var mqttLockerIds = mqttRequest?.Data?.Lockers?
+                                    .SelectMany(x => x.ExternalIds)
+                                    .ToList() ?? new List<int>();
+
+                                var dbLockerExternalIds = brain.Lockers?
+                                    .Select(x => (int)x.ExternalId)
+                                    .ToList() ?? new List<int>();
+
+                                var lockersToAdd = mqttLockerIds
+                                    .Except(dbLockerExternalIds)
+                                    .ToList();
+
+                                var lockersToRemove = dbLockerExternalIds
+                                    .Except(mqttLockerIds)
+                                    .ToList();
+
+                                var lockersToAddEntities = Db.Lockers
+                                    .Where(x => lockersToAdd.Contains((int)x.ExternalId))
+                                    .ToList();
+
+                                foreach (var locker in lockersToAddEntities)
                                 {
-                                    Db.Lockers.Add(new FurchaDAL.Models.Locker
+                                    locker.BrainId = brain.Id;
+                                }
+
+                                // remove from UserLocker
+                                Db.Set<Dictionary<string, object>>("UserLocker")
+                                    .Where(x => lockersToRemove.Contains((int)x["LockerId"]))
+                                    .ExecuteDelete();
+
+                                // remove from UserGroupLockers
+                                Db.UserGroupLockers
+                                    .Where(x => lockersToRemove.Contains(x.LockerId))
+                                    .ExecuteDelete();
+
+                                Db.Lockers
+                                    .Where(x => lockersToRemove.Contains((int)x.ExternalId))
+                                    .ExecuteDelete();
+
+                                var success = Db.SaveChanges();
+
+                                if (success > 0)
+                                {
+                                    PublishToMqtt<int>(new MqttBaseRequest<int>
                                     {
-                                        LockerType = brain.Lockers.FirstOrDefault()?.LockerType ?? 1,
-                                        PasswordHash = "test",
-                                        BrainId = brain.Id,
-                                        ExternalId = (brain.Lockers.LastOrDefault()?.ExternalId + 1) ?? (i + 1)
-                                    });
+                                        Operation = (int)OperationTypes.Success,
+                                        Command = (int)CommandTypes.AddLockersToBrain
+                                    }, topic.Replace("webserver", "controller"));
                                 }
+
+                                transaction.Commit();
                             }
-                            if (count > mqttRequest.Data.LockerCount)
-                            {
-                                for (int i = 0; i < (count - mqttRequest.Data.LockerCount); i++)
-                                {
-                                    var l = brain.Lockers.OrderByDescending(x => x.ExternalId).ToList();
-                                    Db.Lockers.Remove(l[i]);
-                                }
-                            }
-                            var success = Db.SaveChanges();
-                            if (success > 0)
-                            {
-                                PublishToMqtt<int>(new MqttBaseRequest<int>
-                                {
-                                    Operation = (int)OperationTypes.Success,
-                                    Command = (int)CommandTypes.AddLockersToBrain
-                                }, topic.Replace("webserver", "controller"));
-                            }
+
+                            break;
                         }
-                        break;
                 }
             }
         }
