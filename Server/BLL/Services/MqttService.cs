@@ -223,16 +223,14 @@ public class MqttService
                                 Db.BrainModules.Add(brain);
                             }
 
-                            var saved = Db.SaveChanges();
+                            Db.SaveChanges();
 
-                            if (saved > 0)
+                            PublishToMqtt<int>(new MqttBaseRequest<int>
                             {
-                                PublishToMqtt<int>(new MqttBaseRequest<int>
-                                {
-                                    Operation = (int)OperationTypes.Success,
-                                    Command = (int)CommandTypes.CreateBrainModule
-                                }, topic.Replace("webserver", "controller"));
-                            }
+                                Operation = (int)OperationTypes.Success,
+                                Command = (int)CommandTypes.CreateBrainModule
+                            }, topic.Replace("webserver", "controller"));
+
                         }
                         break;
 
