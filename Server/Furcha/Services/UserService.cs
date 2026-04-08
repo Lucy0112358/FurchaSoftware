@@ -306,7 +306,7 @@ namespace FurchaAdminApi.Services
               .Where(u =>
                   u.State == (int)StateEnum.active &&
                   u.ActiveTo.HasValue &&
-                  u.ActiveTo.Value.Date < today)
+                  u.ActiveTo.Value < DateOnly.FromDateTime(today))
               .ExecuteUpdate(s =>
                   s.SetProperty(u => u.State, (int)StateEnum.expanded));
         }
@@ -745,11 +745,11 @@ namespace FurchaAdminApi.Services
                         Surname = newUser.Surname,
                         Email = email,
                         Phone = newUser.Phone,
-                        CreatedDate = DateTime.UtcNow,
+                        CreatedDate = DateOnly.FromDateTime(DateTime.UtcNow),
                         State = (int)newState,
                         CompanyId = companyId,
-                        ActiveFrom = activeFrom,
-                        ActiveTo = activeTo
+                        ActiveFrom = activeFrom.HasValue ? DateOnly.FromDateTime(activeFrom.Value) : null,
+                        ActiveTo = activeTo.HasValue ? DateOnly.FromDateTime(activeTo.Value) : null
                     };
 
                     Db.Users.Add(user);
@@ -774,8 +774,8 @@ namespace FurchaAdminApi.Services
                     user.Email = email;
                     user.Phone = newUser.Phone;
                     user.State = (int)newState;
-                    user.ActiveFrom = activeFrom;
-                    user.ActiveTo = activeTo;
+                    user.ActiveFrom = activeFrom.HasValue ? DateOnly.FromDateTime(activeFrom.Value) : null;
+                    user.ActiveTo = activeTo.HasValue ? DateOnly.FromDateTime(activeTo.Value) : null;
                 }
 
                 Db.SaveChanges();
@@ -829,6 +829,13 @@ namespace FurchaAdminApi.Services
             return DateTime.SpecifyKind(dt.Value, DateTimeKind.Unspecified);
         }
 
+        private DateTime? Normalize(DateOnly? dt)
+        {
+            if (!dt.HasValue)
+                return null;
+
+            return DateTime.SpecifyKind(dt.Value.ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
+        }
 
         private void AssignUserGroupsToUser(List<int> groupIds, int userId)
         {
