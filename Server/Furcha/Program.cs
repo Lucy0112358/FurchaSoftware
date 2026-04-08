@@ -128,7 +128,6 @@ namespace FurchaAdminApi
                 options.ListenAnyIP(1010); // HTTP
             });*/
 
-            builder.Services.AddSingleton<IMqttApiService, MqttApiService>();
             builder.Services.AddSingleton<MqttClientOptions>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>().GetSection("MqttSettings");
@@ -136,10 +135,12 @@ namespace FurchaAdminApi
                     .WithClientId(config["ClientId"])
                     .WithTcpServer(config["Server"], int.Parse(config["Port"]))
                     .WithCredentials(config["Username"], config["Password"])
+                    .WithCleanSession(false)
                     .Build();
             });
 
-            builder.Services.AddSingleton<MqttService>();
+            builder.Services.AddSingleton<IMqttService, MqttService>();
+            builder.Services.AddSingleton<IMqttApiService, MqttApiService>();
             builder.Services.AddSignalR();
 
             builder.Services.AddScoped<IDoorStateService, SignalRNotificationService>();

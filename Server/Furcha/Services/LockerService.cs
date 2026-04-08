@@ -5,6 +5,7 @@ using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Models.Result;
 using FurchaAdminApi.Repos;
 using FurchaBLL.Constants;
+using FurchaBLL.Interfaces;
 using FurchaBLL.Models;
 using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
@@ -21,9 +22,9 @@ namespace FurchaAdminApi.Services
         private readonly BranchRepository _branchRepository;
         private readonly UserRepository _userRepository;
         private readonly furchaContext Db;
-        private readonly MqttService _mqttService;
+        private readonly IMqttService _mqttService;
 
-        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository, MqttService mqttService, furchaContext db)
+        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository, IMqttService mqttService, furchaContext db)
         {
             _lockerRepository = lockerRepository;
             _branchRepository = branchRepository;
@@ -525,7 +526,7 @@ namespace FurchaAdminApi.Services
                     Data = data
                 };
 
-                await _mqttService.PublishToMqtt(mqttRequest, $"controller/{companyUid}/{brainLockers.Key}");
+                await _mqttService.PublishAsync(mqttRequest, $"controller/{companyUid}/{brainLockers.Key}");
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using FurchaBLL.Models;
+﻿using FurchaBLL.Interfaces;
+using FurchaBLL.Models;
 using FurchaDAL.Models;
 
 namespace FurchaBLL.Services
@@ -6,8 +7,8 @@ namespace FurchaBLL.Services
     public class CompanyService
     {
         private readonly furchaContext Db;
-        private readonly MqttService _mqttService;
-        public CompanyService(furchaContext db, MqttService mqttService)
+        private readonly IMqttService _mqttService;
+        public CompanyService(furchaContext db, IMqttService mqttService)
         {
             Db = db;
             _mqttService = mqttService;
@@ -32,7 +33,7 @@ namespace FurchaBLL.Services
 
             if (dbCompany != null)
             {
-                await _mqttService.AddAccount(dbCompany.Entity.AccountUid, "123456789"); // to add pass hashing
+                await _mqttService.AddAccountAsync(dbCompany.Entity.AccountUid, "123456789");
             }
         }
     }
