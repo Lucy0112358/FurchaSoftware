@@ -64,7 +64,7 @@ namespace FurchaBLL.Services
                 }
 
                 var commandType = (CommandTypes)message.Command;
-                
+
                 switch (commandType)
                 {
                     case CommandTypes.UpdateDoorStatus:
@@ -105,13 +105,12 @@ namespace FurchaBLL.Services
 
         private async Task HandleUpdateDoorStatusAsync(string topic, string payload)
         {
-            var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<OpenLockerRequest>>(payload);
-            if (lockerPayload?.Data == null)
+            var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<IEnumerable<OpenLockerRequest>>>(payload);
+            if (lockerPayload?.Data == null || !lockerPayload.Data.Any())
                 return;
 
             using var scope = _scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>();
-
+            using var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>();
             try
             {
                 var brainUid = ExtractBrainUidFromTopic(topic);
@@ -127,29 +126,46 @@ namespace FurchaBLL.Services
                     _logger.LogWarning("Brain module not found for UID {BrainUid}", brainUid);
                     return;
                 }
-
-                var dbLocker = await dbContext.Lockers
-                    .FirstOrDefaultAsync(x => x.ExternalId == lockerPayload.Data.Number && x.BrainId == brain.Id);
-
-                if (dbLocker == null)
+                foreach (var lp in lockerPayload.Data)
                 {
-                    _logger.LogWarning("Locker not found for brain {BrainId} and external ID {ExternalId}", 
-                        brain.Id, lockerPayload.Data.Number);
-                    return;
-                }
+                    // Each item specifies a device type — either "Locker" or "Door".
+                    // Locker and Door statuses are handled separately based on lp.Type.
+                    if ("Locker".Equals(lp.Type, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var dbLocker = await dbContext.Lockers
+                            .FirstOrDefaultAsync(x => x.ExternalId == lp.Number && x.BrainId == brain.Id);
 
-                dbLocker.LockerStatus = lockerPayload.Data.Status;
-                var result = await dbContext.SaveChangesAsync();
+                        if (dbLocker == null)
+                        {
+                            _logger.LogWarning("Locker not found for brain {BrainId} and external ID {ExternalId}",
+                                brain.Id, lp.Number);
+                            return;
+                        }
 
-                if (result > 0)
-                {
-                    await NotifyDoorServiceAsync(dbLocker.Id, lockerPayload.Data.Status);
+                        dbLocker.LockerStatus = lp.Status;
+
+                        var result = await dbContext.SaveChangesAsync();
+
+                        if (result > 0)
+                        {
+                            await NotifyDoorServiceAsync(dbLocker.Id, lp.Status);
+                        }
+                    }
+                    else if ("Door".Equals(lp.Type, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // TODO: Implement Door status update logic.
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Unknown device type '{Type}' received.", lp.Type);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling UpdateDoorStatus command");
             }
+
         }
 
         private async Task HandleOpenLockersFromAdminAsync(string topic, string payload)
@@ -397,7 +413,7 @@ namespace FurchaBLL.Services
         private static string ExtractBrainUidFromTopic(string topic)
         {
             var parts = topic.Split("/");
-            return parts.Length > 2 ? parts[2] : null;
+            return parts.ElementAtOrDefault(2);
         }
     }
 }

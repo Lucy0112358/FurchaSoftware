@@ -2,6 +2,7 @@
 {
     public class OpenLockerRequest
     {
+        public string Type {  get; set; }   // change to int in db
         public int Status {  get; set; }   // change to int in db
         
         public int Number { get; set; }
