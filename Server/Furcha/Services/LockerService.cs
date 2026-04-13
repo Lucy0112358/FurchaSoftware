@@ -719,14 +719,18 @@ namespace FurchaAdminApi.Services
 
             var lockerIds = module.Lockers.Select(l => l.Id).ToList();
 
-            Db.Database.ExecuteSqlRaw(
-                $"DELETE FROM furcha.UserLocker WHERE LockerId IN ({string.Join(",", lockerIds)})");
+            if (lockerIds.Count > 0)
+            {
+                Db.Database.ExecuteSqlRaw(
+                    $"DELETE FROM furcha.UserLocker WHERE LockerId IN ({string.Join(",", lockerIds)})");
 
-            var groupLockers = Db.UserGroupLockers
+                var groupLockers = Db.UserGroupLockers
                 .Where(x => lockerIds.Contains(x.LockerId))
                 .ToList();
 
-            Db.UserGroupLockers.RemoveRange(groupLockers);
+                Db.UserGroupLockers.RemoveRange(groupLockers);
+
+            }
 
             foreach (var locker in module.Lockers)
             {
