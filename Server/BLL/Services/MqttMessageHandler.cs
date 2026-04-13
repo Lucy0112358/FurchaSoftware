@@ -1,0 +1,403 @@
+using FurchaBLL.Constants;
+using FurchaBLL.Interfaces;
+using FurchaBLL.MqttModels.Publish;
+using FurchaBLL.MqttModels.Subscribe;
+using FurchaDAL.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using MQTTnet.Client;
+using System.Text;
+using System.Text.Json;
+
+namespace FurchaBLL.Services
+{
+    /// <summary>
+    /// Handles incoming MQTT messages and processes them according to command types.
+    /// </summary>
+    public class MqttMessageHandler : IMqttMessageHandler
+    {
+        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IMqttService _mqttService;
+        private readonly ILogger<MqttMessageHandler> _logger;
+        private readonly string _doorServiceBaseUrl;
+
+        public MqttMessageHandler(
+            IServiceScopeFactory scopeFactory,
+            IMqttService mqttService,
+            ILogger<MqttMessageHandler> logger,
+            string doorServiceBaseUrl = "http://192.168.0.129:1010")
+        {
+            _scopeFactory = scopeFactory;
+            _mqttService = mqttService;
+            _logger = logger;
+            _doorServiceBaseUrl = doorServiceBaseUrl;
+        }
+
+        /// <inheritdoc />
+        public async Task HandleAsync(MqttApplicationMessageReceivedEventArgs eventArgs)
+        {
+            if (eventArgs?.ApplicationMessage == null)
+            {
+                _logger.LogWarning("Received null MQTT message event.");
+                return;
+            }
+
+            var topic = eventArgs.ApplicationMessage.Topic;
+            var payload = Encoding.UTF8.GetString(eventArgs.ApplicationMessage.PayloadSegment);
+
+            _logger.LogInformation("Received MQTT message on topic {Topic}", topic);
+
+            try
+            {
+                if (!topic.StartsWith("webserver/"))
+                {
+                    _logger.LogDebug("Message from topic {Topic} is not from webserver. Ignoring.", topic);
+                    return;
+                }
+
+                var message = JsonSerializer.Deserialize<MqttBaseRequest<object>>(payload);
+                if (message == null)
+                {
+                    _logger.LogWarning("Failed to deserialize message from topic {Topic}", topic);
+                    return;
+                }
+
+                var commandType = (CommandTypes)message.Command;
+                
+                switch (commandType)
+                {
+                    case CommandTypes.UpdateDoorStatus:
+                        await HandleUpdateDoorStatusAsync(topic, payload);
+                        break;
+
+                    case CommandTypes.OpenLockersFromAdmin:
+                        await HandleOpenLockersFromAdminAsync(topic, payload);
+                        break;
+
+                    case CommandTypes.CreateUserFromAdmin:
+                        await HandleCreateUserFromAdminAsync(topic, payload);
+                        break;
+
+                    case CommandTypes.CreateBrainModule:
+                        await HandleCreateBrainModuleAsync(topic, payload);
+                        break;
+
+                    case CommandTypes.AddLockersToBrain:
+                        await HandleAddLockersToBrainAsync(topic, payload);
+                        break;
+
+                    default:
+                        _logger.LogWarning("Unknown command type {CommandType} from topic {Topic}", commandType, topic);
+                        break;
+                }
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogInformation("Raw MQTT payload (topic: {Topic}): {Payload}", topic, payload);
+                _logger.LogError(ex, "Failed to deserialize MQTT payload from topic {Topic}", topic);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling MQTT message from topic {Topic}", topic);
+            }
+        }
+
+        private async Task HandleUpdateDoorStatusAsync(string topic, string payload)
+        {
+            var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<OpenLockerRequest>>(payload);
+            if (lockerPayload?.Data == null)
+                return;
+
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>();
+
+            try
+            {
+                var brainUid = ExtractBrainUidFromTopic(topic);
+                if (string.IsNullOrEmpty(brainUid))
+                {
+                    _logger.LogWarning("Could not extract brain UID from topic {Topic}", topic);
+                    return;
+                }
+
+                var brain = await dbContext.BrainModules.FirstOrDefaultAsync(b => b.BrainUid == brainUid);
+                if (brain == null)
+                {
+                    _logger.LogWarning("Brain module not found for UID {BrainUid}", brainUid);
+                    return;
+                }
+
+                var dbLocker = await dbContext.Lockers
+                    .FirstOrDefaultAsync(x => x.ExternalId == lockerPayload.Data.Number && x.BrainId == brain.Id);
+
+                if (dbLocker == null)
+                {
+                    _logger.LogWarning("Locker not found for brain {BrainId} and external ID {ExternalId}", 
+                        brain.Id, lockerPayload.Data.Number);
+                    return;
+                }
+
+                dbLocker.LockerStatus = lockerPayload.Data.Status;
+                var result = await dbContext.SaveChangesAsync();
+
+                if (result > 0)
+                {
+                    await NotifyDoorServiceAsync(dbLocker.Id, lockerPayload.Data.Status);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling UpdateDoorStatus command");
+            }
+        }
+
+        private async Task HandleOpenLockersFromAdminAsync(string topic, string payload)
+        {
+            var lockersPayload = JsonSerializer.Deserialize<MqttBaseRequest<List<OpenLockerRequest>>>(payload);
+            if (lockersPayload?.Data == null || lockersPayload.Data.Count == 0)
+                return;
+
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>();
+
+            try
+            {
+                var brainUid = ExtractBrainUidFromTopic(topic);
+                if (string.IsNullOrEmpty(brainUid))
+                {
+                    _logger.LogWarning("Could not extract brain UID from topic {Topic}", topic);
+                    return;
+                }
+
+                var brain = await dbContext.BrainModules.FirstOrDefaultAsync(b => b.BrainUid == brainUid);
+                if (brain == null)
+                {
+                    _logger.LogWarning("Brain module not found for UID {BrainUid}", brainUid);
+                    return;
+                }
+
+                foreach (var locker in lockersPayload.Data)
+                {
+                    var dbLocker = await dbContext.Lockers
+                        .FirstOrDefaultAsync(x => x.ExternalId == locker.Number && x.BrainId == brain.Id);
+
+                    if (dbLocker != null)
+                    {
+                        dbLocker.LockerStatus = locker.Status;
+                        await NotifyDoorServiceAsync(dbLocker.Id, locker.Status);
+                    }
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling OpenLockersFromAdmin command");
+            }
+        }
+
+        private async Task HandleCreateUserFromAdminAsync(string topic, string payload)
+        {
+            var userPayload = JsonSerializer.Deserialize<MqttBaseRequest<MqttUserRequest>>(payload);
+            if (userPayload?.Data == null)
+                return;
+
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>();
+
+            try
+            {
+                var dbUser = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userPayload.Data.UserId);
+                if (dbUser != null)
+                {
+                    dbUser.IsMqtt = userPayload.Data.Success;
+                    await dbContext.SaveChangesAsync();
+                }
+                else
+                {
+                    _logger.LogWarning("User not found with ID {UserId}", userPayload.Data.UserId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling CreateUserFromAdmin command");
+            }
+        }
+
+        private async Task HandleCreateBrainModuleAsync(string topic, string payload)
+        {
+            var mqttBrain = JsonSerializer.Deserialize<MqttBaseRequest<MqttCreateBrain>>(payload);
+            if (mqttBrain?.Data == null)
+                return;
+
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>();
+
+            try
+            {
+                var company = await dbContext.Companies
+                    .FirstOrDefaultAsync(x => x.AccountUid == mqttBrain.Data.AccountId);
+
+                if (company == null)
+                {
+                    _logger.LogWarning("Company not found for account ID {AccountId}", mqttBrain.Data.AccountId);
+                    return;
+                }
+
+                var brain = await dbContext.BrainModules
+                    .FirstOrDefaultAsync(x => x.CompanyId == company.Id && x.BrainUid == mqttBrain.Data.BrainUid);
+
+                if (brain != null)
+                {
+                    brain.IpAddress = mqttBrain.Data.IpAddress;
+                    brain.MacAddress = mqttBrain.Data.MacAddress;
+                    brain.Description = mqttBrain.Data.Info;
+                    brain.Status = (int)BrainStatuses.Added;
+                }
+                else
+                {
+                    brain = new BrainModule
+                    {
+                        Status = (int)BrainStatuses.New,
+                        CompanyId = company.Id,
+                        IpAddress = mqttBrain.Data.IpAddress,
+                        MacAddress = mqttBrain.Data.MacAddress,
+                        BrainUid = mqttBrain.Data.BrainUid,
+                        Description = mqttBrain.Data.Info,
+                        GroupId = null
+                    };
+
+                    dbContext.BrainModules.Add(brain);
+                }
+
+                var saved = await dbContext.SaveChangesAsync();
+
+                if (saved > 0)
+                {
+                    await _mqttService.PublishAsync<int>(
+                        new MqttBaseRequest<int>
+                        {
+                            Operation = (int)OperationTypes.Success,
+                            Command = (int)CommandTypes.CreateBrainModule
+                        },
+                        topic.Replace("webserver", "controller"));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling CreateBrainModule command");
+            }
+        }
+
+        private async Task HandleAddLockersToBrainAsync(string topic, string payload)
+        {
+            var mqttRequest = JsonSerializer.Deserialize<MqttBaseRequest<MqttLAddLockersInput>>(payload);
+            if (mqttRequest?.Data == null)
+                return;
+
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>();
+
+            try
+            {
+                var brain = await dbContext.BrainModules
+                    .Include(b => b.Lockers)
+                    .FirstOrDefaultAsync(x => x.BrainUid == mqttRequest.Data.BrainUid);
+
+                if (brain == null)
+                {
+                    _logger.LogWarning("Brain module not found for UID {BrainUid}", mqttRequest.Data.BrainUid);
+                    return;
+                }
+
+                using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+                var mqttLockerIds = mqttRequest.Data.Lockers?
+                    .SelectMany(x => x.ExternalIds)
+                    .ToList() ?? new List<int>();
+
+                var dbLockerExternalIds = brain.Lockers?
+                    .Select(x => (int)x.ExternalId)
+                    .ToList() ?? new List<int>();
+
+                var lockersToAdd = mqttLockerIds
+                    .Except(dbLockerExternalIds)
+                    .ToList();
+
+                var lockersToRemove = dbLockerExternalIds
+                    .Except(mqttLockerIds)
+                    .ToList();
+
+                var lockersToAddEntities = await dbContext.Lockers
+                    .Where(x => lockersToAdd.Contains((int)x.ExternalId))
+                    .ToListAsync();
+
+                foreach (var locker in lockersToAddEntities)
+                {
+                    locker.BrainId = brain.Id;
+                }
+
+                // Remove from UserLocker
+                await dbContext.Set<Dictionary<string, object>>("UserLocker")
+                    .Where(x => lockersToRemove.Contains((int)x["LockerId"]))
+                    .ExecuteDeleteAsync();
+
+                // Remove from UserGroupLockers
+                await dbContext.UserGroupLockers
+                    .Where(x => lockersToRemove.Contains(x.LockerId))
+                    .ExecuteDeleteAsync();
+
+                await dbContext.Lockers
+                    .Where(x => lockersToRemove.Contains((int)x.ExternalId))
+                    .ExecuteDeleteAsync();
+
+                var success = await dbContext.SaveChangesAsync();
+
+                if (success > 0)
+                {
+                    await _mqttService.PublishAsync<int>(
+                        new MqttBaseRequest<int>
+                        {
+                            Operation = (int)OperationTypes.Success,
+                            Command = (int)CommandTypes.AddLockersToBrain,
+                        },
+                        topic.Replace("webserver", "controller"));
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling AddLockersToBrain command");
+            }
+        }
+
+        private async Task NotifyDoorServiceAsync(int doorId, int status)
+        {
+            try
+            {
+                using var httpClient = new HttpClient();
+                var statusText = status == 2 ? "Closed" : "Open";
+                var endpoint = $"/api/locker/test-door-status?doorId={doorId}&status={statusText}";
+                var response = await httpClient.GetAsync(_doorServiceBaseUrl + endpoint);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to notify door service. Door ID: {DoorId}, Status: {Status}, Response: {StatusCode}",
+                        doorId, statusText, response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error notifying door service for door ID {DoorId}", doorId);
+            }
+        }
+
+        private static string ExtractBrainUidFromTopic(string topic)
+        {
+            var parts = topic.Split("/");
+            return parts.Length > 2 ? parts[2] : null;
+        }
+    }
+}

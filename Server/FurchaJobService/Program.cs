@@ -1,9 +1,10 @@
-﻿using FurchaDAL.Models;
+﻿using FurchaBLL.Interfaces;
+using FurchaBLL.Services;
+using FurchaDAL.Models;
 using FurchaJobService.Workers;
 using Microsoft.EntityFrameworkCore;
 using MQTTnet;
 using MQTTnet.Client;
-using FurchaBLL.Models;
 
 namespace FurchaJobService
 {
@@ -14,7 +15,7 @@ namespace FurchaJobService
             var exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             var exeDir = System.IO.Path.GetDirectoryName(exePath);
             System.IO.Directory.SetCurrentDirectory(exeDir);
-            var builder = Host.CreateApplicationBuilder(args);        
+            var builder = Host.CreateApplicationBuilder(args);
 
             builder.Services.AddDbContextFactory<furchaContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
@@ -38,8 +39,9 @@ namespace FurchaJobService
                     .Build();
             });
 
-            builder.Services.AddSingleton<MqttService>();
-            builder.Services.AddHostedService<MqttMainWorker>();
+            builder.Services.AddSingleton<IMqttService, MqttService>();
+            builder.Services.AddScoped<IMqttMessageHandler, MqttMessageHandler>();
+            builder.Services.AddHostedService<MqttBackgroundService>();
             builder.Services.AddWindowsService(options =>
             {
                 options.ServiceName = "FurchaJobService";

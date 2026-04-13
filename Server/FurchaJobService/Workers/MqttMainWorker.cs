@@ -1,12 +1,19 @@
 
+using FurchaBLL.Interfaces;
+
 namespace FurchaJobService.Workers
 {
+    /// <summary>
+    /// DEPRECATED: Use MqttBackgroundService instead.
+    /// Kept for backward compatibility during migration.
+    /// </summary>
+    [Obsolete("Use MqttBackgroundService instead.", false)]
     public class MqttMainWorker : BackgroundService
     {
         private readonly ILogger<MqttMainWorker> _logger;
-        private readonly MqttService _mqttService;
+        private readonly IMqttService _mqttService;
 
-        public MqttMainWorker(ILogger<MqttMainWorker> logger, MqttService mqttService)
+        public MqttMainWorker(ILogger<MqttMainWorker> logger, IMqttService mqttService)
         {
             _logger = logger;
             _mqttService = mqttService;
@@ -16,8 +23,6 @@ namespace FurchaJobService.Workers
         {
             try
             {
-                await _mqttService.InitializeClient(stoppingToken);
-
                 _logger.LogInformation("MQTT client initialized.");
 
                 await Task.Delay(Timeout.Infinite, stoppingToken);
@@ -29,7 +34,7 @@ namespace FurchaJobService.Workers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "MQTT worker failed.");
-                throw; 
+                throw;
             }
         }
     }

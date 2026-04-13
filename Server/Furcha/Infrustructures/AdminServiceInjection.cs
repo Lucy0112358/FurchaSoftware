@@ -14,7 +14,7 @@ namespace FurchaAdminApi.Infrustructures
             services.AddScoped(typeof(BranchRepository));
             services.AddScoped(typeof(AdminRepository));
             services.AddScoped(typeof(LockerRepository));
-            services.AddScoped(typeof(BranchService));            
+            services.AddScoped(typeof(BranchService));
 
             /* SERVICES */
             services.AddScoped(typeof(UserService));
@@ -22,7 +22,7 @@ namespace FurchaAdminApi.Infrustructures
             services.AddScoped(typeof(LockerService));
             services.AddScoped(typeof(ISanitizer), typeof(Sanitizer));
             services.AddScoped(typeof(IPermissionService), typeof(PermissionService));
-            services.AddScoped(typeof(MqttService));
+            //services.AddSingleton<IMqttService, MqttService>();
 
             return services;
         }
