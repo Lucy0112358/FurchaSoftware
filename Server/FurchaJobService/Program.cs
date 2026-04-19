@@ -40,7 +40,7 @@ namespace FurchaJobService
             });
 
             builder.Services.AddSingleton<IMqttService, MqttService>();
-            builder.Services.AddScoped<IMqttMessageHandler, MqttMessageHandler>();
+            builder.Services.AddSingleton<IMqttMessageHandler, MqttMessageHandler>();
             builder.Services.AddHostedService<MqttBackgroundService>();
             builder.Services.AddWindowsService(options =>
             {
