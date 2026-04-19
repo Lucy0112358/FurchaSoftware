@@ -11,6 +11,6 @@
     {
         public int ReaderGroupId { get; set; }
 
-        public List<int> ExternalIds { get; set; }
+        public int ExternalIds { get; set; }
     }
 }

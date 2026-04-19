@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using MQTTnet.Client;
 using System.Text;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FurchaBLL.Services
 {
@@ -64,7 +65,7 @@ namespace FurchaBLL.Services
                 }
 
                 var commandType = (CommandTypes)message.Command;
-                
+
                 switch (commandType)
                 {
                     case CommandTypes.UpdateDoorStatus:
@@ -105,13 +106,12 @@ namespace FurchaBLL.Services
 
         private async Task HandleUpdateDoorStatusAsync(string topic, string payload)
         {
-            var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<OpenLockerRequest>>(payload);
-            if (lockerPayload?.Data == null)
+            var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<IEnumerable<OpenLockerRequest>>>(payload);
+            if (lockerPayload?.Data == null || !lockerPayload.Data.Any())
                 return;
 
             using var scope = _scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>();
-
+            using var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>();
             try
             {
                 var brainUid = ExtractBrainUidFromTopic(topic);
@@ -127,29 +127,46 @@ namespace FurchaBLL.Services
                     _logger.LogWarning("Brain module not found for UID {BrainUid}", brainUid);
                     return;
                 }
-
-                var dbLocker = await dbContext.Lockers
-                    .FirstOrDefaultAsync(x => x.ExternalId == lockerPayload.Data.Number && x.BrainId == brain.Id);
-
-                if (dbLocker == null)
+                foreach (var lp in lockerPayload.Data)
                 {
-                    _logger.LogWarning("Locker not found for brain {BrainId} and external ID {ExternalId}", 
-                        brain.Id, lockerPayload.Data.Number);
-                    return;
-                }
+                    // Each item specifies a device type — either "Locker" or "Door".
+                    // Locker and Door statuses are handled separately based on lp.Type.
+                    if ("Locker".Equals(lp.Type, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var dbLocker = await dbContext.Lockers
+                            .FirstOrDefaultAsync(x => x.ExternalId == lp.Number && x.BrainId == brain.Id);
 
-                dbLocker.LockerStatus = lockerPayload.Data.Status;
-                var result = await dbContext.SaveChangesAsync();
+                        if (dbLocker == null)
+                        {
+                            _logger.LogWarning("Locker not found for brain {BrainId} and external ID {ExternalId}",
+                                brain.Id, lp.Number);
+                            return;
+                        }
 
-                if (result > 0)
-                {
-                    await NotifyDoorServiceAsync(dbLocker.Id, lockerPayload.Data.Status);
+                        dbLocker.LockerStatus = lp.Status;
+
+                        var result = await dbContext.SaveChangesAsync();
+
+                        if (result > 0)
+                        {
+                            await NotifyDoorServiceAsync(dbLocker.Id, lp.Status);
+                        }
+                    }
+                    else if ("Door".Equals(lp.Type, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // TODO: Implement Door status update logic.
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Unknown device type '{Type}' received.", lp.Type);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling UpdateDoorStatus command");
             }
+
         }
 
         private async Task HandleOpenLockersFromAdminAsync(string topic, string payload)
@@ -299,77 +316,127 @@ namespace FurchaBLL.Services
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>();
 
-            try
+            using (var transaction = await dbContext.Database.BeginTransactionAsync())
             {
-                var brain = await dbContext.BrainModules
-                    .Include(b => b.Lockers)
-                    .FirstOrDefaultAsync(x => x.BrainUid == mqttRequest.Data.BrainUid);
-
-                if (brain == null)
+                try
                 {
-                    _logger.LogWarning("Brain module not found for UID {BrainUid}", mqttRequest.Data.BrainUid);
-                    return;
-                }
+                    var brain = await dbContext.BrainModules
+                        .Include(b => b.Lockers)
+                        .FirstOrDefaultAsync(x => x.BrainUid == mqttRequest.Data.BrainUid);
 
-                using var transaction = await dbContext.Database.BeginTransactionAsync();
+                    if (brain == null)
+                    {
+                        _logger.LogWarning("Brain module not found for UID {BrainUid}", mqttRequest.Data.BrainUid);
+                        return;
+                    }
 
-                var mqttLockerIds = mqttRequest.Data.Lockers?
-                    .SelectMany(x => x.ExternalIds)
-                    .ToList() ?? new List<int>();
+                    var mqttLockerIds = mqttRequest.Data.Lockers
+                        ?.Select(x => x.ExternalIds)
+                        ?.ToList() ?? [];
 
-                var dbLockerExternalIds = brain.Lockers?
-                    .Select(x => (int)x.ExternalId)
-                    .ToList() ?? new List<int>();
+                    List<int> dbLockerExternalIds = brain.Lockers
+                        ?.Where(x => x.ExternalId.HasValue)
+                        ?.Select(x => x.ExternalId.GetValueOrDefault())
+                        ?.ToList() ?? [];
 
-                var lockersToAdd = mqttLockerIds
-                    .Except(dbLockerExternalIds)
-                    .ToList();
+                    List<int> lockersToAdd = mqttLockerIds
+                        .Except(dbLockerExternalIds)
+                        .ToList();
 
-                var lockersToRemove = dbLockerExternalIds
-                    .Except(mqttLockerIds)
-                    .ToList();
+                    List<int> lockersToRemove = dbLockerExternalIds
+                        .Except(mqttLockerIds)
+                        .ToList();
 
-                var lockersToAddEntities = await dbContext.Lockers
-                    .Where(x => lockersToAdd.Contains((int)x.ExternalId))
-                    .ToListAsync();
+                    var lockersToAddEntities = await dbContext.Lockers
+                        .Where(x => x.ExternalId != null && lockersToAdd.Contains(x.ExternalId.Value))
+                        .ToListAsync();
 
-                foreach (var locker in lockersToAddEntities)
-                {
-                    locker.BrainId = brain.Id;
-                }
+                    // Find ExternalIds that don't exist in DB
+                    var externalIdsNotInDb = lockersToAdd
+                        .Except(lockersToAddEntities.Select(x => x.ExternalId.Value))
+                        .ToList();
 
-                // Remove from UserLocker
-                await dbContext.Set<Dictionary<string, object>>("UserLocker")
-                    .Where(x => lockersToRemove.Contains((int)x["LockerId"]))
-                    .ExecuteDeleteAsync();
+                    // Create new Locker instances for IDs not in DB
+                    if (externalIdsNotInDb.Any())
+                    {
+                        var commonType = await dbContext.LockerTypes
+                            .FirstOrDefaultAsync(lt => lt.Type.ToLower() == "common");
 
-                // Remove from UserGroupLockers
-                await dbContext.UserGroupLockers
-                    .Where(x => lockersToRemove.Contains(x.LockerId))
-                    .ExecuteDeleteAsync();
-
-                await dbContext.Lockers
-                    .Where(x => lockersToRemove.Contains((int)x.ExternalId))
-                    .ExecuteDeleteAsync();
-
-                var success = await dbContext.SaveChangesAsync();
-
-                if (success > 0)
-                {
-                    await _mqttService.PublishAsync<int>(
-                        new MqttBaseRequest<int>
+                        if (commonType == null)
                         {
-                            Operation = (int)OperationTypes.Success,
-                            Command = (int)CommandTypes.AddLockersToBrain,
-                        },
-                        topic.Replace("webserver", "controller"));
-                }
+                            _logger.LogError("Common locker type not found in database");
+                            throw new InvalidOperationException("Common locker type not found in database");
+                        }
 
-                await transaction.CommitAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error handling AddLockersToBrain command");
+                        // Calculate the next available locker number for this brain
+                        var maxExistingNumber = brain.Lockers?.Any() == true
+                            ? brain.Lockers.Where(l => l.Number.HasValue).Max(l => (int?)l.Number.Value) ?? 0 : 0;
+
+                        var newLockers = externalIdsNotInDb
+                            .OrderBy(id => id)
+                            .Select((externalId, index) =>
+                            {
+                                var mqttLocker = mqttRequest?.Data?.Lockers?.FirstOrDefault(l => l.ExternalIds == externalId);
+
+                                return new Locker
+                                {
+                                    ExternalId = externalId,
+                                    BrainId = brain.Id,
+                                    IsActive = 1, // Active locker
+                                    IsDeleted = false, // Not deleted
+                                    IsOpen = 0, // Starts closed
+                                    LockerStatus = 1, // Default status (free/available)
+                                    LockerType = commonType.Id, // Common type for newly added lockers
+                                    Number = (decimal)(maxExistingNumber + index + 1), // Sequential numbering
+                                    PasswordHash = null, // Set when user assigns password
+                                    ReaderGroupId = mqttLocker?.ReaderGroupId // Set ReaderGroupId from mqttLocker if available
+                                };
+                            })
+                            .ToList();
+
+                        await dbContext.Lockers.AddRangeAsync(newLockers);
+                        lockersToAddEntities.AddRange(newLockers);
+                    }
+
+                    foreach (var locker in lockersToAddEntities)
+                    {
+                        locker.BrainId = brain.Id;
+                    }
+
+                    // Remove from UserLocker
+                    await dbContext.Set<Dictionary<string, object>>("UserLocker")
+                        .Where(x => lockersToRemove.Contains((int)x["LockerId"]))
+                        .ExecuteDeleteAsync();
+
+                    // Remove from UserGroupLockers
+                    await dbContext.UserGroupLockers
+                        .Where(x => lockersToRemove.Contains(x.LockerId))
+                        .ExecuteDeleteAsync();
+
+                    await dbContext.Lockers
+                        .Where(x => x.ExternalId != null && lockersToRemove.Contains(x.ExternalId.Value))
+                        .ExecuteDeleteAsync();
+
+                    var success = await dbContext.SaveChangesAsync();
+
+                    if (success > 0)
+                    {
+                        await _mqttService.PublishAsync<int>(
+                            new MqttBaseRequest<int>
+                            {
+                                Operation = (int)OperationTypes.Success,
+                                Command = (int)CommandTypes.AddLockersToBrain,
+                            },
+                            topic.Replace("webserver", "controller"));
+                    }
+
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(); // undo partial writes
+                    _logger.LogError(ex, "Error handling AddLockersToBrain command");
+                }
             }
         }
 
@@ -397,7 +464,7 @@ namespace FurchaBLL.Services
         private static string ExtractBrainUidFromTopic(string topic)
         {
             var parts = topic.Split("/");
-            return parts.Length > 2 ? parts[2] : null;
+            return parts.ElementAtOrDefault(2);
         }
     }
 }

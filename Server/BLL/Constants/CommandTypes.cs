@@ -11,7 +11,12 @@
         AddLockersToBrain,
         SendAuthDataForOpen,
         SuspendUser,
-        SuspendLocker,       
-        AddUser
+        SuspendLocker,
+        OpenDoorsFromAdmin,
+        SendCard,
+        ChangeType,
+        StatusActiveSuspend,
+        SendLockerMode,
+        AssigningUserToLocker
     }
 }
