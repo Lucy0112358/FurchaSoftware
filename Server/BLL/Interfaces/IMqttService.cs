@@ -18,6 +18,18 @@ namespace FurchaBLL.Interfaces
         Task PublishAsync<T>(MqttBaseRequest<T> request, string topic);
 
         /// <summary>
+        /// Publishes an object-type MQTT message to a specified topic.
+        /// </summary>
+        /// <param name="request">The MQTT request.</param>
+        /// <param name="topic">The MQTT topic to publish to.</param>
+        /// <param name="withRetainFlag">Indicates whether the message should be retained by the broker.</param>
+        /// <returns>
+        /// A task that represents the asynchronous publish operation and returns the result of the MQTT publish.
+        /// If an error occurs, the result will be null.
+        /// </returns>
+        Task<MqttClientPublishResult> PublishAsync(object request, string topic, bool withRetainFlag);
+
+        /// <summary>
         /// Adds an MQTT account with specified credentials.
         /// </summary>
         /// <param name="accountUID">The unique identifier for the account.</param>

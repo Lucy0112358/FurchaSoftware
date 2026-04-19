@@ -97,6 +97,35 @@ namespace FurchaBLL.Services
             }
         }
 
+        public async Task<MqttClientPublishResult> PublishAsync(object request, string topic, bool withRetainFlag)
+        {
+            try
+            {
+                await EnsureConnectedAsync();
+
+                var payload = JsonSerializer.Serialize(request);
+
+                var message = new MqttApplicationMessageBuilder()
+                    .WithTopic(topic)
+                    .WithPayload(payload)
+                    .WithRetainFlag(withRetainFlag)
+                    .Build();
+
+                return await _mqttClient.PublishAsync(message);
+            }
+            catch (MQTTnet.Exceptions.MqttClientNotConnectedException)
+            {
+                _logger.LogWarning("MQTT disconnected while publishing to {Topic}", topic);
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to publish MQTT message to topic {Topic}", topic);
+                return null;
+            }
+        }
+
         /// <inheritdoc />
         public async Task AddAccountAsync(Guid? accountUID, string brainPass)
         {
