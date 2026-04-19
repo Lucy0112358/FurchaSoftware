@@ -343,9 +343,9 @@ namespace FurchaBLL.Services
                         .Except(dbLockerExternalIds)
                         .ToList();
 
-                    List<int> lockersToRemove = dbLockerExternalIds
-                        .Except(mqttLockerIds)
-                        .ToList();
+                    //List<int> lockersToRemove = dbLockerExternalIds
+                    //    .Except(mqttLockerIds)
+                    //    .ToList();
 
                     var lockersToAddEntities = await dbContext.Lockers
                         .Where(x => x.ExternalId != null && lockersToAdd.Contains(x.ExternalId.Value))
@@ -404,33 +404,39 @@ namespace FurchaBLL.Services
                     }
 
                     // Remove from UserLocker
-                    await dbContext.Set<Dictionary<string, object>>("UserLocker")
-                        .Where(x => lockersToRemove.Contains((int)x["LockerId"]))
-                        .ExecuteDeleteAsync();
+                    //await dbContext.Set<Dictionary<string, object>>("UserLocker")
+                    //    .Where(x => lockersToRemove.Contains((int)x["LockerId"]))
+                    //    .ExecuteDeleteAsync();
 
                     // Remove from UserGroupLockers
-                    await dbContext.UserGroupLockers
-                        .Where(x => lockersToRemove.Contains(x.LockerId))
-                        .ExecuteDeleteAsync();
+                    //await dbContext.UserGroupLockers
+                    //    .Where(x => lockersToRemove.Contains(x.LockerId))
+                    //    .ExecuteDeleteAsync();
 
-                    await dbContext.Lockers
-                        .Where(x => x.ExternalId != null && lockersToRemove.Contains(x.ExternalId.Value))
-                        .ExecuteDeleteAsync();
+                    //await dbContext.Lockers
+                    //    .Where(x => x.ExternalId != null && lockersToRemove.Contains(x.ExternalId.Value))
+                    //    .ExecuteDeleteAsync();
 
                     var success = await dbContext.SaveChangesAsync();
 
                     if (success > 0)
                     {
                         await _mqttService.PublishAsync(
-                            new MqttBaseRequest<IEnumerable<BrainLockers>>
+                            new MqttBaseRequest<MqttLAddLockersInput>
                             {
                                 Operation = (int)OperationTypes.Success,
                                 Command = (int)CommandTypes.AddLockersToBrain,
-                                Data = lockersToAddEntities.Select(l => new BrainLockers
+                                Data = new MqttLAddLockersInput
                                 {
-                                    ExternalIds = l.ExternalId.GetValueOrDefault(),
-                                    ReaderGroupId = l.ReaderGroupId.GetValueOrDefault(),
-                                })
+                                    BrainUid = mqttRequest.Data.BrainUid,
+                                    ChunkIndex = mqttRequest.Data.ChunkIndex,
+                                    TotalChunks = lockersToAddEntities.Count,
+                                    Lockers = lockersToAddEntities.Select(l => new BrainLockers
+                                    {
+                                        ExternalIds = l.ExternalId.GetValueOrDefault(),
+                                        ReaderGroupId = l.ReaderGroupId.GetValueOrDefault(),
+                                    }).ToList(),
+                                }
                             },
                             topic.Replace("webserver", "controller"));
                     }
