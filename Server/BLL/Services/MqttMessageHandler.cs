@@ -421,11 +421,16 @@ namespace FurchaBLL.Services
 
                     if (success > 0)
                     {
-                        await _mqttService.PublishAsync<int>(
-                            new MqttBaseRequest<int>
+                        await _mqttService.PublishAsync(
+                            new MqttBaseRequest<IEnumerable<BrainLockers>>
                             {
                                 Operation = (int)OperationTypes.Success,
                                 Command = (int)CommandTypes.AddLockersToBrain,
+                                Data = lockersToAddEntities.Select(l => new BrainLockers
+                                {
+                                    ExternalIds = l.ExternalId.GetValueOrDefault(),
+                                    ReaderGroupId = l.ReaderGroupId.GetValueOrDefault(),
+                                })
                             },
                             topic.Replace("webserver", "controller"));
                     }
