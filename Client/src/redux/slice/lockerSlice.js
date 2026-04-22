@@ -17,7 +17,7 @@ const initialState = {
   lockerMessages: [],
   filteredLockerGroups: [],
   selectedLockerIds: [],
-  lockerTypesData: {},
+  lockerTypesData: [],
   lockerFilterTypesData: []
 };
 
