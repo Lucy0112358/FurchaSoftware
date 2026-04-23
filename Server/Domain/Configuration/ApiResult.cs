@@ -74,6 +74,11 @@ namespace Domain.Configuration
             return new ApiResult<T> { isSuccess = false, errorMessage = errorMessage, data = default };
         }
 
+        public static ApiResult<T> ErrorResult(string errorMessage, T data)
+        {
+            return new ApiResult<T> { isSuccess = false, errorMessage = errorMessage, data = data };
+        }
+
         public new static ApiResult<T> ErrorResult(ErrorCodeEnum error, string errorMessage)
         {
             return new ApiResult<T> { isSuccess = false, error = error, errorMessage = errorMessage, data = default };
