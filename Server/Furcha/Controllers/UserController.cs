@@ -74,7 +74,7 @@ namespace FurchaAdminApi.Controllers
             if (userGroups == null || !userGroups.Any())
             {
                 return Ok(ApiResult<List<UserGroupResult>>.ErrorResult(
-                    "No user groups found for the current admin permissions"));
+                    "No user groups found for the current admin permissions", []));
             }
 
             return Ok(ApiResult<List<UserGroupResult>>.Success(userGroups));
