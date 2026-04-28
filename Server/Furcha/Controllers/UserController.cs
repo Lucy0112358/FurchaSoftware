@@ -54,7 +54,7 @@ namespace FurchaAdminApi.Controllers
 
             if (users == null || !users.Any())
             {
-                return Ok(ApiResult<List<UserResult>>.ErrorResult("No filtered users found for the given criteria."));
+                return Ok(ApiResult<List<UserResult>>.ErrorResult("No filtered users found for the given criteria.", []));
             }
 
             return Ok(ApiResult<List<UserResult>>.Success(users));
