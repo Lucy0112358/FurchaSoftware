@@ -447,16 +447,13 @@ namespace FurchaBLL.Services
 
                 var saved = await dbContext.SaveChangesAsync();
 
-                if (saved > 0)
-                {
-                    await _mqttService.PublishAsync<int>(
+                await _mqttService.PublishAsync<int>(
                         new MqttBaseRequest<int>
                         {
                             Operation = (int)OperationTypes.Success,
                             Command = (int)CommandTypes.CreateBrainModule
                         },
                         topic.Replace("webserver", "controller"));
-                }
             }
             catch (Exception ex)
             {
