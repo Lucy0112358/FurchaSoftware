@@ -88,6 +88,14 @@ namespace FurchaBLL.Services
                         await HandleAddLockersToBrainAsync(topic, payload);
                         break;
 
+                    case CommandTypes.ChangeType:
+                        await HandleChangeTypeAsync(topic, payload);
+                        break;
+
+                    case CommandTypes.SuspendLocker:
+                        await HandleSuspendLockerDoorAsync(topic, payload);
+                        break;
+
                     default:
                         _logger.LogWarning("Unknown command type {CommandType} from topic {Topic}", commandType, topic);
                         break;
@@ -101,6 +109,155 @@ namespace FurchaBLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling MQTT message from topic {Topic}", topic);
+            }
+        }
+
+        private async Task HandleChangeTypeAsync(string topic, string payload)
+        {
+            var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<IEnumerable<ChangeTypeRequest>>>(payload);
+            if (lockerPayload?.Data == null || !lockerPayload.Data.Any())
+                return;
+
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                using (var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>())
+                {
+                    var brainUid = ExtractBrainUidFromTopic(topic);
+                    if (string.IsNullOrEmpty(brainUid))
+                    {
+                        _logger.LogWarning("Could not extract brain UID from topic {Topic}", topic);
+                        return;
+                    }
+
+                    var brain = await dbContext.BrainModules.FirstOrDefaultAsync(b => b.BrainUid == brainUid);
+                    if (brain == null)
+                    {
+                        _logger.LogWarning("Brain module not found for UID {BrainUid}", brainUid);
+                        return;
+                    }
+
+                    var allLockerTypes = await dbContext.LockerTypes
+                            .Where(lt => 1 == 1)
+                            .ToListAsync();
+
+                    foreach (var change in lockerPayload.Data)
+                    {
+                        // Each item specifies a device type — either "Locker" or "Door".
+                        // Locker and Door statuses are handled separately based on change.Type.
+                        if ("Locker".Equals(change.Type, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var dbLocker = await dbContext.Lockers
+                                .FirstOrDefaultAsync(x => x.ExternalId == change.Number && x.BrainId == brain.Id);
+                            if (dbLocker == null)
+                            {
+                                _logger.LogWarning("Locker not found for brain {BrainId} and external ID {ExternalId}",
+                                    brain.Id, change.Number);
+                                return;
+                            }
+
+                            var lockerType = change.ChangeType switch
+                            {
+                                0 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "personal"),
+                                1 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "common"),
+                                2 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "parcel"),
+                                3 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "unspecified"),
+                                _ => null
+                            };
+
+                            if (lockerType == null)
+                            {
+                                _logger.LogWarning("Locker type not found for change type {ChangeType}", change.ChangeType);
+                                return;
+                            }
+
+                            dbLocker.LockerType = lockerType.Id;
+
+                            var result = await dbContext.SaveChangesAsync();
+
+                            await _mqttService.PublishAsync<int>(
+                                new MqttBaseRequest<int>
+                                {
+                                    Operation = (int)OperationTypes.Success,
+                                    Command = (int)CommandTypes.ChangeType
+                                },
+                                topic.Replace("webserver", "controller")
+                            );
+                        }
+                        else if ("Door".Equals(change.Type, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // TODO: Implement Door type update logic.
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Unknown device type '{Type}' received.", change.Type);
+                        }
+                    }
+                }
+            }
+        }
+
+        private async Task HandleSuspendLockerDoorAsync(string topic, string payload)
+        {
+            var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<IEnumerable<SuspendLockerRequest>>>(payload);
+            if (lockerPayload?.Data == null || !lockerPayload.Data.Any())
+                return;
+
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                using (var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>())
+                {
+                    var brainUid = ExtractBrainUidFromTopic(topic);
+                    if (string.IsNullOrEmpty(brainUid))
+                    {
+                        _logger.LogWarning("Could not extract brain UID from topic {Topic}", topic);
+                        return;
+                    }
+
+                    var brain = await dbContext.BrainModules.FirstOrDefaultAsync(b => b.BrainUid == brainUid);
+                    if (brain == null)
+                    {
+                        _logger.LogWarning("Brain module not found for UID {BrainUid}", brainUid);
+                        return;
+                    }
+
+                    foreach (var locker in lockerPayload.Data)
+                    {
+                        // Each item specifies a device type — either "Locker" or "Door".
+                        // Suspension for lockers and doors is handled separately based on locker.Type.
+                        if ("Locker".Equals(locker.Type, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var dbLocker = await dbContext.Lockers
+                                .FirstOrDefaultAsync(x => x.ExternalId == locker.Number && x.BrainId == brain.Id);
+                            if (dbLocker == null)
+                            {
+                                _logger.LogWarning("Locker not found for brain {BrainId} and external ID {ExternalId}",
+                                    brain.Id, locker.Number);
+                                return;
+                            }
+
+                            dbLocker.IsActive = locker.Status;
+
+                            var result = await dbContext.SaveChangesAsync();
+
+                            await _mqttService.PublishAsync<int>(
+                                new MqttBaseRequest<int>
+                                {
+                                    Operation = (int)OperationTypes.Success,
+                                    Command = (int)CommandTypes.SuspendLocker
+                                },
+                                topic.Replace("webserver", "controller")
+                            );
+                        }
+                        else if ("Door".Equals(locker.Type, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // TODO: Implement Door type update logic.
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Unknown device type '{Type}' received.", locker.Type);
+                        }
+                    }
+                }
             }
         }
 
@@ -270,7 +427,7 @@ namespace FurchaBLL.Services
                     brain.IpAddress = mqttBrain.Data.IpAddress;
                     brain.MacAddress = mqttBrain.Data.MacAddress;
                     brain.Description = mqttBrain.Data.Info;
-                    brain.Status = (int)BrainStatuses.Added;
+                    brain.Status = (int)BrainStatuses.New;
                 }
                 else
                 {
