@@ -153,12 +153,10 @@ namespace FurchaBLL.Services
 
                             var lockerType = change.ChangeType switch
                             {
-                                0 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "unspecified"),
-                                1 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "parcel"),
-                                2 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "common"),
-                                3 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "personal"),
-                                4 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "handover"),
-                                5 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "temporary"),
+                                0 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "personal"),
+                                1 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "common"),
+                                2 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "parcel"),
+                                3 => allLockerTypes.FirstOrDefault(lt => lt.Type.ToLower() == "unspecified"),
                                 _ => null
                             };
 
