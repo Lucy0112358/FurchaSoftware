@@ -174,7 +174,7 @@ namespace FurchaBLL.Services
                                 new MqttBaseRequest<int>
                                 {
                                     Operation = (int)OperationTypes.Success,
-                                    Command = (int)CommandTypes.CreateBrainModule
+                                    Command = (int)CommandTypes.ChangeType
                                 },
                                 topic.Replace("webserver", "controller")
                             );
