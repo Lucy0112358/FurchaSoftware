@@ -31,11 +31,10 @@ function GenerateLocker({ item, index, doorState }) {
         return <div>No matching type</div>;
     }
   }
-
   return (
     <div
       className="locker__border__open"
-      style={{ borderColor: doorState? '#f00909' : color }}
+      style={{ borderColor: doorState?.toLowerCase() !== 'open' ? '#f00909' : color }}
     >
       {renderLocker()}
     </div>
