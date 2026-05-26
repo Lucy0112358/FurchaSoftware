@@ -237,7 +237,12 @@ namespace FurchaBLL.Services
                                 return;
                             }
 
-                            dbLocker.LockerMode = locker.Mode;
+                            dbLocker.LockerStatus = locker.Mode switch
+                            {
+                                LockerMode.Free => 1,
+                                LockerMode.Occupied => 2,
+                                _ => 1
+                            };
 
                             var result = await dbContext.SaveChangesAsync();
 
