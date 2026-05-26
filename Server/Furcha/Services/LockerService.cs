@@ -144,7 +144,7 @@ namespace FurchaAdminApi.Services
                 // Assigned groups
                 foreach (var group in lockerGroups)
                 {
-                    var groupLockers = lockers.Where(l => l.groupid == group.Id).ToList();
+                    var groupLockers = lockers.Where(l => l.groupid == group.Id).OrderBy(l => l.number).ToList();
                     lockerResults.Add(new LockersResult
                     {
                         Id = group.Id,

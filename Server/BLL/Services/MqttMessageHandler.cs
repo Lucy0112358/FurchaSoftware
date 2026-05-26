@@ -569,12 +569,10 @@ namespace FurchaBLL.Services
                         .Except(dbLockerExternalIds)
                         .ToList();
 
-                    //List<int> lockersToRemove = dbLockerExternalIds
-                    //    .Except(mqttLockerIds)
-                    //    .ToList();
-
                     var lockersToAddEntities = await dbContext.Lockers
-                        .Where(x => x.ExternalId != null && lockersToAdd.Contains(x.ExternalId.Value))
+                        .Where(x => x.ExternalId != null && 
+                            lockersToAdd.Contains(x.ExternalId.Value) && 
+                            x.BrainId == brain.Id)
                         .ToListAsync();
 
                     // Find ExternalIds that don't exist in DB
@@ -628,20 +626,6 @@ namespace FurchaBLL.Services
                     {
                         locker.BrainId = brain.Id;
                     }
-
-                    // Remove from UserLocker
-                    //await dbContext.Set<Dictionary<string, object>>("UserLocker")
-                    //    .Where(x => lockersToRemove.Contains((int)x["LockerId"]))
-                    //    .ExecuteDeleteAsync();
-
-                    // Remove from UserGroupLockers
-                    //await dbContext.UserGroupLockers
-                    //    .Where(x => lockersToRemove.Contains(x.LockerId))
-                    //    .ExecuteDeleteAsync();
-
-                    //await dbContext.Lockers
-                    //    .Where(x => x.ExternalId != null && lockersToRemove.Contains(x.ExternalId.Value))
-                    //    .ExecuteDeleteAsync();
 
                     var success = await dbContext.SaveChangesAsync();
 
