@@ -95,7 +95,9 @@ namespace FurchaBLL.Services
                     case CommandTypes.SuspendLocker:
                         await HandleSuspendLockerDoorAsync(topic, payload);
                         break;
-
+                    case CommandTypes.SendLockerMode:
+                        await HandleLockerModeChangeAsync(topic, payload);
+                        break;
                     default:
                         _logger.LogWarning("Unknown command type {CommandType} from topic {Topic}", commandType, topic);
                         break;
@@ -190,6 +192,76 @@ namespace FurchaBLL.Services
                         else
                         {
                             _logger.LogWarning("Unknown device type '{Type}' received.", change.Type);
+                        }
+                    }
+                }
+            }
+        }
+
+        private async Task HandleLockerModeChangeAsync(string topic, string payload)
+        {
+            var lockerPayload = JsonSerializer.Deserialize<MqttBaseRequest<IEnumerable<LockerModeChangeRequest>>>(payload);
+            if (lockerPayload?.Data == null || !lockerPayload.Data.Any())
+                return;
+
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                using (var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>())
+                {
+                    var brainUid = ExtractBrainUidFromTopic(topic);
+                    if (string.IsNullOrEmpty(brainUid))
+                    {
+                        _logger.LogWarning("Could not extract brain UID from topic {Topic}", topic);
+                        return;
+                    }
+
+                    var brain = await dbContext.BrainModules.FirstOrDefaultAsync(b => b.BrainUid == brainUid);
+                    if (brain == null)
+                    {
+                        _logger.LogWarning("Brain module not found for UID {BrainUid}", brainUid);
+                        return;
+                    }
+
+                    foreach (var locker in lockerPayload.Data)
+                    {
+                        // Each item specifies a device type — either "Locker" or "Door".
+                        // Suspension for lockers and doors is handled separately based on locker.Type.
+                        if ("Locker".Equals(locker.Type, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var dbLocker = await dbContext.Lockers
+                                .FirstOrDefaultAsync(x => x.ExternalId == locker.Number && x.BrainId == brain.Id);
+                            if (dbLocker == null)
+                            {
+                                _logger.LogWarning("Locker not found for brain {BrainId} and external ID {ExternalId}",
+                                    brain.Id, locker.Number);
+                                return;
+                            }
+
+                            dbLocker.LockerStatus = locker.Mode switch
+                            {
+                                LockerMode.Free => 1,
+                                LockerMode.Occupied => 2,
+                                _ => 1
+                            };
+
+                            var result = await dbContext.SaveChangesAsync();
+
+                            await _mqttService.PublishAsync<int>(
+                                new MqttBaseRequest<int>
+                                {
+                                    Operation = (int)OperationTypes.Success,
+                                    Command = (int)CommandTypes.SendLockerMode
+                                },
+                                topic.Replace("webserver", "controller")
+                            );
+                        }
+                        else if ("Door".Equals(locker.Type, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // TODO: Implement Door type update logic.
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Unknown device type '{Type}' received.", locker.Type);
                         }
                     }
                 }
@@ -427,7 +499,7 @@ namespace FurchaBLL.Services
                     brain.IpAddress = mqttBrain.Data.IpAddress;
                     brain.MacAddress = mqttBrain.Data.MacAddress;
                     brain.Description = mqttBrain.Data.Info;
-                    brain.Status = (int)BrainStatuses.New;
+                    brain.Status = brain.Status == 2 ? brain.Status : (int)BrainStatuses.New;
                 }
                 else
                 {
@@ -497,12 +569,10 @@ namespace FurchaBLL.Services
                         .Except(dbLockerExternalIds)
                         .ToList();
 
-                    //List<int> lockersToRemove = dbLockerExternalIds
-                    //    .Except(mqttLockerIds)
-                    //    .ToList();
-
                     var lockersToAddEntities = await dbContext.Lockers
-                        .Where(x => x.ExternalId != null && lockersToAdd.Contains(x.ExternalId.Value))
+                        .Where(x => x.ExternalId != null &&
+                            lockersToAdd.Contains(x.ExternalId.Value) &&
+                            x.BrainId == brain.Id)
                         .ToListAsync();
 
                     // Find ExternalIds that don't exist in DB
@@ -556,20 +626,6 @@ namespace FurchaBLL.Services
                     {
                         locker.BrainId = brain.Id;
                     }
-
-                    // Remove from UserLocker
-                    //await dbContext.Set<Dictionary<string, object>>("UserLocker")
-                    //    .Where(x => lockersToRemove.Contains((int)x["LockerId"]))
-                    //    .ExecuteDeleteAsync();
-
-                    // Remove from UserGroupLockers
-                    //await dbContext.UserGroupLockers
-                    //    .Where(x => lockersToRemove.Contains(x.LockerId))
-                    //    .ExecuteDeleteAsync();
-
-                    //await dbContext.Lockers
-                    //    .Where(x => x.ExternalId != null && lockersToRemove.Contains(x.ExternalId.Value))
-                    //    .ExecuteDeleteAsync();
 
                     var success = await dbContext.SaveChangesAsync();
 
