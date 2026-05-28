@@ -499,7 +499,7 @@ namespace FurchaBLL.Services
                     brain.IpAddress = mqttBrain.Data.IpAddress;
                     brain.MacAddress = mqttBrain.Data.MacAddress;
                     brain.Description = mqttBrain.Data.Info;
-                    brain.Status = (int)BrainStatuses.New;
+                    brain.Status = brain.Status == 2 ? brain.Status : (int)BrainStatuses.New;
                 }
                 else
                 {
@@ -570,8 +570,8 @@ namespace FurchaBLL.Services
                         .ToList();
 
                     var lockersToAddEntities = await dbContext.Lockers
-                        .Where(x => x.ExternalId != null && 
-                            lockersToAdd.Contains(x.ExternalId.Value) && 
+                        .Where(x => x.ExternalId != null &&
+                            lockersToAdd.Contains(x.ExternalId.Value) &&
                             x.BrainId == brain.Id)
                         .ToListAsync();
 
