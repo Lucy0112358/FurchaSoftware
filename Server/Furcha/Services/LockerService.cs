@@ -10,7 +10,6 @@ using FurchaBLL.Models;
 using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 using Locker = FurchaDAL.Models.Locker;
 using LockerGroup = FurchaDAL.Models.LockerGroup;
 
@@ -530,18 +529,18 @@ namespace FurchaAdminApi.Services
             }
         }
 
-        public void SetUser(List<int> lockerIds, int userId)
+        public async Task SetUser(List<int> lockerIds, int userId)
         {
             // make isactive to 0, or 1
-            AssignLockersToUser(lockerIds, userId);
+            await AssignLockersToUser(lockerIds, userId);
         }
 
-        private void AssignLockersToUser(List<int> lockerIds, int userId)
+        private async Task AssignLockersToUser(List<int> lockerIds, int userId)
         {
             var user = Db.Users.Include(u => u.Lockers).FirstOrDefault(u => u.Id == userId);
             if (user == null) throw new Exception("User not found");
 
-            var lockers = Db.Lockers.Where(l => lockerIds.Contains(l.Id)).ToList();
+            var lockers = Db.Lockers.Include(l => l.Brain).ThenInclude(b => b.Company).Where(l => lockerIds.Contains(l.Id)).ToList();
 
             foreach (var locker in lockers)
             {
@@ -552,6 +551,24 @@ namespace FurchaAdminApi.Services
                 {
                     locker.LockerStatus = 2;
                 }
+
+                var data = new AssigningUserToLockerRequest
+                {
+                    Action = "add",
+                    Doors = [],
+                    Lockers = [locker.ExternalId.GetValueOrDefault()],
+                    UserId = user.Id,
+                };
+
+                var mqttRequest = new MqttBaseRequest<AssigningUserToLockerRequest>
+                {
+                    Command = (int)CommandTypes.AssigningUserToLocker,
+                    ReceivedDate = DateTime.UtcNow,
+                    Data = data
+                };
+
+                await _mqttService.PublishAsync(mqttRequest, 
+                    $"controller/{locker.Brain.Company.AccountUid}/{locker.Brain.BrainUid}");
             }
 
             Db.SaveChanges();
@@ -860,7 +877,7 @@ namespace FurchaAdminApi.Services
                         foreach (var locker in module.Lockers)
                         {
                             locker.IsDeleted = true;
-                            locker.LockerType = 1; 
+                            locker.LockerType = 1;
                         }
                     }
 
