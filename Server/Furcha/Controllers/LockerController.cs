@@ -196,9 +196,9 @@ namespace FurchaAdminApi.Controllers
         [Authorize]
         [RequiresPermission("ManageUsers")]
         [HttpPost("set-user")]
-        public ActionResult<ApiResult<string>> SetUser([FromBody] SetUserRequest request)
+        public async Task<ActionResult<ApiResult<string>>> SetUser([FromBody] SetUserRequest request)
         {
-            _lockerService.SetUser(request.LockerIds, request.UserId);
+            await _lockerService.SetUser(request.LockerIds, request.UserId);
 
             return Ok(ApiResult<string>.Success("Lockers updated successfully."));
         }

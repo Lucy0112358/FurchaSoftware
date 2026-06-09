@@ -564,10 +564,11 @@ namespace FurchaAdminApi.Services
                 {
                     Command = (int)CommandTypes.AssigningUserToLocker,
                     ReceivedDate = DateTime.UtcNow,
-                    Data = data
+                    Data = data,
+                    Operation = (int)OperationTypes.Success,
                 };
 
-                await _mqttService.PublishAsync(mqttRequest, 
+                await _mqttService.PublishAsync(mqttRequest,
                     $"controller/{locker.Brain.Company.AccountUid}/{locker.Brain.BrainUid}");
             }
 
