@@ -169,7 +169,7 @@ namespace FurchaAdminApi.Services
         }
 
 
-        public bool DeleteUsers(List<int> ids)
+        public async Task<bool> DeleteUsers(List<int> ids)
         {
             foreach (var id in ids)
             {
@@ -200,6 +200,12 @@ namespace FurchaAdminApi.Services
                 user.UserGroups.Clear();
 
                 // 5. Clear many-to-many: User ↔ Lockers
+
+                if (user.Lockers.Any())
+                {
+                    await NotifyUserLockerAssignment(user.Id, user.Lockers.Select(l => l.Id).ToList(), "remove");
+                }
+
                 user.Lockers.Clear();
 
                 // 6. Finally delete the user
@@ -530,7 +536,7 @@ namespace FurchaAdminApi.Services
             return filteredUsers;
         }
 
-        public UserResult AddUser(UserCreateRequest newUser, int adminId)
+        public async Task<UserResult> AddUser(UserCreateRequest newUser, int adminId)
         {
             if (newUser.IsPinRequired == true)
             {
@@ -538,7 +544,7 @@ namespace FurchaAdminApi.Services
             }
             var companyUid = Db.Administrators.Include(a => a.Company).FirstOrDefault(x => x.Id == adminId).Company.Id;
 
-            var result = AddUserToDb(newUser, adminId);
+            var result = await AddUserToDb(newUser, adminId);
 
             if (newUser.Id == 0)
             {
@@ -670,6 +676,48 @@ namespace FurchaAdminApi.Services
             };
         }
 
+        private async Task NotifyUserLockerAssignment(int userId, List<int> lockerIds, string action)
+        {
+            if (lockerIds == null || !lockerIds.Any())
+                return;
+
+            var lockers = Db.Lockers
+                .Include(l => l.Brain)
+                    .ThenInclude(b => b.Company)
+                .Where(l => lockerIds.Contains(l.Id))
+                .ToList();
+
+            var brainGroups = lockers
+                .Where(l => l.Brain?.Company?.AccountUid != null)
+                .GroupBy(l => l.Brain);
+
+            foreach (var brainGroup in brainGroups)
+            {
+                var brain = brainGroup.Key;
+
+                var lockerExternalIds = brainGroup
+                    .Select(l => l.ExternalId.GetValueOrDefault())
+                    .ToArray();
+
+                var data = new AssigningUserToLockerRequest
+                {
+                    UserId = userId,
+                    Lockers = lockerExternalIds,
+                    Doors = [],
+                    Action = action
+                };
+
+                var mqttRequest = new MqttBaseRequest<AssigningUserToLockerRequest>
+                {
+                    Command = (int)CommandTypes.AssigningUserToLocker,
+                    ReceivedDate = DateTime.UtcNow,
+                    Operation = (int)OperationTypes.Success,
+                    Data = data
+                };
+
+                await _mqttService.PublishMqttCommands(mqttRequest, brain.Company.AccountUid.ToString(), brain.BrainUid);
+            }
+        }
 
         private async Task NotifyUserGroupLockerAssignment(int groupId, List<int> lockerIds, string action)
         {
@@ -737,7 +785,7 @@ namespace FurchaAdminApi.Services
             return group;
         }
 
-        private UserResult AddUserToDb(UserCreateRequest newUser, int adminId)
+        private async Task<UserResult> AddUserToDb(UserCreateRequest newUser, int adminId)
         {
             var companyId = Db.Administrators
                 .Where(a => a.Id == adminId)
@@ -836,7 +884,7 @@ namespace FurchaAdminApi.Services
                     AddCardsByNumbers(newUser.Cards, user.Id);
 
                 if (newUser.LockerIds != null)
-                    AssignLockersToUser(newUser.LockerIds, user.Id);
+                    await AssignLockersToUser(newUser.LockerIds, user.Id);
 
                 if (newUser.UserGroups != null)
                     AssignUserGroupsToUser(newUser.UserGroups, user.Id);
@@ -928,7 +976,7 @@ namespace FurchaAdminApi.Services
             }
         }
 
-        public void AssignLockersToUser(List<int> lockerIds, int userId)
+        public async Task AssignLockersToUser(List<int> lockerIds, int userId)
         {
             var user = Db.Users
                 .Include(u => u.Lockers)
@@ -970,6 +1018,11 @@ namespace FurchaAdminApi.Services
 
             if (newLockers.Any() || newBranchIds.Any())
                 Db.SaveChanges();
+
+            if (user.Lockers.Any())
+            {
+                await NotifyUserLockerAssignment(userId, user.Lockers.Select(l => l.Id).ToList(), "add");
+            }
         }
 
         private List<FurchaDAL.Models.Card> AddCardsByNumbers(List<string> cardNumbers, int userId)

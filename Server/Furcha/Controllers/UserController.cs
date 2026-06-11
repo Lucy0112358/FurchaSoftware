@@ -110,7 +110,7 @@ namespace FurchaAdminApi.Controllers
                     return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
                 }
 
-                var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
+                var result = await userService.AddUser(userCreateRequest, int.Parse(adminId));
 
                 if (result == null)
                 {
@@ -133,7 +133,7 @@ namespace FurchaAdminApi.Controllers
 
 
         [HttpPost("edit-user")]
-        public ActionResult<ApiResult<UserResult>> EditUser([FromBody] UserCreateRequest userCreateRequest)
+        public async Task<ActionResult<ApiResult<UserResult>>> EditUser([FromBody] UserCreateRequest userCreateRequest)
         {
             try
             {
@@ -149,7 +149,7 @@ namespace FurchaAdminApi.Controllers
                     return BadRequest(ApiResult<UserResult>.ErrorResult("User Id is required for editing."));
                 }
 
-                var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
+                var result = await userService.AddUser(userCreateRequest, int.Parse(adminId));
 
                 if (result == null)
                 {
@@ -208,9 +208,9 @@ namespace FurchaAdminApi.Controllers
         }
 
         [HttpPost("delete-users")]
-        public IActionResult DeleteUsers([FromBody] DeleteAdminRequest request)
+        public async Task<IActionResult> DeleteUsers([FromBody] DeleteAdminRequest request)
         {
-            userService.DeleteUsers(request.Ids);
+            await userService.DeleteUsers(request.Ids);
 
             return Ok(true);
         }
