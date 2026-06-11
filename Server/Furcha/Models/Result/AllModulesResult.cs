@@ -19,5 +19,7 @@
         public int? AcessControl { get; set; } = null;
 
         public int? AlarmSystem { get; set; } = null;
+
+        public bool IsOnline { get; set; }
     }
 }

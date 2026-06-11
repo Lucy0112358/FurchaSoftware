@@ -604,7 +604,8 @@ namespace FurchaAdminApi.Services
                                         ? m.Lockers.Min(l => l.Number).ToString()
                                         : m.Lockers.Min(l => l.Number) + "-" + m.Lockers.Max(l => l.Number)
                                   )
-                                : "0"
+                                : "0",
+                            IsOnline = m.IsOnline
                         })
                         .ToList()
                 })
