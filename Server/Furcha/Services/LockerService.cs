@@ -645,7 +645,9 @@ namespace FurchaAdminApi.Services
                         Start = (int)module.Lockers.Min(l => l.Number ?? 0),
                         End = (int)module.Lockers.Max(l => l.Number ?? 0)
                     }
-                    : new LockerRange { Start = 0, End = 0 }
+                    : new LockerRange { Start = 0, End = 0 },
+                IsOnline = module.IsOnline
+
             };
         }
 

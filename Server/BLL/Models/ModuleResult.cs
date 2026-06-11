@@ -6,6 +6,7 @@
 
         public int? LockerGroupId { get; set; }
         public int? BranchId { get; set; }
+        public bool IsOnline { get; set; }
 
         public LockerRange LockerRange { get; set; }
     }
