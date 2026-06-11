@@ -130,7 +130,8 @@ namespace FurchaAdminApi.Services
                         Users = l.Users
                             .Where(u => u.Name != null)
                             .Select(u => u.Name)
-                            .ToList()
+                            .ToList(),
+                        IsBrainOnline = l.Brain.IsOnline
                     })
                     .ToList();
 

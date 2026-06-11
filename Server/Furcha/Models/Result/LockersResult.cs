@@ -26,6 +26,7 @@ namespace FurchaAdminApi.Models.Result
         public int IsOpen { get; set; } // door state
 
         public int BranchId { get; set; }
+        public bool IsBrainOnline { get; set; }
 
         public string PasswordHash { get; set; }
 
