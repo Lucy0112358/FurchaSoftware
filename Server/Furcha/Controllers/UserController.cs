@@ -174,7 +174,7 @@ namespace FurchaAdminApi.Controllers
         [Authorize]
 /*        [RequiresPermission("ManageUserGroup")]*/
         [HttpPost("add-user-group")]
-        public ActionResult<ApiResult<UserGroupResult>> AddUserGroup([FromBody] UserGroupRequest userGroupRequest)
+        public async Task<ActionResult<ApiResult<UserGroupResult>>> AddUserGroup([FromBody] UserGroupRequest userGroupRequest)
         {
             if (userGroupRequest == null)
             {
@@ -187,7 +187,7 @@ namespace FurchaAdminApi.Controllers
 
             try
             {
-                var result = userService.AddUserGroup(userGroupRequest);
+                var result = await userService.AddUserGroup(userGroupRequest);
 
                 if (result == null)
                 {
@@ -216,9 +216,9 @@ namespace FurchaAdminApi.Controllers
         }
 
         [HttpPost("delete-user-groups")]
-        public IActionResult DeleteUserGroupss([FromBody] DeleteAdminRequest request)
+        public async Task<ActionResult<ApiResult<bool>>> DeleteUserGroupss([FromBody] DeleteAdminRequest request)
         {
-            userService.DeleteUserGroups(request.Ids);
+            await userService.DeleteUserGroups(request.Ids);
 
             return Ok(true);
         }

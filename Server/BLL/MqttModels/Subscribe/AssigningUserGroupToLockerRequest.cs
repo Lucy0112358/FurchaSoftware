@@ -1,11 +1,9 @@
-﻿
-
 namespace FurchaBLL.MqttModels.Subscribe
 {
-    public class AssigningUserToLockerRequest
+    public class AssigningUserGroupToLockerRequest
     {
-        public long UserId { get; set; }
-        public int[] Lockers { get; set; }
+        public int GroupId { get; set; }
+        public long[] Lockers { get; set; }
         public long[] Doors { get; set; }
         public string Action { get; set; }
     }

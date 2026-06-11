@@ -1,4 +1,5 @@
 ﻿using Domain.Configuration;
+using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
@@ -537,7 +538,7 @@ namespace FurchaAdminApi.Services
 
         private async Task AssignLockersToUser(List<int> lockerIds, int userId)
         {
-            var user = Db.Users.Include(u => u.Lockers).FirstOrDefault(u => u.Id == userId);
+            var user = Db.Users.Include(u => u.Lockers).ThenInclude(l => l.Brain).ThenInclude(b => b.Company).FirstOrDefault(u => u.Id == userId);
             if (user == null) throw new Exception("User not found");
 
             var lockers = Db.Lockers.Include(l => l.Brain).ThenInclude(b => b.Company).Where(l => lockerIds.Contains(l.Id)).ToList();
@@ -551,12 +552,20 @@ namespace FurchaAdminApi.Services
                 {
                     locker.LockerStatus = 2;
                 }
+            }
 
+            Db.SaveChanges();
+
+            var lockerGroups = user.Lockers.GroupBy(l => l.Brain.BrainUid);
+
+            foreach (var lg in lockerGroups)
+            {
+                var accountUid = lg.First().Brain.Company.AccountUid.ToString();
                 var data = new AssigningUserToLockerRequest
                 {
                     Action = "add",
                     Doors = [],
-                    Lockers = [locker.ExternalId.GetValueOrDefault()],
+                    Lockers = [.. lg.Select(l => l.ExternalId.GetValueOrDefault())],
                     UserId = user.Id,
                 };
 
@@ -569,10 +578,8 @@ namespace FurchaAdminApi.Services
                 };
 
                 await _mqttService.PublishAsync(mqttRequest,
-                    $"controller/{locker.Brain.Company.AccountUid}/{locker.Brain.BrainUid}");
+                    $"controller/{accountUid}/{lg.Key}");
             }
-
-            Db.SaveChanges();
         }
 
         public List<AllModulesResult> GetAddedModules(int adminId)

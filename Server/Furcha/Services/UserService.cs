@@ -9,6 +9,7 @@ using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using User = FurchaDAL.Models.User;
 
 namespace FurchaAdminApi.Services
@@ -128,7 +129,7 @@ namespace FurchaAdminApi.Services
             };
         }
 
-        public bool DeleteUserGroups(List<int> ids)
+        public async Task<bool> DeleteUserGroups(List<int> ids)
         {
             foreach (var id in ids)
             {
@@ -147,7 +148,13 @@ namespace FurchaAdminApi.Services
 
                 // 2. Remove one-to-many: UserGroupLockers
                 if (group.UserGroupLockers.Any())
+                {
+                    var lockerIds = group.UserGroupLockers.Select(ugl => ugl.LockerId).ToList();
+
                     Db.UserGroupLockers.RemoveRange(group.UserGroupLockers);
+
+                    await NotifyUserGroupLockerAssignment(group.Id, lockerIds, "remove");
+                }
 
                 // 3. Clear many-to-many: UserGroup ↔ Users
                 if (group.Users.Any())
@@ -548,11 +555,11 @@ namespace FurchaAdminApi.Services
             return result;
         }
 
-        public UserGroupResult AddUserGroup(UserGroupRequest request)
+        public async Task<UserGroupResult> AddUserGroup(UserGroupRequest request)
         {
 
             var existsWithSameName = Db.UserGroups
-    .Any(ug => ug.Name == request.Name);
+                .Any(ug => ug.Name == request.Name);
 
             if (existsWithSameName)
             {
@@ -585,6 +592,8 @@ namespace FurchaAdminApi.Services
 
                 Db.UserGroupLockers.AddRange(lockerLinks);
                 Db.SaveChanges();
+
+                await NotifyUserGroupLockerAssignment(group.Id, insertedLockerIds, "add");
             }
 
             // ---------------------------------------
@@ -661,6 +670,49 @@ namespace FurchaAdminApi.Services
             };
         }
 
+
+        private async Task NotifyUserGroupLockerAssignment(int groupId, List<int> lockerIds, string action)
+        {
+            if (lockerIds == null || !lockerIds.Any())
+                return;
+
+            var lockers = Db.Lockers
+                .Include(l => l.Brain)
+                    .ThenInclude(b => b.Company)
+                .Where(l => lockerIds.Contains(l.Id))
+                .ToList();
+
+            var brainGroups = lockers
+                .Where(l => l.Brain?.Company?.AccountUid != null)
+                .GroupBy(l => l.Brain);
+
+            foreach (var brainGroup in brainGroups)
+            {
+                var brain = brainGroup.Key;
+
+                var lockerExternalIds = brainGroup
+                    .Select(l => (long)l.ExternalId.GetValueOrDefault())
+                    .ToArray();
+
+                var data = new AssigningUserGroupToLockerRequest
+                {
+                    GroupId = groupId,
+                    Lockers = lockerExternalIds,
+                    Doors = [],
+                    Action = action
+                };
+
+                var mqttRequest = new MqttBaseRequest<AssigningUserGroupToLockerRequest>
+                {
+                    Command = (int)CommandTypes.AssigningUserGroupToLocker,
+                    ReceivedDate = DateTime.UtcNow,
+                    Operation = (int)OperationTypes.Success,
+                    Data = data
+                };
+
+                await _mqttService.PublishMqttCommands(mqttRequest, brain.Company.AccountUid.ToString(), brain.BrainUid);
+            }
+        }
 
         private FurchaDAL.Models.UserGroup AddUserGroupToDb(UserGroupRequest userGroupRequest)
         {
