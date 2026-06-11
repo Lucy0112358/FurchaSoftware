@@ -30,6 +30,17 @@ namespace FurchaAdminApi.Controllers
         }
 
         [Authorize]
+        [HttpGet("status-count")]
+        public ActionResult<ApiResult<Models.Result.BrainsStatusCountResult>> GetBrainsStatusCount()
+        {
+            var adminId = GetClaimValue("AdminId");
+
+            var result = _lockerService.GetBrainsOnlineOfflineCount(int.Parse(adminId));
+
+            return Ok(ApiResult<Models.Result.BrainsStatusCountResult>.Success(result));
+        }
+
+        [Authorize]
         [HttpGet("{id}")]
         public ActionResult<ApiResult<ModuleResult>> GetModuleById(int id)
         {

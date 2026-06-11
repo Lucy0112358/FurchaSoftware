@@ -583,6 +583,20 @@ namespace FurchaAdminApi.Services
             }
         }
 
+        public BrainsStatusCountResult GetBrainsOnlineOfflineCount(int adminId)
+        {
+            var brains = Db.BrainModules
+                .Where(m => m.Status == 2 && m.Branch.AdminBranches.Any(ab => ab.AdministratorId == adminId))
+                .Select(m => m.IsOnline)
+                .ToList();
+
+            return new BrainsStatusCountResult
+            {
+                Online = brains.Count(isOnline => isOnline),
+                Offline = brains.Count(isOnline => !isOnline)
+            };
+        }
+
         public List<AllModulesResult> GetAddedModules(int adminId)
         {
             var result = Db.Branches
