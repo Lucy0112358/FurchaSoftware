@@ -1,6 +1,7 @@
 ﻿using Domain.Configuration;
 using FurchaAdminApi.Models.Request;
 using FurchaAdminApi.Services;
+using FurchaBLL.Interfaces;
 using FurchaBLL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +13,22 @@ namespace FurchaAdminApi.Controllers
     public class ModulesController : BaseController
     {
         private readonly LockerService _lockerService;
+        private readonly IDeviceStatusNotifier _deviceStatusNotifier;
 
-        public ModulesController(LockerService lockerService)
+        public ModulesController(LockerService lockerService, IDeviceStatusNotifier deviceStatusNotifier)
         {
             _lockerService = lockerService;
+            _deviceStatusNotifier = deviceStatusNotifier;
         }
+
+        [HttpGet("send-brain-status")]
+        public async Task<ActionResult> TestDeviceStatus([FromQuery] string accountUID, int brainId, string status = "Online") // status could be Offline, Online
+        {
+            await _deviceStatusNotifier.NotifyBrainStatusAsync(accountUID, brainId, status);
+
+            return Ok(ApiResult<string>.Success($"Sent {accountUID} {brainId} status '{status}'"));
+        }
+
 
         [Authorize]
         [HttpGet]

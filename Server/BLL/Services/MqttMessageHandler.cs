@@ -316,7 +316,7 @@ namespace FurchaBLL.Services
             {
                 using (var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>())
                 {
-                    var brain = await dbContext.BrainModules.FirstOrDefaultAsync(b => b.BrainUid == brainUid);
+                    var brain = await dbContext.BrainModules.Include(b => b.Company).FirstOrDefaultAsync(b => b.BrainUid == brainUid);
                     if (brain == null)
                     {
                         _logger.LogWarning("Brain module not found for UID {BrainUid} (status update)", brainUid);
@@ -328,6 +328,8 @@ namespace FurchaBLL.Services
 
                     brain.IsOnline = isOnline;
                     await dbContext.SaveChangesAsync();
+
+                    await NotifyBrainServiceAsync(brain.Company.AccountUid.ToString(), brain.Id, isOnline ? "Online" : "Offline");
 
                     _logger.LogInformation("Brain {BrainUid} is now {State}", brainUid, isOnline ? "Online" : "Offline");
                 }
@@ -745,6 +747,26 @@ namespace FurchaBLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error notifying door service for door ID {DoorId}", doorId);
+            }
+        }
+
+        private async Task NotifyBrainServiceAsync(string accountUID, int brainId, string status)
+        {
+            try
+            {
+                using var httpClient = new HttpClient();
+                var endpoint = $"/api/Modules/send-brain-status?accountUID={accountUID}&brainId={brainId}&status={status}";
+                var response = await httpClient.GetAsync(_doorServiceBaseUrl + endpoint);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to notify brain service. Account UID: {AccountUID}, Brain ID: {BrainId}, Status: {Status}, Response: {StatusCode}",
+                        accountUID, brainId, status, response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error notifying brain service for account UID {AccountUID}", accountUID);
             }
         }
 
