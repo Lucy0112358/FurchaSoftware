@@ -4,6 +4,11 @@ namespace FurchaAdminApi.Hubs
 {
     public class DoorStatusHub : Hub
     {
+        public async Task PublishDoorStatus(int doorId, string status)
+        {
+            await Clients.All.SendAsync("ReceiveDoorStatus", doorId, status);
+        }
+
         public override async Task OnConnectedAsync()
         {
             await base.OnConnectedAsync();

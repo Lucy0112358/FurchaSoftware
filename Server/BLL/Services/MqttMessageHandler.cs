@@ -20,19 +20,19 @@ namespace FurchaBLL.Services
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMqttService _mqttService;
+        private readonly IApiSocketClient _apiSocketClient;
         private readonly ILogger<MqttMessageHandler> _logger;
-        private readonly string _doorServiceBaseUrl;
 
         public MqttMessageHandler(
             IServiceScopeFactory scopeFactory,
             IMqttService mqttService,
-            ILogger<MqttMessageHandler> logger,
-            string doorServiceBaseUrl = "http://192.168.0.129:1010")
+            IApiSocketClient apiSocketClient,
+            ILogger<MqttMessageHandler> logger)
         {
             _scopeFactory = scopeFactory;
             _mqttService = mqttService;
+            _apiSocketClient = apiSocketClient;
             _logger = logger;
-            _doorServiceBaseUrl = doorServiceBaseUrl;
         }
 
         /// <inheritdoc />
@@ -665,16 +665,7 @@ namespace FurchaBLL.Services
         {
             try
             {
-                using var httpClient = new HttpClient();
-                var statusText = status == 2 ? "Closed" : "Open";
-                var endpoint = $"/api/locker/test-door-status?doorId={doorId}&status={statusText}";
-                var response = await httpClient.GetAsync(_doorServiceBaseUrl + endpoint);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Failed to notify door service. Door ID: {DoorId}, Status: {Status}, Response: {StatusCode}",
-                        doorId, statusText, response.StatusCode);
-                }
+                await _apiSocketClient.SendDoorStatusAsync(doorId, status);
             }
             catch (Exception ex)
             {
