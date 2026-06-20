@@ -41,6 +41,7 @@ namespace FurchaJobService
 
             builder.Services.AddSingleton<IMqttService, MqttService>();
             builder.Services.AddSingleton<IMqttMessageHandler, MqttMessageHandler>();
+            builder.Services.AddSingleton<IApiSocketClient, ApiSocketClient>();
             builder.Services.AddHostedService<MqttBackgroundService>();
             builder.Services.AddWindowsService(options =>
             {
