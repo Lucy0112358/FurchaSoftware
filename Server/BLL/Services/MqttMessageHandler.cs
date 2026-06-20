@@ -747,7 +747,7 @@ namespace FurchaBLL.Services
             {
                 using var httpClient = new HttpClient();
                 var endpoint = $"/api/Modules/send-brain-status?accountUID={accountUID}&brainId={brainId}&status={status}";
-                var response = await httpClient.GetAsync(_doorServiceBaseUrl + endpoint);
+                var response = await httpClient.GetAsync("http://192.168.0.129:1010" + endpoint);
 
                 if (!response.IsSuccessStatusCode)
                 {
