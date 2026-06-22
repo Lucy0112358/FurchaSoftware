@@ -1,4 +1,5 @@
 ﻿using Domain.Configuration;
+using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptionss;
 using FurchaAdminApi.Models.Request;
@@ -10,7 +11,6 @@ using FurchaBLL.Models;
 using FurchaBLL.MqttModels.Subscribe;
 using FurchaDAL.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 using Locker = FurchaDAL.Models.Locker;
 using LockerGroup = FurchaDAL.Models.LockerGroup;
 
@@ -130,7 +130,8 @@ namespace FurchaAdminApi.Services
                         Users = l.Users
                             .Where(u => u.Name != null)
                             .Select(u => u.Name)
-                            .ToList()
+                            .ToList(),
+                        IsBrainOnline = l.Brain.IsOnline
                     })
                     .ToList();
 
@@ -530,18 +531,18 @@ namespace FurchaAdminApi.Services
             }
         }
 
-        public void SetUser(List<int> lockerIds, int userId)
+        public async Task SetUser(List<int> lockerIds, int userId)
         {
             // make isactive to 0, or 1
-            AssignLockersToUser(lockerIds, userId);
+            await AssignLockersToUser(lockerIds, userId);
         }
 
-        private void AssignLockersToUser(List<int> lockerIds, int userId)
+        private async Task AssignLockersToUser(List<int> lockerIds, int userId)
         {
-            var user = Db.Users.Include(u => u.Lockers).FirstOrDefault(u => u.Id == userId);
+            var user = Db.Users.Include(u => u.Lockers).ThenInclude(l => l.Brain).ThenInclude(b => b.Company).FirstOrDefault(u => u.Id == userId);
             if (user == null) throw new Exception("User not found");
 
-            var lockers = Db.Lockers.Where(l => lockerIds.Contains(l.Id)).ToList();
+            var lockers = Db.Lockers.Include(l => l.Brain).ThenInclude(b => b.Company).Where(l => lockerIds.Contains(l.Id)).ToList();
 
             foreach (var locker in lockers)
             {
@@ -555,6 +556,45 @@ namespace FurchaAdminApi.Services
             }
 
             Db.SaveChanges();
+
+            var lockerGroups = user.Lockers.GroupBy(l => l.Brain.BrainUid);
+
+            foreach (var lg in lockerGroups)
+            {
+                var accountUid = lg.First().Brain.Company.AccountUid.ToString();
+                var data = new AssigningUserToLockerRequest
+                {
+                    Action = "add",
+                    Doors = [],
+                    Lockers = [.. lg.Select(l => l.ExternalId.GetValueOrDefault())],
+                    UserId = user.Id,
+                };
+
+                var mqttRequest = new MqttBaseRequest<AssigningUserToLockerRequest>
+                {
+                    Command = (int)CommandTypes.AssigningUserToLocker,
+                    ReceivedDate = DateTime.UtcNow,
+                    Data = data,
+                    Operation = (int)OperationTypes.Success,
+                };
+
+                await _mqttService.PublishAsync(mqttRequest,
+                    $"controller/{accountUid}/{lg.Key}");
+            }
+        }
+
+        public BrainsStatusCountResult GetBrainsOnlineOfflineCount(int adminId)
+        {
+            var brains = Db.BrainModules
+                .Where(m => m.Status == 2 && m.Branch.AdminBranches.Any(ab => ab.AdministratorId == adminId))
+                .Select(m => m.IsOnline)
+                .ToList();
+
+            return new BrainsStatusCountResult
+            {
+                Online = brains.Count(isOnline => isOnline),
+                Offline = brains.Count(isOnline => !isOnline)
+            };
         }
 
         public List<AllModulesResult> GetAddedModules(int adminId)
@@ -579,7 +619,8 @@ namespace FurchaAdminApi.Services
                                         ? m.Lockers.Min(l => l.Number).ToString()
                                         : m.Lockers.Min(l => l.Number) + "-" + m.Lockers.Max(l => l.Number)
                                   )
-                                : "0"
+                                : "0",
+                            IsOnline = m.IsOnline
                         })
                         .ToList()
                 })
@@ -618,7 +659,9 @@ namespace FurchaAdminApi.Services
                         Start = (int)module.Lockers.Min(l => l.Number ?? 0),
                         End = (int)module.Lockers.Max(l => l.Number ?? 0)
                     }
-                    : new LockerRange { Start = 0, End = 0 }
+                    : new LockerRange { Start = 0, End = 0 },
+                IsOnline = module.IsOnline
+
             };
         }
 
@@ -860,7 +903,7 @@ namespace FurchaAdminApi.Services
                         foreach (var locker in module.Lockers)
                         {
                             locker.IsDeleted = true;
-                            locker.LockerType = 1; 
+                            locker.LockerType = 1;
                         }
                     }
 

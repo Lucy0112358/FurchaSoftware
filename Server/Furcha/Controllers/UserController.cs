@@ -110,7 +110,7 @@ namespace FurchaAdminApi.Controllers
                     return BadRequest(ApiResult<UserResult>.ErrorResult("Invalid user data."));
                 }
 
-                var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
+                var result = await userService.AddUser(userCreateRequest, int.Parse(adminId));
 
                 if (result == null)
                 {
@@ -133,7 +133,7 @@ namespace FurchaAdminApi.Controllers
 
 
         [HttpPost("edit-user")]
-        public ActionResult<ApiResult<UserResult>> EditUser([FromBody] UserCreateRequest userCreateRequest)
+        public async Task<ActionResult<ApiResult<UserResult>>> EditUser([FromBody] UserCreateRequest userCreateRequest)
         {
             try
             {
@@ -149,7 +149,7 @@ namespace FurchaAdminApi.Controllers
                     return BadRequest(ApiResult<UserResult>.ErrorResult("User Id is required for editing."));
                 }
 
-                var result = userService.AddUser(userCreateRequest, int.Parse(adminId));
+                var result = await userService.AddUser(userCreateRequest, int.Parse(adminId));
 
                 if (result == null)
                 {
@@ -174,7 +174,7 @@ namespace FurchaAdminApi.Controllers
         [Authorize]
 /*        [RequiresPermission("ManageUserGroup")]*/
         [HttpPost("add-user-group")]
-        public ActionResult<ApiResult<UserGroupResult>> AddUserGroup([FromBody] UserGroupRequest userGroupRequest)
+        public async Task<ActionResult<ApiResult<UserGroupResult>>> AddUserGroup([FromBody] UserGroupRequest userGroupRequest)
         {
             if (userGroupRequest == null)
             {
@@ -187,7 +187,7 @@ namespace FurchaAdminApi.Controllers
 
             try
             {
-                var result = userService.AddUserGroup(userGroupRequest);
+                var result = await userService.AddUserGroup(userGroupRequest);
 
                 if (result == null)
                 {
@@ -208,17 +208,17 @@ namespace FurchaAdminApi.Controllers
         }
 
         [HttpPost("delete-users")]
-        public IActionResult DeleteUsers([FromBody] DeleteAdminRequest request)
+        public async Task<IActionResult> DeleteUsers([FromBody] DeleteAdminRequest request)
         {
-            userService.DeleteUsers(request.Ids);
+            await userService.DeleteUsers(request.Ids);
 
             return Ok(true);
         }
 
         [HttpPost("delete-user-groups")]
-        public IActionResult DeleteUserGroupss([FromBody] DeleteAdminRequest request)
+        public async Task<ActionResult<ApiResult<bool>>> DeleteUserGroupss([FromBody] DeleteAdminRequest request)
         {
-            userService.DeleteUserGroups(request.Ids);
+            await userService.DeleteUserGroups(request.Ids);
 
             return Ok(true);
         }

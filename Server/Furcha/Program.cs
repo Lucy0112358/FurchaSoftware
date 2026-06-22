@@ -144,6 +144,7 @@ namespace FurchaAdminApi
             builder.Services.AddSignalR();
 
             builder.Services.AddScoped<IDoorStateService, SignalRNotificationService>();
+            builder.Services.AddScoped<IDeviceStatusNotifier, DeviceStatusNotificationService>();
 
             var app = builder.Build();
             app.UseSwagger();
@@ -158,6 +159,7 @@ namespace FurchaAdminApi
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseMiddleware<PermissionMiddleware>();
+            app.MapHub<DeviceStatusHub>("/hubs/deviceStatus");
             app.MapControllers();
             app.Run();
         }

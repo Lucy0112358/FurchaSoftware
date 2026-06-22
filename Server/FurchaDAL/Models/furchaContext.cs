@@ -94,7 +94,7 @@ public partial class furchaContext : DbContext
 
         modelBuilder.Entity<AdminLockerGroup>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__AdminLoc__3214EC074B962C7B");
+            entity.HasKey(e => e.Id).HasName("PK__AdminLoc__3214EC0793A972C3");
 
             entity.ToTable("AdminLockerGroup", "furcha");
 
@@ -391,7 +391,7 @@ public partial class furchaContext : DbContext
                         .HasConstraintName("FK__User_User__UserI__2CF2ADDF"),
                     j =>
                     {
-                        j.HasKey("UserId", "UserGroupId");
+                        j.HasKey("UserId", "UserGroupId").HasName("PK__User_Use__082D6A50C028EA0D");
                         j.ToTable("User_UserGroup", "furcha");
                     });
         });

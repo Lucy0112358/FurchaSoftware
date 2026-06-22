@@ -17,6 +17,7 @@
         ChangeType,
         StatusActiveSuspend,
         SendLockerMode,
-        AssigningUserToLocker
+        AssigningUserToLocker,
+        AssigningUserGroupToLocker = 18
     }
 }

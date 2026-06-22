@@ -57,6 +57,13 @@ namespace FurchaBLL.Services
                     return;
                 }
 
+                // webserver/<accountUID>/<brainUid>/status
+                if (topic.EndsWith("/status", StringComparison.OrdinalIgnoreCase))
+                {
+                    await HandleBrainStatusAsync(topic, payload);
+                    return;
+                }
+
                 var message = JsonSerializer.Deserialize<MqttBaseRequest<object>>(payload);
                 if (message == null)
                 {
@@ -264,6 +271,67 @@ namespace FurchaBLL.Services
                             _logger.LogWarning("Unknown device type '{Type}' received.", locker.Type);
                         }
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Обрабатывает online/offline брейна, полученный по MQTT Last Will / birth.
+        /// Топик: webserver/&lt;accountUID&gt;/&lt;brainUid&gt;/status (suffix /status уже
+        /// проверен в HandleAsync). brainUid — parts[2], как и у обычных команд.
+        /// Payload: {"Status":"Online"} (retained birth после connect) либо
+        /// {"Status":"Offline"} (LWT от брокера при обрыве). Обновляет
+        /// BrainModule.IsOnline.
+        /// </summary>
+        private async Task HandleBrainStatusAsync(string topic, string payload)
+        {
+            var brainUid = ExtractBrainUidFromTopic(topic);
+            if (string.IsNullOrEmpty(brainUid))
+            {
+                _logger.LogWarning("Could not extract brain UID from status topic {Topic}", topic);
+                return;
+            }
+
+            bool isOnline;
+            try
+            {
+                var dictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(payload);
+
+                if (dictionary == null || (!dictionary.TryGetValue("Status", out var status)
+                       && !dictionary.TryGetValue("status", out status)))
+                {
+                    _logger.LogWarning("Bad brain status payload on {Topic}: {Payload}", topic, payload);
+                    return;
+                }
+
+                isOnline = "Online".Equals(status, StringComparison.OrdinalIgnoreCase);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Bad brain status payload on {Topic}: {Payload}", topic, payload);
+                return;
+            }
+
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                using (var dbContext = scope.ServiceProvider.GetRequiredService<furchaContext>())
+                {
+                    var brain = await dbContext.BrainModules.Include(b => b.Company).FirstOrDefaultAsync(b => b.BrainUid == brainUid);
+                    if (brain == null)
+                    {
+                        _logger.LogWarning("Brain module not found for UID {BrainUid} (status update)", brainUid);
+                        return;
+                    }
+
+                    if (brain.IsOnline == isOnline)
+                        return;
+
+                    brain.IsOnline = isOnline;
+                    await dbContext.SaveChangesAsync();
+
+                    await NotifyBrainServiceAsync(brain.Company.AccountUid.ToString(), brain.Id, isOnline ? "Online" : "Offline");
+
+                    _logger.LogInformation("Brain {BrainUid} is now {State}", brainUid, isOnline ? "Online" : "Offline");
                 }
             }
         }
@@ -670,6 +738,26 @@ namespace FurchaBLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error notifying door service for door ID {DoorId}", doorId);
+            }
+        }
+
+        private async Task NotifyBrainServiceAsync(string accountUID, int brainId, string status)
+        {
+            try
+            {
+                using var httpClient = new HttpClient();
+                var endpoint = $"/api/Modules/send-brain-status?accountUID={accountUID}&brainId={brainId}&status={status}";
+                var response = await httpClient.GetAsync("http://192.168.0.129:1010" + endpoint);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to notify brain service. Account UID: {AccountUID}, Brain ID: {BrainId}, Status: {Status}, Response: {StatusCode}",
+                        accountUID, brainId, status, response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error notifying brain service for account UID {AccountUID}", accountUID);
             }
         }
 
