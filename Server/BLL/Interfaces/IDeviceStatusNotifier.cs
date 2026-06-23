@@ -2,6 +2,6 @@ namespace FurchaBLL.Interfaces
 {
     public interface IDeviceStatusNotifier
     {
-        Task NotifyBrainStatusAsync(string accountUID, int brainId, string status);
+        Task NotifyBrainStatusAsync(int companyId, int brainId, string status);
     }
 }

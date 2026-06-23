@@ -329,7 +329,7 @@ namespace FurchaBLL.Services
                     brain.IsOnline = isOnline;
                     await dbContext.SaveChangesAsync();
 
-                    await NotifyBrainServiceAsync(brain.Company.AccountUid.ToString(), brain.Id, isOnline ? "Online" : "Offline");
+                    await NotifyBrainServiceAsync(brain.Company.Id, brain.Id, isOnline ? "Online" : "Offline");
 
                     _logger.LogInformation("Brain {BrainUid} is now {State}", brainUid, isOnline ? "Online" : "Offline");
                 }
@@ -741,23 +741,23 @@ namespace FurchaBLL.Services
             }
         }
 
-        private async Task NotifyBrainServiceAsync(string accountUID, int brainId, string status)
+        private async Task NotifyBrainServiceAsync(int companyId, int brainId, string status)
         {
             try
             {
                 using var httpClient = new HttpClient();
-                var endpoint = $"/api/Modules/send-brain-status?accountUID={accountUID}&brainId={brainId}&status={status}";
+                var endpoint = $"/api/Modules/send-brain-status?companyId={companyId}&brainId={brainId}&status={status}";
                 var response = await httpClient.GetAsync("http://192.168.0.129:1010" + endpoint);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Failed to notify brain service. Account UID: {AccountUID}, Brain ID: {BrainId}, Status: {Status}, Response: {StatusCode}",
-                        accountUID, brainId, status, response.StatusCode);
+                    _logger.LogWarning("Failed to notify brain service. Company ID: {CompanyId}, Brain ID: {BrainId}, Status: {Status}, Response: {StatusCode}",
+                        companyId, brainId, status, response.StatusCode);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error notifying brain service for account UID {AccountUID}", accountUID);
+                _logger.LogError(ex, "Error notifying brain service for company ID {CompanyId}", companyId);
             }
         }
 

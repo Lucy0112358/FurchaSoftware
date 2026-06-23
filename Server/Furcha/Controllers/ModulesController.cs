@@ -22,11 +22,11 @@ namespace FurchaAdminApi.Controllers
         }
 
         [HttpGet("send-brain-status")]
-        public async Task<ActionResult> TestDeviceStatus([FromQuery] string accountUID, int brainId, string status = "Online") // status could be Offline, Online
+        public async Task<ActionResult> TestDeviceStatus([FromQuery] int companyId, int brainId, string status = "Online") // status could be Offline, Online
         {
-            await _deviceStatusNotifier.NotifyBrainStatusAsync(accountUID, brainId, status);
+            await _deviceStatusNotifier.NotifyBrainStatusAsync(companyId, brainId, status);
 
-            return Ok(ApiResult<string>.Success($"Sent {accountUID} {brainId} status '{status}'"));
+            return Ok(ApiResult<string>.Success($"Sent {companyId} {brainId} status '{status}'"));
         }
 
 

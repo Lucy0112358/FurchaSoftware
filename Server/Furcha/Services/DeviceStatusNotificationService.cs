@@ -13,10 +13,10 @@ namespace FurchaAdminApi.Services
             _hubContext = hubContext;
         }
 
-        public Task NotifyBrainStatusAsync(string accountUID, int brainId, string status)
+        public Task NotifyBrainStatusAsync(int companyId, int brainId, string status)
         {
             return _hubContext.Clients
-                .Group(DeviceStatusHub.GetAccountGroup(accountUID))
+                .Group(HubGroupNames.GetCompanyGroup(companyId))
                 .SendAsync("ReceiveBrainStatus", brainId, status);
         }
     }

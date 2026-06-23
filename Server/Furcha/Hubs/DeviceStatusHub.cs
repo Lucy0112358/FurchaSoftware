@@ -4,22 +4,15 @@ namespace FurchaAdminApi.Hubs
 {
     public class DeviceStatusHub : Hub
     {
-        private const string _accountGroupPrefix = "account";
-
-        public static string GetAccountGroup(string accountUID)
-        {
-            return $"{_accountGroupPrefix}_{accountUID}".ToLowerInvariant();
-        }
-
         public override async Task OnConnectedAsync()
         {
-            if (!TryGetAccountUID(out var accountUID))
+            if (!TryGetCompanyId(out var companyId))
             {
                 Context.Abort();
                 return;
             }
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, GetAccountGroup(accountUID));
+            await Groups.AddToGroupAsync(Context.ConnectionId, HubGroupNames.GetCompanyGroup(companyId));
             await base.OnConnectedAsync();
         }
 
@@ -28,18 +21,12 @@ namespace FurchaAdminApi.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        private bool TryGetAccountUID(out string accountUID)
+        private bool TryGetCompanyId(out int companyId)
         {
-            accountUID = string.Empty;
-            var raw = Context.GetHttpContext()?.Request.Query["accountUID"].ToString();
+            companyId = 0;
+            var raw = Context.GetHttpContext()?.Request.Query["companyId"].ToString();
 
-            if (!string.IsNullOrEmpty(raw))
-            {
-                accountUID = raw;
-                return true;
-            }
-
-            return false;
+            return !string.IsNullOrWhiteSpace(raw) && int.TryParse(raw, out companyId);
         }
     }
 }
