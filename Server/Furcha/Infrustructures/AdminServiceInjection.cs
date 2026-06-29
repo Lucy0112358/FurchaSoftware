@@ -2,6 +2,7 @@
 using FurchaAdminApi.Middlewares;
 using FurchaAdminApi.Repos;
 using FurchaAdminApi.Services;
+using FurchaDAL.Repositories;
 
 namespace FurchaAdminApi.Infrustructures
 {
@@ -10,6 +11,7 @@ namespace FurchaAdminApi.Infrustructures
         public static IServiceCollection GenerateInjectionAdmin(this IServiceCollection services)
         {
             /* REPOSITORIES */
+            services.AddScoped(typeof(BaseRepository<>));
             services.AddScoped(typeof(UserRepository));
             services.AddScoped(typeof(BranchRepository));
             services.AddScoped(typeof(AdminRepository));
