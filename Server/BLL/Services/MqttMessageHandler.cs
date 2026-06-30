@@ -99,7 +99,7 @@ namespace FurchaBLL.Services
                         await HandleChangeTypeAsync(topic, payload);
                         break;
 
-                    case CommandTypes.SuspendLocker:
+                    case CommandTypes.SuspendLockerDoor:
                         await HandleSuspendLockerDoorAsync(topic, payload);
                         break;
                     case CommandTypes.SendLockerMode:
@@ -383,7 +383,7 @@ namespace FurchaBLL.Services
                                 new MqttBaseRequest<int>
                                 {
                                     Operation = (int)OperationTypes.Success,
-                                    Command = (int)CommandTypes.SuspendLocker
+                                    Command = (int)CommandTypes.SuspendLockerDoor
                                 },
                                 topic.Replace("webserver", "controller")
                             );

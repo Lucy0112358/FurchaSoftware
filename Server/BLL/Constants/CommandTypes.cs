@@ -11,13 +11,14 @@
         AddLockersToBrain,
         SendAuthDataForOpen,
         SuspendUser,
-        SuspendLocker,
+        SuspendLockerDoor,
         OpenDoorsFromAdmin,
         SendCard,
         ChangeType,
         StatusActiveSuspend,
         SendLockerMode,
         AssigningUserToLocker,
-        AssigningUserGroupToLocker = 18
+        SendStatus,            
+        AssigningUserGroupToLocker   /* = 18 */
     }
 }
