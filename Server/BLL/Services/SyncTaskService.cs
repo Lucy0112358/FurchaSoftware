@@ -1,12 +1,8 @@
 using FurchaBLL.Constants;
-using FurchaBLL.Models;
 using FurchaDAL.Models;
 using FurchaDAL.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Identity.Client;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace FurchaBLL.Services
 {
@@ -41,8 +37,8 @@ namespace FurchaBLL.Services
             _repo = repo;
         }
 
-        public static SyncTask BuildSyncTask(SyncTaskStatus status, 
-            Guid accountUid, string brainUid, CommandTypes commandType, 
+        public static SyncTask BuildSyncTask(SyncTaskStatus status,
+            Guid accountUid, string brainUid, CommandTypes commandType,
             int entityId, string entityType, SyncTaskOperationType operation,
             object envelopForMqtt)
         {

@@ -37,6 +37,20 @@ namespace FurchaAdminApi.Services
             Db = db;
             _syncTaskService = syncTaskService;
         }
+
+        private async Task WithTransactionAsync(Func<Task> work)
+        {
+            var strategy = Db.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                await using (var tx = await Db.Database.BeginTransactionAsync())
+                {
+                    await work();
+                    await tx.CommitAsync();
+                }
+            });
+        }
+
         private List<User> GetUsersByIdsBranchAndGroup(
        List<int> userIds,
        int? branchId,
@@ -134,88 +148,96 @@ namespace FurchaAdminApi.Services
 
         public async Task<bool> DeleteUserGroups(List<int> ids)
         {
-            foreach (var id in ids)
+            await WithTransactionAsync(async () =>
             {
-                var group = Db.UserGroups
-                    .Include(g => g.UserGroupBranches)
-                    .Include(g => g.UserGroupLockers)
-                    .Include(g => g.Users) // many-to-many
-                    .FirstOrDefault(g => g.Id == id);
-
-                if (group == null)
-                    continue;
-
-                // 1. Remove one-to-many: UserGroupBranches
-                if (group.UserGroupBranches.Any())
-                    Db.UserGroupBranches.RemoveRange(group.UserGroupBranches);
-
-                // 2. Remove one-to-many: UserGroupLockers
-                if (group.UserGroupLockers.Any())
+                foreach (var id in ids)
                 {
-                    var lockerIds = group.UserGroupLockers.Select(ugl => ugl.LockerId).ToList();
+                    var group = Db.UserGroups
+                        .Include(g => g.UserGroupBranches)
+                        .Include(g => g.UserGroupLockers)
+                        .Include(g => g.Users) // many-to-many
+                        .FirstOrDefault(g => g.Id == id);
 
-                    Db.UserGroupLockers.RemoveRange(group.UserGroupLockers);
+                    if (group == null)
+                        continue;
 
-                    await NotifyUserGroupLockerAssignment(group, lockerIds, "remove");
+                    // 1. Remove one-to-many: UserGroupBranches
+                    if (group.UserGroupBranches.Any())
+                        Db.UserGroupBranches.RemoveRange(group.UserGroupBranches);
+
+                    // 2. Remove one-to-many: UserGroupLockers
+                    if (group.UserGroupLockers.Any())
+                    {
+                        var lockerIds = group.UserGroupLockers.Select(ugl => ugl.LockerId).ToList();
+
+                        Db.UserGroupLockers.RemoveRange(group.UserGroupLockers);
+
+                        await NotifyUserGroupLockerAssignment(group, lockerIds, "remove");
+                    }
+
+                    // 3. Clear many-to-many: UserGroup ↔ Users
+                    if (group.Users.Any())
+                        group.Users.Clear(); // removes rows from the join table
+
+                    // 4. Finally delete the group itself
+                    Db.UserGroups.Remove(group);
                 }
 
-                // 3. Clear many-to-many: UserGroup ↔ Users
-                if (group.Users.Any())
-                    group.Users.Clear(); // removes rows from the join table
+                Db.SaveChanges();
+            });
 
-                // 4. Finally delete the group itself
-                Db.UserGroups.Remove(group);
-            }
-
-            Db.SaveChanges();
             return true;
         }
 
 
         public async Task<bool> DeleteUsers(List<int> ids)
         {
-            foreach (var id in ids)
+            await WithTransactionAsync(async () =>
             {
-                var user = Db.Users
-                    .Include(u => u.Administrators)
-                    .Include(u => u.Cards)
-                    .Include(u => u.UserBranches)
-                    .Include(u => u.UserGroups)   // many-to-many
-                    .Include(u => u.Lockers)      // many-to-many
-                    .FirstOrDefault(u => u.Id == id);
-
-                if (user == null)
-                    continue;
-
-                // 1. Remove related administrators
-                if (user.Administrators.Any())
-                    Db.Administrators.RemoveRange(user.Administrators);
-
-                // 2. Remove one-to-many: UserBranches
-                if (user.UserBranches.Any())
-                    Db.UserBranches.RemoveRange(user.UserBranches);
-
-                // 3. Remove one-to-many: Cards
-                if (user.Cards.Any())
-                    Db.Cards.RemoveRange(user.Cards);
-
-                // 4. Clear many-to-many: User ↔ UserGroups
-                user.UserGroups.Clear();
-
-                // 5. Clear many-to-many: User ↔ Lockers
-
-                if (user.Lockers.Any())
+                foreach (var id in ids)
                 {
-                    await NotifyUserLockerAssignment(user, user.Lockers.Select(l => l.Id).ToList(), "remove");
+                    var user = Db.Users
+                        .Include(u => u.Administrators)
+                        .Include(u => u.Cards)
+                        .Include(u => u.UserBranches)
+                        .Include(u => u.UserGroups)   // many-to-many
+                        .Include(u => u.Lockers)      // many-to-many
+                        .FirstOrDefault(u => u.Id == id);
+
+                    if (user == null)
+                        continue;
+
+                    // 1. Remove related administrators
+                    if (user.Administrators.Any())
+                        Db.Administrators.RemoveRange(user.Administrators);
+
+                    // 2. Remove one-to-many: UserBranches
+                    if (user.UserBranches.Any())
+                        Db.UserBranches.RemoveRange(user.UserBranches);
+
+                    // 3. Remove one-to-many: Cards
+                    if (user.Cards.Any())
+                        Db.Cards.RemoveRange(user.Cards);
+
+                    // 4. Clear many-to-many: User ↔ UserGroups
+                    user.UserGroups.Clear();
+
+                    // 5. Clear many-to-many: User ↔ Lockers
+
+                    if (user.Lockers.Any())
+                    {
+                        await NotifyUserLockerAssignment(user, user.Lockers.Select(l => l.Id).ToList(), "remove");
+                    }
+
+                    user.Lockers.Clear();
+
+                    // 6. Finally delete the user
+                    Db.Users.Remove(user);
                 }
 
-                user.Lockers.Clear();
+                Db.SaveChanges();
+            });
 
-                // 6. Finally delete the user
-                Db.Users.Remove(user);
-            }
-
-            Db.SaveChanges();
             return true;
         }
 
@@ -541,29 +563,18 @@ namespace FurchaAdminApi.Services
 
         public async Task<UserResult> AddUser(UserCreateRequest newUser, int adminId)
         {
-            var strategy = Db.Database.CreateExecutionStrategy();
-
             if (newUser.IsPinRequired == true)
             {
                 // TODO: Generate a 4-digit PIN unique within the branch
             }
 
-            var result = await AddUserToDb(newUser, adminId);
+            UserResult result = null!;
 
-            if (newUser.Id == 0)
+            // Data change + the sync task(s) enqueued inside AddUserToDb commit atomically.
+            await WithTransactionAsync(async () =>
             {
-
-                // no need to send Mqtt request here as the user still has no access to any locker.
-                // The Mqtt request will be sent when the user is assigned to a locker or a group with lockers.
-                //var mqttRequest = new MqttBaseRequest<UserResult>
-                //{
-                //    Command = (int)CommandTypes.CreateUserFromAdmin,
-                //    ReceivedDate = DateTime.Now,
-                //    Data = result
-                //};
-
-                //_mqttService.PublishMqttCommands(mqttRequest, companyUid.ToString(), "1");
-            }
+                result = await AddUserToDb(newUser, adminId);
+            });
 
             return result;
         }
@@ -580,107 +591,114 @@ namespace FurchaAdminApi.Services
             }
 
 
-            var group = AddUserGroupToDb(request);
+            UserGroupResult result = null!;
 
-            // ---------------------------------------
-            // 2. Insert LOCKERS first
-            // ---------------------------------------
-            List<int> insertedLockerIds = new();
-
-            if (request.LockerIds?.Any() == true)
+            await WithTransactionAsync(async () =>
             {
-                var validLockerIds = Db.Lockers.Select(l => l.Id).ToHashSet();
+                var group = AddUserGroupToDb(request);
 
-                insertedLockerIds = request.LockerIds
-                    .Where(id => validLockerIds.Contains(id))
-                    .ToList();
+                // ---------------------------------------
+                // 2. Insert LOCKERS first
+                // ---------------------------------------
+                List<int> insertedLockerIds = new();
 
-                var lockerLinks = insertedLockerIds
-                    .Select(lockerId => new UserGroupLocker
-                    {
-                        UserGroupId = group.Id,
-                        LockerId = lockerId
-                    })
-                    .ToList();
-
-                Db.UserGroupLockers.AddRange(lockerLinks);
-                Db.SaveChanges();
-
-                await NotifyUserGroupLockerAssignment(group, insertedLockerIds, "add");
-            }
-
-            // ---------------------------------------
-            // 3. Derive BRANCHES from lockers' Brain.BranchId
-            // ---------------------------------------
-            var branchIds = Db.Lockers
-                .Where(l => insertedLockerIds.Contains(l.Id))
-                .Select(l => l.Brain.BranchId)
-                .Where(b => b.HasValue)
-                .Select(b => b.Value)
-                .Distinct()
-                .ToList();
-
-            if (branchIds.Any())
-            {
-                var branchLinks = branchIds
-                    .Select(branchId => new UserGroupBranch
-                    {
-                        UserGroupId = group.Id,
-                        BranchId = branchId
-                    })
-                    .ToList();
-
-                Db.UserGroupBranches.AddRange(branchLinks);
-                Db.SaveChanges();
-            }
-
-            // ---------------------------------------
-            // 4. Build result: Branch names
-            // ---------------------------------------
-            var branchNames = Db.Branches
-                .Where(b => branchIds.Contains(b.Id))
-                .Select(b => b.Name)
-                .ToList();
-
-            // ---------------------------------------
-            // 5. Build result: Locker groups
-            // ---------------------------------------
-            var lockerGroups = Db.LockerGroups
-                .Include(lg => lg.BrainModules)
-                    .ThenInclude(bm => bm.Lockers)
-                .Where(lg =>
-                    lg.BrainModules
-                        .SelectMany(b => b.Lockers)
-                        .Any(l => insertedLockerIds.Contains(l.Id)))
-                .ToList();
-
-            var lockerGroupResults = lockerGroups
-                .Select(lg => new LockerGroupResult
+                if (request.LockerIds?.Any() == true)
                 {
-                    LockerGroupName = lg.Name,
-                    LockersFromGroup = lg.BrainModules
-                        .SelectMany(bm => bm.Lockers)
-                        .Where(l => insertedLockerIds.Contains(l.Id))
-                        .Select(l => new PermittedLockerResult
-                        {
-                            LockerId = l.Id,
-                            LockerNumber = (int)l.Number
-                        })
-                        .ToList()
-                })
-                .ToList();
+                    var validLockerIds = Db.Lockers.Select(l => l.Id).ToHashSet();
 
-            // ---------------------------------------
-            // FINAL RETURN
-            // ---------------------------------------
-            return new UserGroupResult
-            {
-                Id = group.Id,
-                Name = group.Name,
-                State = (int)group.State,
-                BranchNames = branchNames,
-                PermittedLockers = lockerGroupResults
-            };
+                    insertedLockerIds = request.LockerIds
+                        .Where(id => validLockerIds.Contains(id))
+                        .ToList();
+
+                    var lockerLinks = insertedLockerIds
+                        .Select(lockerId => new UserGroupLocker
+                        {
+                            UserGroupId = group.Id,
+                            LockerId = lockerId
+                        })
+                        .ToList();
+
+                    Db.UserGroupLockers.AddRange(lockerLinks);
+                    Db.SaveChanges();
+
+                    await NotifyUserGroupLockerAssignment(group, insertedLockerIds, "add");
+                }
+
+                // ---------------------------------------
+                // 3. Derive BRANCHES from lockers' Brain.BranchId
+                // ---------------------------------------
+                var branchIds = Db.Lockers
+                    .Where(l => insertedLockerIds.Contains(l.Id))
+                    .Select(l => l.Brain.BranchId)
+                    .Where(b => b.HasValue)
+                    .Select(b => b.Value)
+                    .Distinct()
+                    .ToList();
+
+                if (branchIds.Any())
+                {
+                    var branchLinks = branchIds
+                        .Select(branchId => new UserGroupBranch
+                        {
+                            UserGroupId = group.Id,
+                            BranchId = branchId
+                        })
+                        .ToList();
+
+                    Db.UserGroupBranches.AddRange(branchLinks);
+                    Db.SaveChanges();
+                }
+
+                // ---------------------------------------
+                // 4. Build result: Branch names
+                // ---------------------------------------
+                var branchNames = Db.Branches
+                    .Where(b => branchIds.Contains(b.Id))
+                    .Select(b => b.Name)
+                    .ToList();
+
+                // ---------------------------------------
+                // 5. Build result: Locker groups
+                // ---------------------------------------
+                var lockerGroups = Db.LockerGroups
+                    .Include(lg => lg.BrainModules)
+                        .ThenInclude(bm => bm.Lockers)
+                    .Where(lg =>
+                        lg.BrainModules
+                            .SelectMany(b => b.Lockers)
+                            .Any(l => insertedLockerIds.Contains(l.Id)))
+                    .ToList();
+
+                var lockerGroupResults = lockerGroups
+                    .Select(lg => new LockerGroupResult
+                    {
+                        LockerGroupName = lg.Name,
+                        LockersFromGroup = lg.BrainModules
+                            .SelectMany(bm => bm.Lockers)
+                            .Where(l => insertedLockerIds.Contains(l.Id))
+                            .Select(l => new PermittedLockerResult
+                            {
+                                LockerId = l.Id,
+                                LockerNumber = (int)l.Number
+                            })
+                            .ToList()
+                    })
+                    .ToList();
+
+                // ---------------------------------------
+                // FINAL RESULT
+                // ---------------------------------------
+                result = new UserGroupResult
+                {
+                    Id = group.Id,
+                    Name = group.Name,
+                    State = (int)group.State,
+                    BranchNames = branchNames,
+                    PermittedLockers = lockerGroupResults
+                };
+            });
+
+            return result;
         }
 
         private async Task NotifyUserLockerAssignment(User user, List<int> lockerIds, string action)
@@ -1136,19 +1154,22 @@ namespace FurchaAdminApi.Services
 
         public async Task SuspendUserGroups(List<int> ids, int state)
         {
-            var users = Db.UserGroups
-                .Include(ug => ug.Users)
-                .Include(ug => ug.UserGroupLockers)
-                .Where(a => ids.Contains(a.Id)).ToList();
-
-            foreach (var u in users)
+            await WithTransactionAsync(async () =>
             {
-                u.State = state;
+                var users = Db.UserGroups
+                    .Include(ug => ug.Users)
+                    .Include(ug => ug.UserGroupLockers)
+                    .Where(a => ids.Contains(a.Id)).ToList();
 
-                await NotifyUserGroupLockerAssignment(u, u.UserGroupLockers?.Select(ugl => ugl.LockerId)?.ToList() ?? [], u.State.GetValueOrDefault() == (int)StateEnum.suspended ? "remove" : "add");
-            }
+                foreach (var u in users)
+                {
+                    u.State = state;
 
-            Db.SaveChanges();
+                    await NotifyUserGroupLockerAssignment(u, u.UserGroupLockers?.Select(ugl => ugl.LockerId)?.ToList() ?? [], u.State.GetValueOrDefault() == (int)StateEnum.suspended ? "remove" : "add");
+                }
+
+                Db.SaveChanges();
+            });
         }
         public void SetUserState(List<int> ids, int state)
         {
@@ -1171,25 +1192,28 @@ namespace FurchaAdminApi.Services
             if (group == null)
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "UserGroup not found");
 
-            // Load all target users
-            var targetUsers = Db.Users
-                .Include(u => u.UserGroups)
-                .Where(u => ids.Contains(u.Id))
-                .ToList();
-
-            foreach (var user in targetUsers)
+            await WithTransactionAsync(async () =>
             {
-                bool alreadyInGroup = user.UserGroups.Any(g => g.Id == groupId);
+                // Load all target users
+                var targetUsers = Db.Users
+                    .Include(u => u.UserGroups)
+                    .Where(u => ids.Contains(u.Id))
+                    .ToList();
 
-                if (!alreadyInGroup)
+                foreach (var user in targetUsers)
                 {
-                    user.UserGroups.Add(group); // add only if missing
+                    bool alreadyInGroup = user.UserGroups.Any(g => g.Id == groupId);
+
+                    if (!alreadyInGroup)
+                    {
+                        user.UserGroups.Add(group); // add only if missing
+                    }
                 }
-            }
 
-            Db.SaveChanges();
+                Db.SaveChanges();
 
-            await NotifyUserGroupLockerAssignment(group, group.UserGroupLockers?.Select(ugl => ugl.LockerId)?.ToList() ?? [], "add");
+                await NotifyUserGroupLockerAssignment(group, group.UserGroupLockers?.Select(ugl => ugl.LockerId)?.ToList() ?? [], "add");
+            });
         }
 
 
@@ -1300,104 +1324,111 @@ namespace FurchaAdminApi.Services
             if (group == null)
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "User group not found.");
 
-            group.Name = req.Name;
+            UserGroupResult result = null!;
 
-            var existingLockerIds = group.UserGroupLockers
-                .Select(x => x.LockerId)
-                .ToList();
-
-            var lockersToRemove = group.UserGroupLockers
-                .Where(ugl => !req.LockerIds.Contains(ugl.LockerId))
-                .ToList();
-
-            if (lockersToRemove.Any())
-                Db.UserGroupLockers.RemoveRange(lockersToRemove);
-
-            var lockersToAdd = req.LockerIds
-                .Where(lockerId => !existingLockerIds.Contains(lockerId))
-                .Select(lockerId => new UserGroupLocker
-                {
-                    UserGroupId = group.Id,
-                    LockerId = lockerId
-                })
-                .ToList();
-
-            if (lockersToAdd.Any())
-                Db.UserGroupLockers.AddRange(lockersToAdd);
-
-            Db.SaveChanges();
-
-            var branchIds = Db.Lockers
-                .Where(l => req.LockerIds.Contains(l.Id))
-                .Select(l => l.Brain.BranchId)
-                .Where(b => b.HasValue)
-                .Select(b => b.Value)
-                .Distinct()
-                .ToList();
-
-            var branchesToRemove = group.UserGroupBranches
-                .Where(ugb => !branchIds.Contains(ugb.BranchId))
-                .ToList();
-
-            if (branchesToRemove.Any())
-                Db.UserGroupBranches.RemoveRange(branchesToRemove);
-
-            // Add new branches
-            var branchesToAdd = branchIds
-                .Where(branchId => !group.UserGroupBranches.Any(ugb => ugb.BranchId == branchId))
-                .Select(branchId => new UserGroupBranch
-                {
-                    UserGroupId = group.Id,
-                    BranchId = branchId
-                })
-                .ToList();
-
-            if (branchesToAdd.Any())
-                Db.UserGroupBranches.AddRange(branchesToAdd);
-
-            Db.SaveChanges();
-
-            var branchNames = Db.Branches
-                .Where(b => branchIds.Contains(b.Id))
-                .Select(b => b.Name)
-                .ToList();
-
-            var lockerGroups = Db.LockerGroups
-                .Include(lg => lg.BrainModules)
-                    .ThenInclude(bm => bm.Lockers)
-                .Where(lg =>
-                    lg.BrainModules
-                        .SelectMany(b => b.Lockers)
-                        .Any(l => req.LockerIds.Contains(l.Id)))
-                .ToList();
-
-            var lockerGroupResults = lockerGroups
-                .Select(lg => new LockerGroupResult
-                {
-                    LockerGroupName = lg.Name,
-                    LockersFromGroup = lg.BrainModules
-                        .SelectMany(b => b.Lockers)
-                        .Where(l => req.LockerIds.Contains(l.Id))
-                        .Select(l => new PermittedLockerResult
-                        {
-                            LockerId = l.Id,
-                            LockerNumber = (int)l.Number
-                        })
-                        .ToList()
-                })
-                .ToList();
-
-            await NotifyUserGroupLockerAssignment(group, group.UserGroupLockers?.Select(ugl => ugl.LockerId)?.ToList() ?? [], group.State.GetValueOrDefault() == (int)StateEnum.suspended ? "remove" : "add");
-
-            return new UserGroupResult
+            await WithTransactionAsync(async () =>
             {
-                Id = group.Id,
-                Name = group.Name,
-                State = (int)group.State,
-                BranchNames = branchNames,
-                PermittedLockers = lockerGroupResults,
-                UserCount = Db.Users.Count(u => u.UserGroups.Any(ug => ug.Id == group.Id))
-            };
+                group.Name = req.Name;
+
+                var existingLockerIds = group.UserGroupLockers
+                    .Select(x => x.LockerId)
+                    .ToList();
+
+                var lockersToRemove = group.UserGroupLockers
+                    .Where(ugl => !req.LockerIds.Contains(ugl.LockerId))
+                    .ToList();
+
+                if (lockersToRemove.Any())
+                    Db.UserGroupLockers.RemoveRange(lockersToRemove);
+
+                var lockersToAdd = req.LockerIds
+                    .Where(lockerId => !existingLockerIds.Contains(lockerId))
+                    .Select(lockerId => new UserGroupLocker
+                    {
+                        UserGroupId = group.Id,
+                        LockerId = lockerId
+                    })
+                    .ToList();
+
+                if (lockersToAdd.Any())
+                    Db.UserGroupLockers.AddRange(lockersToAdd);
+
+                Db.SaveChanges();
+
+                var branchIds = Db.Lockers
+                    .Where(l => req.LockerIds.Contains(l.Id))
+                    .Select(l => l.Brain.BranchId)
+                    .Where(b => b.HasValue)
+                    .Select(b => b.Value)
+                    .Distinct()
+                    .ToList();
+
+                var branchesToRemove = group.UserGroupBranches
+                    .Where(ugb => !branchIds.Contains(ugb.BranchId))
+                    .ToList();
+
+                if (branchesToRemove.Any())
+                    Db.UserGroupBranches.RemoveRange(branchesToRemove);
+
+                // Add new branches
+                var branchesToAdd = branchIds
+                    .Where(branchId => !group.UserGroupBranches.Any(ugb => ugb.BranchId == branchId))
+                    .Select(branchId => new UserGroupBranch
+                    {
+                        UserGroupId = group.Id,
+                        BranchId = branchId
+                    })
+                    .ToList();
+
+                if (branchesToAdd.Any())
+                    Db.UserGroupBranches.AddRange(branchesToAdd);
+
+                Db.SaveChanges();
+
+                var branchNames = Db.Branches
+                    .Where(b => branchIds.Contains(b.Id))
+                    .Select(b => b.Name)
+                    .ToList();
+
+                var lockerGroups = Db.LockerGroups
+                    .Include(lg => lg.BrainModules)
+                        .ThenInclude(bm => bm.Lockers)
+                    .Where(lg =>
+                        lg.BrainModules
+                            .SelectMany(b => b.Lockers)
+                            .Any(l => req.LockerIds.Contains(l.Id)))
+                    .ToList();
+
+                var lockerGroupResults = lockerGroups
+                    .Select(lg => new LockerGroupResult
+                    {
+                        LockerGroupName = lg.Name,
+                        LockersFromGroup = lg.BrainModules
+                            .SelectMany(b => b.Lockers)
+                            .Where(l => req.LockerIds.Contains(l.Id))
+                            .Select(l => new PermittedLockerResult
+                            {
+                                LockerId = l.Id,
+                                LockerNumber = (int)l.Number
+                            })
+                            .ToList()
+                    })
+                    .ToList();
+
+                await NotifyUserGroupLockerAssignment(group, group.UserGroupLockers?.Select(ugl => ugl.LockerId)?.ToList() ?? [], group.State.GetValueOrDefault() == (int)StateEnum.suspended ? "remove" : "add");
+
+                result = new UserGroupResult
+                {
+                    Id = group.Id,
+                    Name = group.Name,
+                    State = (int)group.State,
+                    BranchNames = branchNames,
+                    PermittedLockers = lockerGroupResults,
+                    UserCount = Db.Users.Count(u => u.UserGroups.Any(ug => ug.Id == group.Id))
+                };
+            });
+
+            return result;
         }
 
 

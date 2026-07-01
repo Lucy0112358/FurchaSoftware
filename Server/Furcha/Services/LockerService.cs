@@ -37,6 +37,20 @@ namespace FurchaAdminApi.Services
             _syncTaskService = syncTaskService;
         }
 
+        // simillar to the WithTransaction method in userService
+        private async Task WithTransactionAsync(Func<Task> work)
+        {
+            var strategy = Db.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                await using (var tx = await Db.Database.BeginTransactionAsync())
+                {
+                    await work();
+                    await tx.CommitAsync();
+                }
+            });
+        }
+
         public bool DeleteModuleById(int id)
         {
             var module = Db.BrainModules
@@ -543,6 +557,8 @@ namespace FurchaAdminApi.Services
 
         private async Task AssignLockersToUser(List<int> lockerIds, int userId)
         {
+            await WithTransactionAsync(async () =>
+            {
             var user = Db.Users
                 .Include(u => u.Lockers)
                     .ThenInclude(l => l.Brain)
@@ -613,6 +629,7 @@ namespace FurchaAdminApi.Services
 
                 await _syncTaskService.EnqueueAsync(syncTask);
             }
+            });
         }
 
         public BrainsStatusCountResult GetBrainsOnlineOfflineCount(int adminId)
