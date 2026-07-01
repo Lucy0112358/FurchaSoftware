@@ -3,6 +3,10 @@ using FurchaBLL.Models;
 using FurchaDAL.Models;
 using FurchaDAL.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Identity.Client;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FurchaBLL.Services
 {
@@ -30,9 +34,36 @@ namespace FurchaBLL.Services
         // How many times the optimistic claim retries when it loses a compare-and-swap race.
         private const int MaxClaimRetries = 3;
 
+        private const int MaxAttempts = 8;
+
         public SyncTaskService(BaseRepository<SyncTask> repo)
         {
             _repo = repo;
+        }
+
+        public static SyncTask BuildSyncTask(SyncTaskStatus status, 
+            Guid accountUid, string brainUid, CommandTypes commandType, 
+            int entityId, string entityType, SyncTaskOperationType operation,
+            object envelopForMqtt)
+        {
+            return new SyncTask
+            {
+                Status = (byte)status,
+                Attempts = 0,
+                MaxAttempts = MaxAttempts,
+                AccountUid = accountUid,
+                BrainUid = brainUid,
+                CommandType = (int)commandType,
+                EntityId = entityId, // User.Id or UserGroup.Id
+                EntityType = entityType, // "User" or "UserGroup"
+                LastError = null,
+                Operation = (byte)operation, // 1=Upsert, 2=Delete
+                Payload = JsonSerializer.Serialize(envelopForMqtt),
+                SentAt = null,
+                AckedAt = null,
+                NextAttemptAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
         }
 
         /// <summary>
@@ -46,209 +77,42 @@ namespace FurchaBLL.Services
         /// </summary>
         public async Task<SyncTask> EnqueueAsync(SyncTask task)
         {
-            var ownTransaction = Db.Database.CurrentTransaction is null
-                ? await Db.Database.BeginTransactionAsync()
-                : null;
-
-            try
+            if (Db.Database.CurrentTransaction is not null)
             {
-                // Coalesce only deltas (snapshots have no EntityId and must not be collapsed).
-                if (task.EntityId.HasValue)
-                {
-                    await Db.SyncTasks
-                        .Where(t => t.Status == (byte)SyncTaskStatus.Pending
-                                 && t.BrainUid == task.BrainUid
-                                 && t.EntityType == task.EntityType
-                                 && t.EntityId == task.EntityId)
-                        .ExecuteUpdateAsync(s => s
-                            .SetProperty(t => t.Status, (byte)SyncTaskStatus.Superseded));
-                }
-
-                await _repo.InsertAsync(task);
-
-                if (ownTransaction is not null)
-                    await ownTransaction.CommitAsync();
-
+                // Enlist in the caller's transaction (e.g. an API hook writing the data change
+                // and this task atomically). No new transaction here.
+                await CoalesceAndInsertAsync(task);
                 return task;
             }
-            catch
+
+            // Standalone call: open our own transaction via the configured execution strategy.
+            // EnableRetryOnFailure forbids a bare BeginTransaction, so it must go through the strategy.
+            var strategy = Db.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
             {
-                if (ownTransaction is not null)
-                    await ownTransaction.RollbackAsync();
-                throw;
-            }
-            finally
-            {
-                if (ownTransaction is not null)
-                    await ownTransaction.DisposeAsync();
-            }
+                await using var tx = await Db.Database.BeginTransactionAsync();
+                await CoalesceAndInsertAsync(task);
+                await tx.CommitAsync();
+            });
+
+            return task;
         }
 
-        /// <summary>
-        /// Claim the next deliverable task for a single brain and mark it Sent, using an optimistic
-        /// compare-and-swap (no raw SQL, no table hints). Enforces:
-        ///   - per-brain FIFO (oldest claimable Id first)
-        ///   - "one in-flight message per brain" (won't claim while a Sent row exists for the brain)
-        ///   - Attempts &lt; MaxAttempts (never claims an exhausted row; keeps Attempts ≤ MaxAttempts)
-        ///
-        /// The claim is a single atomic UPDATE whose WHERE re-checks the status and the in-flight gate,
-        /// so two workers can never both flip a row to Sent for the same brain — the loser gets
-        /// affected == 0 and retries. Returns null when there is nothing to send for this brain.
-        /// </summary>
-        public async Task<ClaimedSyncTask?> ClaimNextAsync(Guid accountUid, string brainUid)
+        private async Task CoalesceAndInsertAsync(SyncTask task)
         {
-            for (var retry = 0; retry < MaxClaimRetries; retry++)
+            // Coalesce only deltas (snapshots have no EntityId and must not be collapsed).
+            if (task.EntityId.HasValue)
             {
-                var now = DateTime.UtcNow;
-
-                // 1) Pick the oldest claimable candidate for this brain, only if nothing is in flight.
-                var candidateId = await Db.SyncTasks
-                    .Where(t => t.AccountUid == accountUid
-                             && t.BrainUid == brainUid
-                             && (t.Status == (byte)SyncTaskStatus.Pending
-                              || t.Status == (byte)SyncTaskStatus.Failed)
-                             && t.Attempts < t.MaxAttempts
-                             && t.NextAttemptAt <= now
-                             && !Db.SyncTasks.Any(s => s.Status == (byte)SyncTaskStatus.Sent
-                                                    && s.AccountUid == accountUid
-                                                    && s.BrainUid == brainUid))
-                    .OrderBy(t => t.Id)
-                    .Select(t => (long?)t.Id)
-                    .FirstOrDefaultAsync();
-
-                if (candidateId is null)
-                    return null; // nothing waiting for this brain
-
-                // 2) Atomic compare-and-swap: claim THAT row only if it is still claimable and the
-                //    in-flight gate is still clear. The row lock taken by this UPDATE serializes
-                //    competing workers — exactly one gets affected == 1.
-                var affected = await Db.SyncTasks
-                    .Where(t => t.Id == candidateId.Value
-                             && (t.Status == (byte)SyncTaskStatus.Pending
-                              || t.Status == (byte)SyncTaskStatus.Failed)
-                             && t.Attempts < t.MaxAttempts
-                             && !Db.SyncTasks.Any(s => s.Status == (byte)SyncTaskStatus.Sent
-                                                    && s.AccountUid == accountUid
-                                                    && s.BrainUid == brainUid))
+                await Db.SyncTasks
+                    .Where(t => t.Status == (byte)SyncTaskStatus.Pending
+                             && t.BrainUid == task.BrainUid
+                             && t.EntityType == task.EntityType
+                             && t.EntityId == task.EntityId)
                     .ExecuteUpdateAsync(s => s
-                        .SetProperty(t => t.Status, (byte)SyncTaskStatus.Sent)
-                        .SetProperty(t => t.Attempts, t => t.Attempts + 1)
-                        .SetProperty(t => t.SentAt, now));
-
-                if (affected == 0)
-                    continue; // lost the race or the gate closed — try again
-
-                // 3) Read back the claimed row for the worker to publish.
-                return await Db.SyncTasks
-                    .Where(t => t.Id == candidateId.Value)
-                    .Select(t => new ClaimedSyncTask
-                    {
-                        Id = t.Id,
-                        AccountUid = t.AccountUid,
-                        BrainUid = t.BrainUid,
-                        CommandType = t.CommandType,
-                        Operation = t.Operation,
-                        Payload = t.Payload
-                    })
-                    .FirstOrDefaultAsync();
+                        .SetProperty(t => t.Status, (byte)SyncTaskStatus.Superseded));
             }
 
-            return null; // gave up after losing repeated claim races (heavy contention)
-        }
-
-        /// <summary>
-        /// Close a task as confirmed by the brain. Idempotent: only transitions a row still in Sent,
-        /// so a duplicated ACK (QoS 1 redelivery) is a no-op. Returns true if this call closed the row.
-        /// </summary>
-        public async Task<bool> MarkAckedAsync(long taskId)
-        {
-            var affected = await Db.SyncTasks
-                .Where(t => t.Id == taskId && t.Status == (byte)SyncTaskStatus.Sent)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(t => t.Status, (byte)SyncTaskStatus.Acked)
-                    .SetProperty(t => t.AckedAt, DateTime.UtcNow));
-
-            return affected > 0;
-        }
-
-        /// <summary>
-        /// Mark a send/ACK failure on a single task. Applies exponential backoff (2^Attempts seconds,
-        /// capped) and transitions to Dead once attempts are exhausted. Attempts is already incremented
-        /// at claim time, so the backoff is computed from the post-claim value.
-        /// </summary>
-        public async Task MarkFailedAsync(long taskId, string? error)
-        {
-            var task = await _repo.GetAsync(taskId);
-            if (task is null)
-                return;
-
-            task.Status = (byte)(task.Attempts >= task.MaxAttempts
-                ? SyncTaskStatus.Dead
-                : SyncTaskStatus.Failed);
-            task.LastError = Truncate(error, 400);
-
-            var backoffSeconds = (int)Math.Min(Math.Pow(2, task.Attempts), MaxBackoffSeconds);
-            task.NextAttemptAt = DateTime.UtcNow.AddSeconds(backoffSeconds);
-
-            await _repo.UpdateAsync(task);
-        }
-
-        /// <summary>
-        /// Release tasks stuck in Sent (no ACK within the timeout) back to Failed, or Dead if exhausted.
-        /// Frees the per-brain in-flight gate so the next task can go. Returns the number released.
-        /// Intended to be called periodically by the worker.
-        /// </summary>
-        public async Task<int> TimeoutStuckSentAsync(int timeoutSeconds = DefaultSentTimeoutSeconds)
-        {
-            var now = DateTime.UtcNow;
-
-            return await Db.SyncTasks
-                .Where(t => t.Status == (byte)SyncTaskStatus.Sent
-                         && t.SentAt != null
-                         && EF.Functions.DateDiffSecond(t.SentAt.Value, now) > timeoutSeconds)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(t => t.Status, t => t.Attempts >= t.MaxAttempts
-                        ? (byte)SyncTaskStatus.Dead
-                        : (byte)SyncTaskStatus.Failed)
-                    .SetProperty(t => t.LastError, "Send timeout (no ACK received)")
-                    .SetProperty(t => t.NextAttemptAt, now));
-        }
-
-        /// <summary>
-        /// When a brain (re)connects, expedite all its waiting tasks by resetting NextAttemptAt to now.
-        /// Returns the number of tasks flushed.
-        /// </summary>
-        public async Task<int> FlushBrainAsync(Guid accountUid, string brainUid)
-        {
-            var now = DateTime.UtcNow;
-
-            return await Db.SyncTasks
-                .Where(t => (t.Status == (byte)SyncTaskStatus.Pending
-                          || t.Status == (byte)SyncTaskStatus.Failed)
-                         && t.AccountUid == accountUid
-                         && t.BrainUid == brainUid)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(t => t.NextAttemptAt, now));
-        }
-
-        /// <summary>
-        /// Count tasks still waiting (Pending/Failed) for a brain — used to decide when to coalesce a
-        /// large delta backlog into a single SynchronizeUsers snapshot (Task #8).
-        /// </summary>
-        public async Task<int> GetPendingCountAsync(Guid accountUid, string brainUid)
-        {
-            return await _repo.CountAsync(t =>
-                t.AccountUid == accountUid &&
-                t.BrainUid == brainUid &&
-                (t.Status == (byte)SyncTaskStatus.Pending || t.Status == (byte)SyncTaskStatus.Failed));
-        }
-
-        private static string? Truncate(string? value, int maxLength)
-        {
-            if (string.IsNullOrEmpty(value) || value.Length <= maxLength)
-                return value;
-
-            return value[..maxLength];
+            await _repo.InsertAsync(task);
         }
     }
 }

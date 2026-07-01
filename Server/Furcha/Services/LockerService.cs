@@ -9,8 +9,10 @@ using FurchaBLL.Constants;
 using FurchaBLL.Interfaces;
 using FurchaBLL.Models;
 using FurchaBLL.MqttModels.Subscribe;
+using FurchaBLL.Services;
 using FurchaDAL.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Locker = FurchaDAL.Models.Locker;
 using LockerGroup = FurchaDAL.Models.LockerGroup;
 
@@ -24,13 +26,15 @@ namespace FurchaAdminApi.Services
         private readonly furchaContext Db;
         private readonly IMqttService _mqttService;
 
-        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository, IMqttService mqttService, furchaContext db)
+        private readonly SyncTaskService _syncTaskService;
+        public LockerService(LockerRepository lockerRepository, BranchRepository branchRepository, UserRepository userRepository, IMqttService mqttService, furchaContext db, SyncTaskService syncTaskService)
         {
             _lockerRepository = lockerRepository;
             _branchRepository = branchRepository;
             _userRepository = userRepository;
             _mqttService = mqttService;
             Db = db;
+            _syncTaskService = syncTaskService;
         }
 
         public bool DeleteModuleById(int id)
@@ -539,15 +543,25 @@ namespace FurchaAdminApi.Services
 
         private async Task AssignLockersToUser(List<int> lockerIds, int userId)
         {
-            var user = Db.Users.Include(u => u.Lockers).ThenInclude(l => l.Brain).ThenInclude(b => b.Company).FirstOrDefault(u => u.Id == userId);
+            var user = Db.Users
+                .Include(u => u.Lockers)
+                    .ThenInclude(l => l.Brain)
+                        .ThenInclude(b => b.Company)
+                .Include(u => u.Cards)
+                .Include(u => u.UserGroups)
+                .FirstOrDefault(u => u.Id == userId);
             if (user == null) throw new Exception("User not found");
 
             var lockers = Db.Lockers.Include(l => l.Brain).ThenInclude(b => b.Company).Where(l => lockerIds.Contains(l.Id)).ToList();
 
+            HashSet<string> updatedBrandUids = new HashSet<string>();
             foreach (var locker in lockers)
             {
                 if (!user.Lockers.Contains(locker))
+                {
                     user.Lockers.Add(locker);
+                    updatedBrandUids.Add(locker.Brain.BrainUid);
+                }
 
                 if (locker.LockerType == 4) // personal
                 {
@@ -561,25 +575,42 @@ namespace FurchaAdminApi.Services
 
             foreach (var lg in lockerGroups)
             {
-                var accountUid = lg.First().Brain.Company.AccountUid.ToString();
+                // only send mqtt to updated brand uids, not all of them
+                if (!updatedBrandUids.Contains(lg.Key))
+                {
+                    continue;
+                }
+
+                var accountUid = lg.First().Brain.Company.AccountUid.GetValueOrDefault();
                 var data = new AssigningUserToLockerRequest
                 {
-                    Action = "add",
-                    Doors = [],
-                    Lockers = [.. lg.Select(l => l.ExternalId.GetValueOrDefault())],
-                    UserId = user.Id,
+                    ActiveFrom = user.ActiveFrom,
+                    ActiveTo = user.ActiveTo,
+                    Cards = user?.Cards?.Select(c => c.CardNumber)?.ToArray() ?? [],
+                    Doors = [], // not implemented yet
+                    ExternalId = user.Id,
+                    Lastname = user.Surname,
+                    Lockers = lg.Select(l => l.ExternalId.GetValueOrDefault()).ToArray(),
+                    Name = user.Name,
+                    PersonalId = null, // null for now, not implemented yet
+                    Pin = null, // null for now, not implemented yet
+                    Rules = [], // not implemented yet
+                    State = user.State,
+                    UserGroup = user.UserGroups?.FirstOrDefault()?.Name
                 };
 
-                var mqttRequest = new MqttBaseRequest<AssigningUserToLockerRequest>
-                {
-                    Command = (int)CommandTypes.AssigningUserToLocker,
-                    ReceivedDate = DateTime.UtcNow,
-                    Data = data,
-                    Operation = (int)OperationTypes.Success,
-                };
+                var syncTask = SyncTaskService.BuildSyncTask(
+                    SyncTaskStatus.Pending,
+                    accountUid,
+                    lg.Key,
+                    CommandTypes.AssigningUserToLocker,
+                    user.Id,
+                    "User",
+                    SyncTaskOperationType.Upsert,
+                    data
+                );
 
-                await _mqttService.PublishAsync(mqttRequest,
-                    $"controller/{accountUid}/{lg.Key}");
+                await _syncTaskService.EnqueueAsync(syncTask);
             }
         }
 

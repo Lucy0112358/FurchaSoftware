@@ -6,6 +6,7 @@ using FurchaAdminApi.Repos;
 using FurchaBLL.Constants;
 using FurchaBLL.Interfaces;
 using FurchaBLL.MqttModels.Subscribe;
+using FurchaBLL.Services;
 using FurchaDAL.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,8 @@ namespace FurchaAdminApi.Services
         private readonly IMqttApiService _mqttService;
         private readonly furchaContext Db;
 
-        public UserService(UserRepository userRepository, AdminRepository adminRepository, LockerService lockerService, LockerRepository lockerRepository, BranchRepository branchRepository, IMqttApiService mqttService, furchaContext db)
+        private readonly SyncTaskService _syncTaskService;
+        public UserService(UserRepository userRepository, AdminRepository adminRepository, LockerService lockerService, LockerRepository lockerRepository, BranchRepository branchRepository, IMqttApiService mqttService, furchaContext db, SyncTaskService syncTaskService)
         {
             _userRepository = userRepository;
             _adminRepository = adminRepository;
@@ -33,6 +35,7 @@ namespace FurchaAdminApi.Services
             _branchRepository = branchRepository;
             _mqttService = mqttService;
             Db = db;
+            _syncTaskService = syncTaskService;
         }
         private List<User> GetUsersByIdsBranchAndGroup(
        List<int> userIds,
@@ -153,7 +156,7 @@ namespace FurchaAdminApi.Services
 
                     Db.UserGroupLockers.RemoveRange(group.UserGroupLockers);
 
-                    await NotifyUserGroupLockerAssignment(group.Id, lockerIds, "remove");
+                    await NotifyUserGroupLockerAssignment(group, lockerIds, "remove");
                 }
 
                 // 3. Clear many-to-many: UserGroup ↔ Users
@@ -203,7 +206,7 @@ namespace FurchaAdminApi.Services
 
                 if (user.Lockers.Any())
                 {
-                    await NotifyUserLockerAssignment(user.Id, user.Lockers.Select(l => l.Id).ToList(), "remove");
+                    await NotifyUserLockerAssignment(user, user.Lockers.Select(l => l.Id).ToList(), "remove");
                 }
 
                 user.Lockers.Clear();
@@ -538,24 +541,28 @@ namespace FurchaAdminApi.Services
 
         public async Task<UserResult> AddUser(UserCreateRequest newUser, int adminId)
         {
+            var strategy = Db.Database.CreateExecutionStrategy();
+
             if (newUser.IsPinRequired == true)
             {
                 // TODO: Generate a 4-digit PIN unique within the branch
             }
-            var companyUid = Db.Administrators.Include(a => a.Company).FirstOrDefault(x => x.Id == adminId).Company.Id;
 
             var result = await AddUserToDb(newUser, adminId);
 
             if (newUser.Id == 0)
             {
-                var mqttRequest = new MqttBaseRequest<UserResult>
-                {
-                    Command = (int)CommandTypes.CreateUserFromAdmin,
-                    ReceivedDate = DateTime.Now,
-                    Data = result
-                };
 
-                _mqttService.PublishMqttCommands(mqttRequest, companyUid.ToString(), "1");
+                // no need to send Mqtt request here as the user still has no access to any locker.
+                // The Mqtt request will be sent when the user is assigned to a locker or a group with lockers.
+                //var mqttRequest = new MqttBaseRequest<UserResult>
+                //{
+                //    Command = (int)CommandTypes.CreateUserFromAdmin,
+                //    ReceivedDate = DateTime.Now,
+                //    Data = result
+                //};
+
+                //_mqttService.PublishMqttCommands(mqttRequest, companyUid.ToString(), "1");
             }
 
             return result;
@@ -599,7 +606,7 @@ namespace FurchaAdminApi.Services
                 Db.UserGroupLockers.AddRange(lockerLinks);
                 Db.SaveChanges();
 
-                await NotifyUserGroupLockerAssignment(group.Id, insertedLockerIds, "add");
+                await NotifyUserGroupLockerAssignment(group, insertedLockerIds, "add");
             }
 
             // ---------------------------------------
@@ -676,7 +683,7 @@ namespace FurchaAdminApi.Services
             };
         }
 
-        private async Task NotifyUserLockerAssignment(int userId, List<int> lockerIds, string action)
+        private async Task NotifyUserLockerAssignment(User user, List<int> lockerIds, string action)
         {
             if (lockerIds == null || !lockerIds.Any())
                 return;
@@ -701,25 +708,37 @@ namespace FurchaAdminApi.Services
 
                 var data = new AssigningUserToLockerRequest
                 {
-                    UserId = userId,
+                    ActiveFrom = null,
+                    ActiveTo = null,
+                    Cards = user?.Cards?.Select(c => c.CardNumber)?.ToArray() ?? [],
+                    Doors = [], // not implemented yet
+                    ExternalId = user.Id,
+                    Lastname = user.Surname,
                     Lockers = lockerExternalIds,
-                    Doors = [],
-                    Action = action
+                    Name = user.Name,
+                    PersonalId = null, // null for now, not implemented yet
+                    Pin = null, // null for now, not implemented yet
+                    Rules = [], // not implemented yet
+                    State = action == "remove" ? (int)StateEnum.suspended : user.State,
+                    UserGroup = user.UserGroups?.FirstOrDefault()?.Name
                 };
 
-                var mqttRequest = new MqttBaseRequest<AssigningUserToLockerRequest>
-                {
-                    Command = (int)CommandTypes.AssigningUserToLocker,
-                    ReceivedDate = DateTime.UtcNow,
-                    Operation = (int)OperationTypes.Success,
-                    Data = data
-                };
+                var syncTask = SyncTaskService.BuildSyncTask(
+                    SyncTaskStatus.Pending,
+                    brain.Company.AccountUid.GetValueOrDefault(),
+                    brain.BrainUid,
+                    CommandTypes.AssigningUserToLocker,
+                    user.Id,
+                    "User",
+                    SyncTaskOperationType.Upsert,
+                    data
+                );
 
-                await _mqttService.PublishMqttCommands(mqttRequest, brain.Company.AccountUid.ToString(), brain.BrainUid);
+                await _syncTaskService.EnqueueAsync(syncTask);
             }
         }
 
-        private async Task NotifyUserGroupLockerAssignment(int groupId, List<int> lockerIds, string action)
+        private async Task NotifyUserGroupLockerAssignment(UserGroup group, List<int> lockerIds, string action)
         {
             if (lockerIds == null || !lockerIds.Any())
                 return;
@@ -744,10 +763,15 @@ namespace FurchaAdminApi.Services
 
                 var data = new AssigningUserGroupToLockerRequest
                 {
-                    GroupId = groupId,
+                    GroupExternalId = group.Id,
                     Lockers = lockerExternalIds,
                     Doors = [],
-                    Action = action
+                    ActiveFrom = null,
+                    ActiveTo = null,
+                    Entity = "UserGroup",
+                    MemberExternalIds = group.Users?.Select(u => u.Id)?.ToArray() ?? [],
+                    Name = group.Name,
+                    State = action == "remove" ? 0 : 1
                 };
 
                 var mqttRequest = new MqttBaseRequest<AssigningUserGroupToLockerRequest>
@@ -1021,7 +1045,7 @@ namespace FurchaAdminApi.Services
 
             if (user.Lockers.Any())
             {
-                await NotifyUserLockerAssignment(userId, user.Lockers.Select(l => l.Id).ToList(), "add");
+                await NotifyUserLockerAssignment(user, user.Lockers.Select(l => l.Id).ToList(), "add");
             }
         }
 
@@ -1102,13 +1126,18 @@ namespace FurchaAdminApi.Services
             return result;
         }
 
-        public void SuspendUserGroups(List<int> ids, int state)
+        public async Task SuspendUserGroups(List<int> ids, int state)
         {
-            var users = Db.UserGroups.Where(a => ids.Contains(a.Id)).ToList();
+            var users = Db.UserGroups
+                .Include(ug => ug.Users)
+                .Include(ug => ug.UserGroupLockers)
+                .Where(a => ids.Contains(a.Id)).ToList();
 
             foreach (var u in users)
             {
                 u.State = state;
+
+                await NotifyUserGroupLockerAssignment(u, u.UserGroupLockers?.Select(ugl => ugl.LockerId)?.ToList() ?? [], u.State.GetValueOrDefault() == (int)StateEnum.suspended ? "remove" : "add");
             }
 
             Db.SaveChanges();
@@ -1125,9 +1154,12 @@ namespace FurchaAdminApi.Services
             Db.SaveChanges();
         }
 
-        public void ChangeUsersGroup(List<int> ids, int groupId)
+        public async Task ChangeUsersGroup(List<int> ids, int groupId)
         {
-            var group = Db.UserGroups.FirstOrDefault(g => g.Id == groupId);
+            var group = Db.UserGroups
+                .Include(ug => ug.Users)
+                .Include(ug => ug.UserGroupLockers)
+                .FirstOrDefault(g => g.Id == groupId);
             if (group == null)
                 throw new BaseException(ErrorCodeEnum.GenericErrorRetry, "UserGroup not found");
 
@@ -1148,6 +1180,8 @@ namespace FurchaAdminApi.Services
             }
 
             Db.SaveChanges();
+
+            await NotifyUserGroupLockerAssignment(group, group.UserGroupLockers?.Select(ugl => ugl.LockerId)?.ToList() ?? [], "add");
         }
 
 
@@ -1247,9 +1281,10 @@ namespace FurchaAdminApi.Services
             };
         }
 
-        public UserGroupResult EditUserGroup(EditUserGroupRequest req)
+        public async Task<UserGroupResult> EditUserGroup(EditUserGroupRequest req)
         {
             var group = Db.UserGroups
+                .Include(g => g.Users)
                 .Include(g => g.UserGroupBranches)
                 .Include(g => g.UserGroupLockers)
                 .FirstOrDefault(g => g.Id == req.Id);
@@ -1343,6 +1378,8 @@ namespace FurchaAdminApi.Services
                         .ToList()
                 })
                 .ToList();
+
+            await NotifyUserGroupLockerAssignment(group, group.UserGroupLockers?.Select(ugl => ugl.LockerId)?.ToList() ?? [], group.State.GetValueOrDefault() == (int)StateEnum.suspended ? "remove" : "add");
 
             return new UserGroupResult
             {

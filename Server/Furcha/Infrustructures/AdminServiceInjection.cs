@@ -2,6 +2,7 @@
 using FurchaAdminApi.Middlewares;
 using FurchaAdminApi.Repos;
 using FurchaAdminApi.Services;
+using FurchaBLL.Services;
 using FurchaDAL.Repositories;
 
 namespace FurchaAdminApi.Infrustructures
@@ -19,6 +20,7 @@ namespace FurchaAdminApi.Infrustructures
             services.AddScoped(typeof(BranchService));
 
             /* SERVICES */
+            services.AddScoped(typeof(SyncTaskService));
             services.AddScoped(typeof(UserService));
             services.AddScoped(typeof(AuthenticationService));
             services.AddScoped(typeof(LockerService));

@@ -31,7 +31,7 @@ namespace FurchaBLL.Services
                 await _mqttClient.ConnectAsync(_options);
 
             var payload = JsonSerializer.Serialize(command);
-            var topic = $"controller/{companyUID}/{brainUID}/commands";
+            var topic = $"controller/{companyUID}/{brainUID}"; // No need to append "/commands" as the brain subscribes directly to "controller/{companyUID}/{brainUID}".
             var message = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
                 .WithPayload(payload)
