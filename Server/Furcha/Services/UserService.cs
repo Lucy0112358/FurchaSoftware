@@ -730,7 +730,7 @@ namespace FurchaAdminApi.Services
                     CommandTypes.AssigningUserToLocker,
                     user.Id,
                     "User",
-                    SyncTaskOperationType.Upsert,
+                    action == "remove" ? SyncTaskOperationType.Delete : SyncTaskOperationType.Upsert,
                     data
                 );
 
@@ -774,15 +774,18 @@ namespace FurchaAdminApi.Services
                     State = action == "remove" ? 0 : 1
                 };
 
-                var mqttRequest = new MqttBaseRequest<AssigningUserGroupToLockerRequest>
-                {
-                    Command = (int)CommandTypes.AssigningUserGroupToLocker,
-                    ReceivedDate = DateTime.UtcNow,
-                    Operation = (int)OperationTypes.Success,
-                    Data = data
-                };
+                var syncTask = SyncTaskService.BuildSyncTask(
+                    SyncTaskStatus.Pending,
+                    brain.Company.AccountUid.GetValueOrDefault(),
+                    brain.BrainUid,
+                    CommandTypes.AssigningUserGroupToLocker,
+                    group.Id,
+                    "UserGroup",
+                    action == "remove" ? SyncTaskOperationType.Delete : SyncTaskOperationType.Upsert,
+                    data
+                );
 
-                await _mqttService.PublishMqttCommands(mqttRequest, brain.Company.AccountUid.ToString(), brain.BrainUid);
+                await _syncTaskService.EnqueueAsync(syncTask);
             }
         }
 
