@@ -595,7 +595,8 @@ namespace FurchaAdminApi.Services
                     PersonalId = null, // null for now, not implemented yet
                     Pin = null, // null for now, not implemented yet
                     Rules = [], // not implemented yet
-                    State = user.State,
+                    // Brain contract: 1 = active, 0 = suspended (not the cloud StateEnum scale).
+                    State = user.State == (int)StateEnum.active ? 1 : 0,
                     UserGroup = user.UserGroups?.FirstOrDefault()?.Name
                 };
 

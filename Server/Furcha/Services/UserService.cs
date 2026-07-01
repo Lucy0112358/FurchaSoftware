@@ -719,7 +719,8 @@ namespace FurchaAdminApi.Services
                     PersonalId = null, // null for now, not implemented yet
                     Pin = null, // null for now, not implemented yet
                     Rules = [], // not implemented yet
-                    State = action == "remove" ? (int)StateEnum.suspended : user.State,
+                    // Brain contract: 1 = active, 0 = suspended (not the cloud StateEnum scale).
+                    State = action == "remove" ? 0 : (user.State == (int)StateEnum.active ? 1 : 0),
                     UserGroup = user.UserGroups?.FirstOrDefault()?.Name
                 };
 
@@ -910,11 +911,13 @@ namespace FurchaAdminApi.Services
                 if (newUser.Cards != null)
                     AddCardsByNumbers(newUser.Cards, user.Id);
 
-                if (newUser.LockerIds != null)
-                    await AssignLockersToUser(newUser.LockerIds, user.Id);
-
                 if (newUser.UserGroups != null)
                     AssignUserGroupsToUser(newUser.UserGroups, user.Id);
+
+                // Lockers last: this enqueues the sync task, so cards + groups must already be
+                // persisted for the payload to reflect the full user state.
+                if (newUser.LockerIds != null)
+                    await AssignLockersToUser(newUser.LockerIds, user.Id);
 
                 return new UserResult
                 {
@@ -1008,6 +1011,8 @@ namespace FurchaAdminApi.Services
             var user = Db.Users
                 .Include(u => u.Lockers)
                 .Include(u => u.UserBranches)
+                .Include(u => u.Cards)
+                .Include(u => u.UserGroups)
                 .FirstOrDefault(u => u.Id == userId);
 
             if (user == null)
