@@ -94,6 +94,69 @@ namespace FurchaBLL.Services
             return task;
         }
 
+        public async Task<SyncTask?> ClaimNextAsync()
+        {
+            var now = DateTime.UtcNow;
+
+            var task = await Db.SyncTasks
+                .Where(t => (t.Status == (byte)SyncTaskStatus.Pending
+                          || t.Status == (byte)SyncTaskStatus.Failed)
+                         && t.Attempts < t.MaxAttempts
+                         && t.NextAttemptAt <= now
+                         && Db.BrainModules.Any(b => b.BrainUid == t.BrainUid && b.IsOnline)
+                )
+                .OrderBy(t => t.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (task == null)
+                return null;
+
+            var isUpdated = await Db.SyncTasks
+                .Where(t => t.Id == task.Id
+                         && (t.Status == (byte)SyncTaskStatus.Pending ||
+                            t.Status == (byte)SyncTaskStatus.Failed)
+                        && t.NextAttemptAt <= now)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(t => t.NextAttemptAt, now.AddMinutes(1)));
+
+            if (isUpdated == 0)
+                return null;
+
+            await Db.Entry(task).ReloadAsync();
+
+            return task;
+        }
+
+        public async Task<bool> MarkFailedAsync(SyncTask task, string errorMessage)
+        {
+            var updatesCount = await Db.SyncTasks
+                .Where(t => t.Id == task.Id
+                         && (t.Status == (byte)SyncTaskStatus.Pending ||
+                            t.Status == (byte)SyncTaskStatus.Failed))
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(t => t.Status, t => t.Attempts + 1 >= t.MaxAttempts ?
+                        (byte)SyncTaskStatus.Dead : (byte)SyncTaskStatus.Failed)
+                    .SetProperty(t => t.Attempts, t => t.Attempts + 1)
+                    .SetProperty(t => t.NextAttemptAt, DateTime.UtcNow.AddMinutes(5))
+                    .SetProperty(t => t.LastError, errorMessage));
+
+            return updatesCount > 0;
+        }
+
+        public async Task<bool> MarkSentAsync(SyncTask task)
+        {
+            var updatesCount = await Db.SyncTasks
+                .Where(t => t.Id == task.Id
+                         && (t.Status == (byte)SyncTaskStatus.Pending ||
+                            t.Status == (byte)SyncTaskStatus.Failed))
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(t => t.Status, (byte)SyncTaskStatus.Sent)
+                    .SetProperty(t => t.SentAt, DateTime.UtcNow)
+                    .SetProperty(t => t.Attempts, t => t.Attempts + 1));
+
+            return updatesCount > 0;
+        }
+
         private async Task CoalesceAndInsertAsync(SyncTask task)
         {
             // Coalesce only deltas (snapshots have no EntityId and must not be collapsed).

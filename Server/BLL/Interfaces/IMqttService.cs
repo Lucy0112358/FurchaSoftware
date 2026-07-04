@@ -23,11 +23,14 @@ namespace FurchaBLL.Interfaces
         /// <param name="request">The MQTT request.</param>
         /// <param name="topic">The MQTT topic to publish to.</param>
         /// <param name="withRetainFlag">Indicates whether the message should be retained by the broker.</param>
+        /// <param name="qos">Quality of service. Defaults to AtMostOnce (QoS 0) to preserve existing behavior;
+        /// the sync outbox publishes with AtLeastOnce (QoS 1).</param>
         /// <returns>
         /// A task that represents the asynchronous publish operation and returns the result of the MQTT publish.
         /// If an error occurs, the result will be null.
         /// </returns>
-        Task<MqttClientPublishResult> PublishAsync(object request, string topic, bool withRetainFlag);
+        Task<MqttClientPublishResult> PublishAsync(object request, string topic, bool withRetainFlag,
+            MQTTnet.Protocol.MqttQualityOfServiceLevel qos = MQTTnet.Protocol.MqttQualityOfServiceLevel.AtMostOnce);
 
         /// <summary>
         /// Adds an MQTT account with specified credentials.
