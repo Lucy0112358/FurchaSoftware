@@ -21,14 +21,7 @@ namespace FurchaBLL.Services
         private readonly BaseRepository<SyncTask> _repo;
         private furchaContext Db => _repo.Context;
 
-        // A task left in "Sent" longer than this is considered stuck and released for retry.
         private const int DefaultSentTimeoutSeconds = 30;
-
-        // Cap exponential backoff so a perpetually-failing task still retries roughly hourly.
-        private const int MaxBackoffSeconds = 3600;
-
-        // How many times the optimistic claim retries when it loses a compare-and-swap race.
-        private const int MaxClaimRetries = 3;
 
         private const int MaxAttempts = 8;
 
@@ -167,6 +160,20 @@ namespace FurchaBLL.Services
                     .SetProperty(t => t.Attempts, t => t.Attempts + 1));
 
             return updatesCount > 0;
+        }
+
+        public async Task<int> TimeoutStuckSentAsync(int timeoutSeconds = DefaultSentTimeoutSeconds)
+        {
+
+            return await Db.SyncTasks
+                .Where(t => t.Status == (byte)SyncTaskStatus.Sent
+                         && t.SentAt != null
+                         && t.SentAt <= DateTime.UtcNow.AddSeconds(-timeoutSeconds))
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(t => t.Status, t => t.Attempts >= t.MaxAttempts ?
+                        (byte)SyncTaskStatus.Dead : (byte)SyncTaskStatus.Failed)
+                    .SetProperty(t => t.NextAttemptAt, DateTime.UtcNow.AddMinutes(5))
+                    .SetProperty(t => t.LastError, "Send timeout"));
         }
 
         private async Task CoalesceAndInsertAsync(SyncTask task)

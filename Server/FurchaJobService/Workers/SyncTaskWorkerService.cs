@@ -62,6 +62,13 @@ namespace FurchaJobService.Workers
             {
 
                 var syncTaskService = scope.ServiceProvider.GetRequiredService<SyncTaskService>();
+
+                var released = await syncTaskService.TimeoutStuckSentAsync();
+                if (released > 0)
+                {
+                    _logger.LogWarning("Released {Count} SyncTask(s) stuck in Sent (ACK timeout).", released);
+                }
+
                 var syncTask = await syncTaskService.ClaimNextAsync();
 
                 if (syncTask == null)
