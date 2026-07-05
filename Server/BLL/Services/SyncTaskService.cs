@@ -143,6 +143,18 @@ namespace FurchaBLL.Services
             return updatesCount > 0;
         }
 
+        public async Task<bool> MarkAckedAsync(long taskId)
+        {
+            var updatesCount = await Db.SyncTasks
+                .Where(t => t.Id == taskId
+                         && t.Status == (byte)SyncTaskStatus.Sent)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(t => t.Status, (byte)SyncTaskStatus.Acked)
+                    .SetProperty(t => t.AckedAt, DateTime.UtcNow));
+
+            return updatesCount > 0;
+        }
+
         public async Task<bool> MarkSentAsync(SyncTask task)
         {
             var updatesCount = await Db.SyncTasks
