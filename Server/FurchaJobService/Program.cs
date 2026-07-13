@@ -1,6 +1,7 @@
 ﻿using FurchaBLL.Interfaces;
 using FurchaBLL.Services;
 using FurchaDAL.Models;
+using FurchaDAL.Repositories;
 using FurchaJobService.Workers;
 using Microsoft.EntityFrameworkCore;
 using MQTTnet;
@@ -42,7 +43,10 @@ namespace FurchaJobService
             builder.Services.AddSingleton<IMqttService, MqttService>();
             builder.Services.AddSingleton<IMqttMessageHandler, MqttMessageHandler>();
             builder.Services.AddSingleton<IApiSocketClient, ApiSocketClient>();
+            builder.Services.AddScoped(typeof(BaseRepository<>));
+            builder.Services.AddScoped<SyncTaskService>();
             builder.Services.AddHostedService<MqttBackgroundService>();
+            builder.Services.AddHostedService<SyncTaskWorkerService>();
             builder.Services.AddWindowsService(options =>
             {
                 options.ServiceName = "FurchaJobService";

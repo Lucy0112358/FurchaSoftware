@@ -247,7 +247,7 @@ namespace FurchaAdminApi.Controllers
         }
 
         [HttpPost("change-groups-state")]
-        public ActionResult<ApiResult<bool>> SuspendUserGroups([FromBody] ChangeAdminStateRequest request)
+        public async Task<ActionResult<ApiResult<bool>>> SuspendUserGroups([FromBody] ChangeAdminStateRequest request)
         {
             if (request == null || request.Ids == null || !request.Ids.Any())
             {
@@ -256,7 +256,7 @@ namespace FurchaAdminApi.Controllers
 
             try
             {
-                userService.SuspendUserGroups(request.Ids, request.State);
+                await userService.SuspendUserGroups(request.Ids, request.State);
                 return Ok(ApiResult<bool>.Success(true));
             }
             catch (BaseException ex)
@@ -272,7 +272,7 @@ namespace FurchaAdminApi.Controllers
 
 
         [HttpPatch("change-group")]
-        public ActionResult<ApiResult<bool>> ChangeUserGroup([FromBody] ChangeUsersGroupRequest request)
+        public async Task<ActionResult<ApiResult<bool>>> ChangeUserGroup([FromBody] ChangeUsersGroupRequest request)
         {
             if (request == null || request.Ids == null || !request.Ids.Any())
             {
@@ -281,7 +281,7 @@ namespace FurchaAdminApi.Controllers
 
             try
             {
-                userService.ChangeUsersGroup(request.Ids, request.GroupId);
+                await userService.ChangeUsersGroup(request.Ids, request.GroupId);
                 return Ok(ApiResult<bool>.Success(true));
             }
             catch (BaseException ex)
@@ -333,7 +333,7 @@ namespace FurchaAdminApi.Controllers
 
         [Authorize]
         [HttpPost("edit-user-group")]
-        public ActionResult<ApiResult<UserGroupResult>> EditUserGroup([FromBody] EditUserGroupRequest request)
+        public async Task<ActionResult<ApiResult<UserGroupResult>>> EditUserGroup([FromBody] EditUserGroupRequest request)
         {
             if (request == null)
             {
@@ -342,7 +342,7 @@ namespace FurchaAdminApi.Controllers
 
             try
             {
-                var result = userService.EditUserGroup(request);
+                var result = await userService.EditUserGroup(request);
 
                 if (result == null)
                 {

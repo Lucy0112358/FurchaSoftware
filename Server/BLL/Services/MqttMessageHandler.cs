@@ -99,11 +99,16 @@ namespace FurchaBLL.Services
                         await HandleChangeTypeAsync(topic, payload);
                         break;
 
-                    case CommandTypes.SuspendLocker:
+                    case CommandTypes.SuspendLockerDoor:
                         await HandleSuspendLockerDoorAsync(topic, payload);
                         break;
                     case CommandTypes.SendLockerMode:
                         await HandleLockerModeChangeAsync(topic, payload);
+                        break;
+                    case CommandTypes.SynchronizeUsers:
+                    case CommandTypes.AssigningUserToLocker:
+                    case CommandTypes.AssigningUserGroupToLocker:
+                        await HandleSynchronizeUsersAsync(message.TaskId, topic);
                         break;
                     default:
                         _logger.LogWarning("Unknown command type {CommandType} from topic {Topic}", commandType, topic);
@@ -118,6 +123,39 @@ namespace FurchaBLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling MQTT message from topic {Topic}", topic);
+            }
+        }
+
+        private async Task HandleSynchronizeUsersAsync(long? taskId, string topic)
+        {
+            try
+            {
+                if (!taskId.HasValue)
+                {
+                    _logger.LogWarning("Received SynchronizeUsers command without a task ID from topic {Topic}", topic);
+                    return;
+                }
+
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var syncTaskService = scope.ServiceProvider.GetRequiredService<SyncTaskService>();
+
+                    var acked = await syncTaskService.MarkAckedAsync(taskId.Value);
+
+                    if (acked)
+                    {
+                        _logger.LogInformation("SyncTask {TaskId} acknowledged by brain (topic {Topic}).", taskId, topic);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Ack for SyncTask {TaskId} ignored — row not in Sent state.", taskId);
+                    }
+                }
+            }
+
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to process ack for SyncTask {TaskId} (topic {Topic}).", taskId, topic);
             }
         }
 
@@ -383,7 +421,7 @@ namespace FurchaBLL.Services
                                 new MqttBaseRequest<int>
                                 {
                                     Operation = (int)OperationTypes.Success,
-                                    Command = (int)CommandTypes.SuspendLocker
+                                    Command = (int)CommandTypes.SuspendLockerDoor
                                 },
                                 topic.Replace("webserver", "controller")
                             );

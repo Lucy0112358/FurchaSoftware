@@ -97,7 +97,8 @@ namespace FurchaBLL.Services
             }
         }
 
-        public async Task<MqttClientPublishResult> PublishAsync(object request, string topic, bool withRetainFlag)
+        public async Task<MqttClientPublishResult> PublishAsync(object request, string topic, bool withRetainFlag,
+            MQTTnet.Protocol.MqttQualityOfServiceLevel qos = MQTTnet.Protocol.MqttQualityOfServiceLevel.AtMostOnce)
         {
             try
             {
@@ -109,6 +110,7 @@ namespace FurchaBLL.Services
                     .WithTopic(topic)
                     .WithPayload(payload)
                     .WithRetainFlag(withRetainFlag)
+                    .WithQualityOfServiceLevel(qos)
                     .Build();
 
                 return await _mqttClient.PublishAsync(message);

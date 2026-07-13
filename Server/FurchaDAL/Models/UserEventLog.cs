@@ -17,7 +17,7 @@ public partial class UserEventLog
 
     public string LockerStateAfter { get; set; }
 
-    public DateTime CreatedDate { get; set; }
+    public DateOnly CreatedDate { get; set; }
 
     public int? UserId { get; set; }
 }
